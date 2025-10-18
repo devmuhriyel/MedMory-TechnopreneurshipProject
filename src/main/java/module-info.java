@@ -7,6 +7,8 @@ module org.example.techno_mvp {
     requires org.kordamp.bootstrapfx.core;
     requires com.almasb.fxgl.all;
 
-    opens org.example.techno_mvp to javafx.fxml;
-    exports org.example.techno_mvp;
+    opens MVP to javafx.fxml;
+    exports MVP;
+    exports Contoller;
+    opens Contoller to javafx.fxml;
 }

@@ -1,4 +1,4 @@
-package org.example.techno_mvp;
+package MVP;
 
 import javafx.application.Application;
 

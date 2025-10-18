@@ -1,4 +1,4 @@
-package org.example.techno_mvp;
+package Contoller;
 
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
