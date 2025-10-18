@@ -25,4 +25,7 @@ public class Chat extends Application {
 
     public void handleSendMessage(ActionEvent actionEvent) {
     }
+
+    public void handleFilterChange(ActionEvent actionEvent) {
+    }
 }
