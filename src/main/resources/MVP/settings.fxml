@@ -1,17 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.scene.control.Button?>
+<?import javafx.scene.control.CheckBox?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.MenuItem?>
 <?import javafx.scene.effect.DropShadow?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.paint.Color?>
 <?import javafx.scene.shape.Rectangle?>
 <?import javafx.scene.text.Font?>
 
-
 <AnchorPane prefHeight="768.0" prefWidth="1366.0" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="MVP.Settings">
    <children>
-      <Rectangle arcHeight="20.0" arcWidth="20.0" fill="#f6fffa" height="99.0" layoutX="242.0" layoutY="290.0" stroke="#c4c0c0" strokeType="INSIDE" strokeWidth="0.0" width="993.0">
+      <Rectangle arcHeight="20.0" arcWidth="20.0" fill="#f6fffa" height="66.0" layoutX="246.0" layoutY="630.0" stroke="#c4c0c0" strokeType="INSIDE" strokeWidth="0.0" width="993.0">
          <effect>
             <DropShadow>
                <color>
@@ -20,7 +21,43 @@
             </DropShadow>
          </effect>
       </Rectangle>
-      <Rectangle arcHeight="20.0" arcWidth="20.0" fill="#f6fffa" height="66.0" layoutX="242.0" layoutY="213.0" stroke="#c4c0c0" strokeType="INSIDE" strokeWidth="0.0" width="993.0">
+      <Rectangle arcHeight="20.0" arcWidth="20.0" fill="#f6fffa" height="66.0" layoutX="246.0" layoutY="553.0" stroke="#c4c0c0" strokeType="INSIDE" strokeWidth="0.0" width="993.0">
+         <effect>
+            <DropShadow>
+               <color>
+                  <Color opacity="0.20060795545578003" />
+               </color>
+            </DropShadow>
+         </effect>
+      </Rectangle>
+      <Rectangle arcHeight="20.0" arcWidth="20.0" fill="#f6fffa" height="66.0" layoutX="244.0" layoutY="476.0" stroke="#c4c0c0" strokeType="INSIDE" strokeWidth="0.0" width="993.0">
+         <effect>
+            <DropShadow>
+               <color>
+                  <Color opacity="0.20060795545578003" />
+               </color>
+            </DropShadow>
+         </effect>
+      </Rectangle>
+      <Rectangle arcHeight="20.0" arcWidth="20.0" fill="#f6fffa" height="66.0" layoutX="242.0" layoutY="399.0" stroke="#c4c0c0" strokeType="INSIDE" strokeWidth="0.0" width="993.0">
+         <effect>
+            <DropShadow>
+               <color>
+                  <Color opacity="0.20060795545578003" />
+               </color>
+            </DropShadow>
+         </effect>
+      </Rectangle>
+      <Rectangle arcHeight="20.0" arcWidth="20.0" fill="#f6fffa" height="99.0" layoutX="242.0" layoutY="287.0" stroke="#c4c0c0" strokeType="INSIDE" strokeWidth="0.0" width="993.0">
+         <effect>
+            <DropShadow>
+               <color>
+                  <Color opacity="0.20060795545578003" />
+               </color>
+            </DropShadow>
+         </effect>
+      </Rectangle>
+      <Rectangle arcHeight="20.0" arcWidth="20.0" fill="#f6fffa" height="66.0" layoutX="242.0" layoutY="209.0" stroke="#c4c0c0" strokeType="INSIDE" strokeWidth="0.0" width="993.0">
          <effect>
             <DropShadow>
                <color>
@@ -89,23 +126,29 @@
             <Font size="20.0" />
          </font>
       </Label>
-      <Label layoutX="296.0" layoutY="308.0" style="-fx-font-weight: bold;" text="Notification" textFill="#6e6c6c">
+      <Label layoutX="293.0" layoutY="308.0" style="-fx-font-weight: bold;" text="Notification" textFill="#6e6c6c">
          <font>
             <Font size="20.0" />
          </font>
       </Label>
-      <Label layoutX="278.0" layoutY="374.0" text="Session Timeout" />
-      <Label layoutX="278.0" layoutY="449.0" text="Back-up and Restore" />
-      <Label layoutX="278.0" layoutY="522.0" text="Data Export" />
-      <Label layoutX="278.0" layoutY="597.0" text="Clear Cache" />
-      <Rectangle arcHeight="20.0" arcWidth="20.0" fill="#f6fffa" height="66.0" layoutX="252.0" layoutY="223.0" stroke="#c4c0c0" strokeType="INSIDE" strokeWidth="0.0" width="993.0">
-         <effect>
-            <DropShadow>
-               <color>
-                  <Color opacity="0.20060795545578003" />
-               </color>
-            </DropShadow>
-         </effect>
-      </Rectangle>
+      <Label layoutX="293.0" layoutY="420.0" style="-fx-font-weight: bold;" text="Session Timeout" textFill="#6e6c6c">
+         <font>
+            <Font size="20.0" />
+         </font></Label>
+      <Label layoutX="294.0" layoutY="492.0" style="-fx-font-weight: bold;" text="Back-up and Restore" textFill="#6e6c6c">
+         <font>
+            <Font size="20.0" />
+         </font></Label>
+      <Label layoutX="294.0" layoutY="575.0" style="-fx-font-weight: bold;" text="Data Export" textFill="#6e6c6c">
+         <font>
+            <Font size="20.0" />
+         </font></Label>
+      <Label layoutX="294.0" layoutY="655.0" style="-fx-font-weight: bold;" text="Clear Cache" textFill="#6e6c6c">
+         <font>
+            <Font size="20.0" />
+         </font></Label>
+      <Label layoutX="920.0" layoutY="655.0" text="version" />
+      <Label layoutX="921.0" layoutY="579.0" text="PDF" />
+      <Label layoutX="919.0" layoutY="498.0" text="Back-up and Restore" />
    </children>
 </AnchorPane>
