@@ -22,4 +22,7 @@ public class Chat extends Application {
 
     public void handleNotificationClick(ActionEvent actionEvent) {
     }
+
+    public void handleSendMessage(ActionEvent actionEvent) {
+    }
 }
