@@ -20,15 +20,15 @@
             <padding>
                 <Insets bottom="20.0" left="10.0" right="10.0" top="20.0" />
             </padding>
-         <ImageView fitHeight="77.0" fitWidth="85.0" pickOnBounds="true" preserveRatio="true">
+         <ImageView>
             <image>
-               <Image url="@../../../../../../Downloads/Medmory%20Logo%20for%20Homepage.png" />
+               <Image url="@../images/appLogo.png" />
             </image>
          </ImageView>
 
             <VBox alignment="CENTER" spacing="10.0">
 
-                <Button fx:id="casesButton" contentDisplay="LEFT" onAction="#handleNavigation" prefWidth="150.0" style="-fx-background-color: #008060; -fx-text-fill: WHITE; -fx-font-weight: bold; -fx-background-radius: 5; -fx-cursor: hand;" text="Cases">
+                <Button fx:id="casesButton" contentDisplay="LEFT" onAction="#handleNavigation" prefWidth="150.0" style="-fx-background-color: #008060; -fx-text-fill: WHITE; -fx-font-weight: bold; -fx-background-radius: 5; -fx-cursor: hand;" text="Account">
                     <graphic>
                         <Label style="-fx-font-size: 20px;" text="👤" textFill="WHITE" />
                     </graphic>
@@ -69,8 +69,8 @@
                 <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
             </padding>
 
-            <HBox alignment="CENTER_LEFT" prefHeight="40.0" style="-fx-background-color: WHITE; -fx-background-radius: 10; -fx-border-color: #c0d0c0; -fx-border-radius: 10; -fx-border-width: 2;">
-                <TextField promptText="Search Here" style="-fx-background-color: transparent; -fx-font-size: 14;" HBox.hgrow="ALWAYS">
+            <HBox alignment="CENTER_LEFT" prefHeight="40.0" prefWidth="163.0" style="-fx-background-color: WHITE; -fx-background-radius: 10; -fx-border-color: #c0d0c0; -fx-border-radius: 10; -fx-border-width: 2;">
+                <TextField prefHeight="28.0" prefWidth="612.0" promptText="Search Here" style="-fx-background-color: transparent; -fx-font-size: 14;" HBox.hgrow="ALWAYS">
                     <HBox.margin>
                         <Insets left="10.0" right="10.0" />
                     </HBox.margin>
