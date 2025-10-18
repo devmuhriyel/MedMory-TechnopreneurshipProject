@@ -1,4 +1,4 @@
-package Contoller;
+package Controller;
 
 public class HistoryController {
 }
