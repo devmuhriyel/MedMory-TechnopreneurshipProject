@@ -11,9 +11,9 @@ import java.io.IOException;
 public class Chat extends Application {
     @Override
     public void start(Stage stage) throws IOException {
-        FXMLLoader fxmlLoader = new FXMLLoader(HelloApplication.class.getResource("Chat.fxml"));
+        FXMLLoader fxmlLoader = new FXMLLoader(Login.class.getResource("Chat.fxml"));
         Scene scene = new Scene(fxmlLoader.load(), 1366, 768);
-        stage.setTitle("Chat");
+        stage.setTitle("MEDMORY - Your Medical History");
         stage.setScene(scene);
         stage.show();
     }

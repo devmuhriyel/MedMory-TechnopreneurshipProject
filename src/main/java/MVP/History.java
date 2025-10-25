@@ -11,9 +11,9 @@ import java.io.IOException;
 public class History extends Application {
     @Override
     public void start(Stage stage) throws IOException {
-        FXMLLoader fxmlLoader = new FXMLLoader(HelloApplication.class.getResource("History.fxml"));
+        FXMLLoader fxmlLoader = new FXMLLoader(Login.class.getResource("History.fxml"));
         Scene scene = new Scene(fxmlLoader.load(), 1366, 768);
-        stage.setTitle("History Cases");
+        stage.setTitle("MEDMORY - Your Medical History");
         stage.setScene(scene);
         stage.show();
     }
