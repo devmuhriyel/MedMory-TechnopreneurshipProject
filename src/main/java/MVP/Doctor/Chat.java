@@ -1,21 +1,21 @@
-package MVP;
+package MVP.Doctor;
 
+import MVP.Login;
 import javafx.application.Application;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 
 import java.io.IOException;
 
-public class HelloApplication extends Application {
+public class Chat extends Application {
     @Override
     public void start(Stage stage) throws IOException {
-        // Load the login page as the main entry point
-        FXMLLoader fxmlLoader = new FXMLLoader(HelloApplication.class.getResource("Login.fxml"));
-        Scene scene = new Scene(fxmlLoader.load(), 800, 600);
+        FXMLLoader fxmlLoader = new FXMLLoader(Login.class.getResource("Chat.fxml"));
+        Scene scene = new Scene(fxmlLoader.load(), 1280, 768);
         stage.setTitle("MEDMORY - Your Medical History");
         stage.setScene(scene);
-        stage.setResizable(false);
         stage.show();
     }
 }

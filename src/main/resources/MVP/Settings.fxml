@@ -10,7 +10,7 @@
 <?import javafx.scene.shape.Rectangle?>
 <?import javafx.scene.text.Font?>
 
-<AnchorPane prefHeight="768.0" prefWidth="1366.0" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="MVP.Settings">
+<AnchorPane prefHeight="768.0" prefWidth="1366.0" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="MVP.Admin.Settings">
    <children>
       <Rectangle arcHeight="20.0" arcWidth="20.0" fill="#f6fffa" height="66.0" layoutX="246.0" layoutY="630.0" stroke="#c4c0c0" strokeType="INSIDE" strokeWidth="0.0" width="993.0">
          <effect>

@@ -11,4 +11,10 @@ module org.example.techno_mvp {
     exports MVP;
     exports Controller;
     opens Controller to javafx.fxml;
+    exports MVP.Doctor;
+    opens MVP.Doctor to javafx.fxml;
+    exports MVP.Admin;
+    opens MVP.Admin to javafx.fxml;
+    exports Controller.Doctor;
+    opens Controller.Doctor to javafx.fxml;
 }

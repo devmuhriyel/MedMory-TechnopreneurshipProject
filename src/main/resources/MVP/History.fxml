@@ -13,7 +13,7 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<BorderPane fx:id="mainContainer" prefHeight="768.0" prefWidth="1366.0" style="-fx-background-color: #e6f0e6;" xmlns="http://javafx.com/javafx/24.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="MVP.History">
+<BorderPane fx:id="mainContainer" prefHeight="768.0" prefWidth="1366.0" style="-fx-background-color: #e6f0e6;" xmlns="http://javafx.com/javafx/24.0.1" xmlns:fx="http://javafx.com/fxml/1"  fx:controller="Controller.Doctor.HistoryController">
 
     <left>
         <VBox alignment="TOP_CENTER" prefWidth="170.0" spacing="15.0" style="-fx-background-color: #00BF63;" BorderPane.alignment="TOP_LEFT">
@@ -28,13 +28,17 @@
 
             <VBox alignment="CENTER" spacing="10.0">
 
-                <Button fx:id="casesButton" contentDisplay="LEFT" onAction="#handleNavigation" prefWidth="150.0" style="-fx-background-color: #008060; -fx-text-fill: WHITE; -fx-font-weight: bold; -fx-background-radius: 5; -fx-cursor: hand;" text="Account">
+                <Button fx:id="accountButton" contentDisplay="LEFT" onAction="#handleNavigation" prefWidth="150.0"
+                        style="-fx-background-color: #008060; -fx-text-fill: WHITE; -fx-font-weight: bold; -fx-background-radius: 5; -fx-cursor: hand;"
+                        text="Account">
                     <graphic>
                         <Label style="-fx-font-size: 20px;" text="👤" textFill="WHITE" />
                     </graphic>
                 </Button>
 
-                <Button fx:id="accountButton" contentDisplay="LEFT" onAction="#handleNavigation" prefWidth="150.0" style="-fx-background-color: #b0e0ff; -fx-background-radius: 5; -fx-font-weight: bold; -fx-border-color: #2090ff; -fx-text-fill: #0050c0; -fx-cursor: hand;" text="Cases">
+                <Button fx:id="casesButton" contentDisplay="LEFT" onAction="#handleNavigation" prefWidth="150.0"
+                        style="-fx-background-color: #b0e0ff; -fx-background-radius: 5; -fx-font-weight: bold; -fx-border-color: #2090ff; -fx-text-fill: #0050c0; -fx-cursor: hand;"
+                        text="Cases">
                     <graphic>
                         <Label style="-fx-font-size: 20px;" text="💼" textFill="#0050c0" />
                     </graphic>
