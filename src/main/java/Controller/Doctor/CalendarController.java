@@ -162,7 +162,7 @@ public class CalendarController {
             case "casesButton": targetFxml = "History.fxml"; break;
             case "calendarButton": targetFxml = "DoctorCalendar.fxml"; break;
             case "notificationsButton": targetFxml = "Chat.fxml"; break;
-            case "settingsButton": targetFxml = "Settings.fxml"; break;
+            case "settingsButton": targetFxml = "DoctorSettings.fxml"; break;
             default:
                 System.out.println("Unknown button: " + clickedButton.getId());
                 return;

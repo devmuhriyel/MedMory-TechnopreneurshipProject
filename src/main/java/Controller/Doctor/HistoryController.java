@@ -47,7 +47,7 @@ public class HistoryController {
                 targetFxml = "Chat.fxml";
                 break;
             case "settingsButton":
-                targetFxml = "Settings.fxml";
+                targetFxml = "DoctorSettings.fxml";
                 break;
             default:
                 System.out.println("Unknown navigation target: " + buttonId);

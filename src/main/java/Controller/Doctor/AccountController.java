@@ -81,7 +81,7 @@ public class AccountController {
                 targetFxml = "Chat.fxml"; // Navigate to the Chat/Notifications screen
                 break;
             case "settingsButton":
-                targetFxml = "Settings.fxml";
+                targetFxml = "DoctorSettings.fxml";
                 break;
             default:
                 System.out.println("Unknown navigation target: " + buttonId);
