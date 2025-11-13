@@ -50,7 +50,7 @@ public class AccountController {
         System.out.println("Account controller initialized.");
         // Example: Load initial data (in a real app, this would be from a database)
         doctorNameLabel.setText("Dr. Jane Doe");
-        specializationLabel.setText("Pediatrician");
+        specializationLabel.setText("Cardiologist");
         fullNameField.setText("Jane A. Doe");
         emailField.setText("jane.doe@clinic.com");
         // Clear password field on load for security
