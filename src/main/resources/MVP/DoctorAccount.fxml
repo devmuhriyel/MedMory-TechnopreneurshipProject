@@ -49,7 +49,7 @@
                 <Button fx:id="notificationsButton" contentDisplay="LEFT" onAction="#handleNavigation" prefWidth="150.0" text="Chat"
                         style="-fx-background-color: #008060; -fx-text-fill: WHITE; -fx-font-weight: bold; -fx-background-radius: 5; -fx-cursor: hand;">
                     <graphic>
-                        <Label style="-fx-font-size: 20px;" text="🔔" textFill="WHITE" />
+                        <Label style="-fx-font-size: 20px;" text="💬" textFill="WHITE"/>
                     </graphic>
                 </Button>
 

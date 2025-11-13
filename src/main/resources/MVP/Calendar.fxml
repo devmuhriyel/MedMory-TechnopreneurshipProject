@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.SplitPane?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+
+<BorderPane fx:id="mainContainer" prefHeight="768.0" prefWidth="1366.0"
+            style="-fx-background-color: #e6f0e6;"
+            xmlns="http://javafx.com/javafx/24.0.1"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="Controller.Doctor.CalendarController">
+
+    <!-- Sidebar -->
+    <left>
+        <VBox alignment="TOP_CENTER" prefWidth="170.0" spacing="15.0" style="-fx-background-color: #00BF63;">
+            <padding>
+                <Insets bottom="20.0" left="10.0" right="10.0" top="20.0"/>
+            </padding>
+
+            <ImageView fitHeight="45.0" fitWidth="45.0">
+                <image>
+                    <Image url="@../images/logoApp.png"/>
+                </image>
+            </ImageView>
+
+            <VBox alignment="CENTER" spacing="10.0">
+
+                <Button fx:id="accountButton" text="Account" contentDisplay="LEFT" onAction="#handleNavigation"
+                        prefWidth="150.0" style="-fx-background-color: #008060; -fx-text-fill: WHITE; -fx-font-weight: bold; -fx-background-radius: 5; -fx-cursor: hand;">
+                    <graphic>
+                        <Label style="-fx-font-size: 20px;" text="👤" textFill="WHITE"/>
+                    </graphic>
+                </Button>
+
+                <Button fx:id="casesButton" text="Cases" contentDisplay="LEFT" onAction="#handleNavigation"
+                        prefWidth="150.0" style="-fx-background-color: #008060; -fx-text-fill: WHITE; -fx-font-weight: bold; -fx-background-radius: 5; -fx-cursor: hand;">
+                    <graphic>
+                        <Label style="-fx-font-size: 20px;" text="💼" textFill="WHITE"/>
+                    </graphic>
+                </Button>
+
+                <Button fx:id="calendarButton" text="Calendar" contentDisplay="LEFT" onAction="#handleNavigation"
+                        prefWidth="150.0" style="-fx-background-color: #b0e0ff; -fx-text-fill: #0050c0; -fx-font-weight: bold; -fx-background-radius: 5; -fx-border-color: #2090ff; -fx-cursor: hand;">
+                    <graphic>
+                        <Label style="-fx-font-size: 20px;" text="📅" textFill="#0050c0"/>
+                    </graphic>
+                </Button>
+
+                <Button fx:id="notificationsButton" text="Chat" contentDisplay="LEFT" onAction="#handleNavigation"
+                        prefWidth="150.0" style="-fx-background-color: #008060; -fx-text-fill: WHITE; -fx-font-weight: bold; -fx-background-radius: 5; -fx-cursor: hand;">
+                    <graphic>
+                        <Label style="-fx-font-size: 20px;" text="💬" textFill="WHITE"/>
+                    </graphic>
+                </Button>
+
+            </VBox>
+
+            <VBox VBox.vgrow="ALWAYS"/>
+
+            <Button fx:id="settingsButton" text="Settings" contentDisplay="LEFT" onAction="#handleNavigation"
+                    prefWidth="150.0" style="-fx-background-color: #008060; -fx-text-fill: WHITE; -fx-font-weight: bold; -fx-background-radius: 5; -fx-cursor: hand;">
+                <graphic>
+                    <Label style="-fx-font-size: 20px;" text="⚙" textFill="WHITE"/>
+                </graphic>
+            </Button>
+
+        </VBox>
+    </left>
+
+    <!-- Main Calendar Content -->
+    <center>
+        <SplitPane dividerPositions="0.6">
+
+            <!-- Upper: Calendar -->
+            <VBox spacing="15.0" style="-fx-background-color: #e6f0e6;">
+                <padding>
+                    <Insets top="20" right="20" bottom="20" left="20"/>
+                </padding>
+
+                <!-- Calendar Pane with Label and GridPane -->
+                <AnchorPane fx:id="calendarPane" prefHeight="400.0" style="-fx-background-color: WHITE; -fx-border-radius: 10; -fx-background-radius: 10; -fx-border-color: #c0c0c0;">
+
+                    <!-- Month label -->
+                    <Label fx:id="monthLabel" layoutX="10" layoutY="10" text="Month" style="-fx-font-size: 18px; -fx-font-weight: bold;"/>
+
+                    <!-- Calendar grid -->
+                    <GridPane fx:id="calendarGrid" layoutX="10" layoutY="40" prefWidth="360" prefHeight="340" hgap="5" vgap="5"/>
+
+                </AnchorPane>
+
+                <!-- Lower: Appointments List -->
+                <Label text="Appointments" style="-fx-font-size: 20; -fx-font-weight: bold;"/>
+                <ScrollPane fitToWidth="true" style="-fx-background-color: transparent; -fx-border-color: transparent;" VBox.vgrow="ALWAYS">
+                    <VBox fx:id="appointmentsListVBox" spacing="10" style="-fx-background-color: transparent;"/>
+                </ScrollPane>
+
+            </VBox>
+
+            <!-- Right Pane (optional detail, e.g., selected appointment info) -->
+            <VBox fx:id="appointmentDetailVBox" alignment="TOP_CENTER" style="-fx-background-color: WHITE;">
+                <padding>
+                    <Insets top="10" right="10" bottom="10" left="10"/>
+                </padding>
+
+                <Label text="Select an appointment to see details" wrapText="true" fx:id="appointmentDetailLabel" style="-fx-font-size: 16;"/>
+            </VBox>
+
+        </SplitPane>
+    </center>
+</BorderPane>
