@@ -4,11 +4,15 @@ import javafx.animation.*;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.AnchorPane;
-import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
+import javafx.stage.Stage;
 import javafx.util.Duration;
+
+import java.io.IOException;
 
 public class LoginController {
 
@@ -71,6 +75,26 @@ public class LoginController {
         logoAnimation.play();
     }
 
+    private void loadFXML(String filePath) {
+        try {
+            Parent root = FXMLLoader.load(getClass().getResource("/" + filePath));
+            Stage stage = (Stage) loginButton.getScene().getWindow();
+            stage.setScene(new Scene(root));
+            stage.show();
+        } catch (IOException e) {
+            e.printStackTrace();
+            showErrorPopup("Failed to load interface: " + filePath);
+        }
+    }
+
+    private void showErrorPopup(String message) {
+        Alert alert = new Alert(Alert.AlertType.ERROR);
+        alert.setHeaderText("Login Failed");
+        alert.setContentText(message);
+        alert.showAndWait();
+    }
+
+
     private void animateLogo() {
         if (logoContainer != null && logoContainer.getChildren() != null) {
             for (int i = 0; i < logoContainer.getChildren().size(); i++) {
@@ -119,27 +143,50 @@ public class LoginController {
 
     @FXML
     private void handleLogin() {
-        // Validate form
-        if (usernameField.getText().trim().isEmpty() || passwordField.getText().trim().isEmpty()) {
+        String username = usernameField.getText().trim();
+        String password = passwordField.getText().trim();
+
+        if (username.isEmpty() || password.isEmpty()) {
             showErrorAnimation();
             return;
         }
 
-        // Show loading animation
         showLoadingAnimation();
 
-        // Simulate login process
-        Timeline loginProcess = new Timeline();
-        loginProcess.getKeyFrames().addAll(
-                new KeyFrame(Duration.millis(2000), event -> {
-                    // Reset button
+        Timeline loginProcess = new Timeline(
+                new KeyFrame(Duration.millis(1500), event -> {
+
+                    // Stop loading animation
                     loginButton.getStyleClass().remove("loading");
                     loginButton.setText("Log In");
 
-                    // Show success message (you can replace this with actual navigation)
-                    showSuccessMessage("Login successful!");
+                    // Validate credentials via DB
+                    LoginResult result = LoginService.validateCredentials(username, password);
+
+                    switch (result.role) {
+
+                        case "doctor":
+                            showSuccessMessage("Doctor login success!");
+                            loadFXML("MVP/DoctorAccount.fxml");
+                            break;
+
+                        case "client":
+                            showSuccessMessage("Client login success!");
+                            loadFXML("MVP/ClientAccount.fxml");
+                            break;
+
+                        case "invalid":
+                            showErrorAnimation();
+                            showErrorPopup("Invalid username or password.");
+                            break;
+
+                        case "error":
+                            showErrorPopup("System error occurred while logging in.");
+                            break;
+                    }
                 })
         );
+
         loginProcess.play();
     }
 

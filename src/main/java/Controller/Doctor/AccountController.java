@@ -1,5 +1,7 @@
 package Controller.Doctor;
 
+import CommonModel.SessionManager;
+import MVP.Doctor.DoctorModel;
 import MVP.Login; // Assuming MVP.Login is used for resource loading path
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -48,12 +50,32 @@ public class AccountController {
     @FXML
     public void initialize() {
         System.out.println("Account controller initialized.");
-        // Example: Load initial data (in a real app, this would be from a database)
-        doctorNameLabel.setText("Dr. Jane Doe");
-        specializationLabel.setText("Cardiologist");
-        fullNameField.setText("Jane A. Doe");
-        emailField.setText("jane.doe@clinic.com");
-        // Clear password field on load for security
+
+        int doctorID = SessionManager.getDoctorID();
+
+        if (doctorID <= 0) {
+            System.out.println("⚠ No doctor is logged in! (Using fallback values)");
+            return;
+        }
+
+        DoctorModel doctor = MVP.Doctor.DoctorService.getDoctorInfo(doctorID);
+
+        if (doctor == null) {
+            System.out.println("⚠ Failed to fetch doctor info.");
+            return;
+        }
+
+        // Snapshot labels
+        doctorNameLabel.setText("Dr. " + doctor.name);
+        specializationLabel.setText(doctor.specialization);
+
+        // Editable form fields
+        fullNameField.setText(doctor.name);
+        emailField.setText(doctor.email);
+        phoneField.setText(doctor.phone);
+        specializationField.setText(doctor.specialization);
+        bioArea.setText(doctor.bio);
+
         passwordField.setText("");
     }
 

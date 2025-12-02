@@ -7,13 +7,12 @@
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.image.Image?>
 <?import javafx.scene.image.ImageView?>
-<?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<BorderPane fx:id="mainContainer" prefHeight="768.0" prefWidth="1366.0" style="-fx-background-color: #e6f0e6;" xmlns="http://javafx.com/javafx/24.0.1" xmlns:fx="http://javafx.com/fxml/1"  fx:controller="Controller.Doctor.HistoryController">
+<BorderPane fx:id="mainContainer" prefHeight="768.0" prefWidth="1366.0" style="-fx-background-color: #e6f0e6;" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="Controller.Doctor.HistoryController">
 
     <left>
         <VBox alignment="TOP_CENTER" prefWidth="170.0" spacing="15.0" style="-fx-background-color: #00BF63;" BorderPane.alignment="TOP_LEFT">
@@ -28,17 +27,13 @@
 
             <VBox alignment="CENTER" spacing="10.0">
 
-                <Button fx:id="accountButton" contentDisplay="LEFT" onAction="#handleNavigation" prefWidth="150.0"
-                        style="-fx-background-color: #008060; -fx-text-fill: WHITE; -fx-font-weight: bold; -fx-background-radius: 5; -fx-cursor: hand;"
-                        text="Account">
+                <Button fx:id="accountButton" contentDisplay="LEFT" onAction="#handleNavigation" prefWidth="150.0" style="-fx-background-color: #008060; -fx-text-fill: WHITE; -fx-font-weight: bold; -fx-background-radius: 5; -fx-cursor: hand;" text="Account">
                     <graphic>
                         <Label style="-fx-font-size: 20px;" text="👤" textFill="WHITE" />
                     </graphic>
                 </Button>
 
-                <Button fx:id="casesButton" contentDisplay="LEFT" onAction="#handleNavigation" prefWidth="150.0"
-                        style="-fx-background-color: #b0e0ff; -fx-background-radius: 5; -fx-font-weight: bold; -fx-border-color: #2090ff; -fx-text-fill: #0050c0; -fx-cursor: hand;"
-                        text="Cases">
+                <Button fx:id="casesButton" contentDisplay="LEFT" onAction="#handleNavigation" prefWidth="150.0" style="-fx-background-color: #b0e0ff; -fx-background-radius: 5; -fx-font-weight: bold; -fx-border-color: #2090ff; -fx-text-fill: #0050c0; -fx-cursor: hand;" text="Cases">
                     <graphic>
                         <Label style="-fx-font-size: 20px;" text="💼" textFill="#0050c0" />
                     </graphic>
@@ -52,7 +47,7 @@
 
                 <Button fx:id="notificationsButton" contentDisplay="LEFT" onAction="#handleNavigation" prefWidth="150.0" style="-fx-background-color: #008060; -fx-text-fill: WHITE; -fx-font-weight: bold; -fx-background-radius: 5; -fx-cursor: hand;" text="Chat">
                     <graphic>
-                        <Label style="-fx-font-size: 20px;" text="💬" textFill="WHITE"/>
+                        <Label style="-fx-font-size: 20px;" text="💬" textFill="WHITE" />
                     </graphic>
                 </Button>
 
@@ -92,53 +87,7 @@
             </Label>
 
             <ScrollPane fitToWidth="true" style="-fx-background-color: transparent; -fx-border-color: transparent;" VBox.vgrow="ALWAYS">
-                <VBox fx:id="casesListVBox" spacing="15.0" style="-fx-background-color: transparent;">
-
-                    <AnchorPane prefHeight="120.0" style="-fx-background-color: #d0fae0; -fx-background-radius: 10; -fx-border-color: #80c0a0; -fx-border-width: 1; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 5, 0, 0, 2);">
-                        <padding>
-                            <Insets bottom="15.0" left="0.0" right="20.0" top="15.0" />
-                        </padding>
-
-                        <Button fx:id="dateButton" mnemonicParsing="false" onAction="#handleDateClick" prefHeight="90.0" prefWidth="100.0" style="-fx-background-color: WHITE; -fx-background-radius: 5; -fx-border-color: #b0b0b0; -fx-border-width: 1; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 3, 0, 0, 1); -fx-cursor: hand;" AnchorPane.bottomAnchor="15.0" AnchorPane.leftAnchor="15.0" AnchorPane.topAnchor="15.0">
-                            <graphic>
-                                <VBox alignment="CENTER" spacing="2.0">
-                                    <Label text="February" textFill="#808080">
-                                        <font><Font size="12.0" /></font>
-                                    </Label>
-                                    <Label text="13" textFill="#202020">
-                                        <font><Font name="System Bold" size="20.0" /></font>
-                                    </Label>
-                                    <Label text="2023" textFill="#808080">
-                                        <font><Font size="12.0" /></font>
-                                    </Label>
-                                </VBox>
-                            </graphic>
-                        </Button>
-
-                        <HBox alignment="CENTER_LEFT" spacing="40.0" AnchorPane.bottomAnchor="15.0" AnchorPane.leftAnchor="145.0" AnchorPane.rightAnchor="20.0" AnchorPane.topAnchor="15.0">
-
-                            <VBox alignment="TOP_LEFT" prefWidth="120.0" spacing="5.0">
-                                <Label text="Treatment" textFill="#008060" />
-                                <Label style="-fx-font-weight: bold;" text="Anti Biotics" textFill="#202020" />
-                            </VBox>
-
-                            <VBox alignment="TOP_LEFT" prefWidth="120.0" spacing="5.0">
-                                <Label text="Patient" textFill="#008060" />
-                                <Label style="-fx-font-weight: bold;" text="Smith White" textFill="#202020" />
-                            </VBox>
-
-                            <VBox alignment="TOP_LEFT" prefWidth="120.0" spacing="5.0">
-                                <Label text="Diagnosis" textFill="#008060" />
-                                <Label style="-fx-font-weight: bold;" text="Scoliosis" textFill="#202020" />
-                            </VBox>
-
-                            <VBox alignment="TOP_LEFT" prefWidth="150.0" spacing="5.0">
-                                <Label text="Completion Date" textFill="#008060" />
-                                <Label style="-fx-font-weight: bold;" text="14-2-2023" textFill="#202020" />
-                            </VBox>
-                        </HBox>
-                    </AnchorPane>
-                </VBox>
+                <VBox fx:id="casesListVBox" spacing="15.0" style="-fx-background-color: transparent;" />
             </ScrollPane>
         </VBox>
     </center>
