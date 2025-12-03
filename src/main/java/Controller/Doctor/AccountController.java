@@ -2,6 +2,7 @@ package Controller.Doctor;
 
 import CommonModel.SessionManager;
 import MVP.Doctor.DoctorModel;
+import MVP.Doctor.DoctorService;
 import MVP.Login; // Assuming MVP.Login is used for resource loading path
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -49,35 +50,35 @@ public class AccountController {
      */
     @FXML
     public void initialize() {
-        System.out.println("Account controller initialized.");
+        System.out.println("Doctor Account Controller Initialized");
 
         int doctorID = SessionManager.getDoctorID();
-
         if (doctorID <= 0) {
-            System.out.println("⚠ No doctor is logged in! (Using fallback values)");
+            System.err.println("⚠ No doctor session found.");
             return;
         }
 
-        DoctorModel doctor = MVP.Doctor.DoctorService.getDoctorInfo(doctorID);
+        DoctorService service = new DoctorService();
+        var doctor = service.getDoctorInfo(doctorID);
 
         if (doctor == null) {
-            System.out.println("⚠ Failed to fetch doctor info.");
+            System.err.println("⚠ Failed to load doctor information.");
             return;
         }
 
-        // Snapshot labels
+        // Fill sidebar card
         doctorNameLabel.setText("Dr. " + doctor.name);
-        specializationLabel.setText(doctor.specialization);
+        specializationLabel.setText(doctor.specialization != null ? doctor.specialization : "N/A");
 
-        // Editable form fields
+        // Fill editable fields
         fullNameField.setText(doctor.name);
         emailField.setText(doctor.email);
         phoneField.setText(doctor.phone);
         specializationField.setText(doctor.specialization);
-        bioArea.setText(doctor.bio);
-
-        passwordField.setText("");
+        bioArea.setText(doctor.biography);
+        passwordField.setText(""); // Always blank for security
     }
+
 
     /**
      * Handles all sidebar navigation button clicks.
@@ -88,19 +89,18 @@ public class AccountController {
         String buttonId = clickedButton.getId();
         String targetFxml = "";
 
-        // Determine which FXML to load based on the button ID
         switch (buttonId) {
             case "accountButton":
-                targetFxml = "DoctorAccount.fxml"; // Updated to the new FXML name
+                targetFxml = "DoctorAccount.fxml";
                 break;
             case "casesButton":
                 targetFxml = "History.fxml";
                 break;
-            case "calendarButton":
-                targetFxml = "Calendar.fxml";
+            case "recordsButton":
+                targetFxml = "ViewMedicalRecordList.fxml";
                 break;
             case "notificationsButton":
-                targetFxml = "Chat.fxml"; // Navigate to the Chat/Notifications screen
+                targetFxml = "Chat.fxml";
                 break;
             case "settingsButton":
                 targetFxml = "DoctorSettings.fxml";

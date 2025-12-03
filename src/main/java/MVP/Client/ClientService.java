@@ -13,7 +13,7 @@ public class ClientService {
             Class.forName("com.mysql.cj.jdbc.Driver");
             Connection conn = DriverManager.getConnection(URL, USER, PASS);
 
-            String sql = "SELECT idusers, name, email, phone FROM users WHERE idusers = ?";
+            String sql = "SELECT idusers, name FROM users WHERE idusers = ?";
             PreparedStatement stmt = conn.prepareStatement(sql);
             stmt.setInt(1, userID);
 
@@ -22,9 +22,8 @@ public class ClientService {
             if (rs.next()) {
                 return new ClientModel(
                         rs.getInt("idusers"),
-                        rs.getString("name"),
-                        rs.getString("email"),
-                        rs.getString("phone")
+                        rs.getString("name")
+
                 );
             }
 

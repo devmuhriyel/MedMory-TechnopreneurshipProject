@@ -1,6 +1,11 @@
 package MVP.Doctor;
 
+import CommonModel.MedicalRecordSummary;
+import DAO.DatabaseConnection;
+
 import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public class DoctorService {
 
@@ -8,32 +13,62 @@ public class DoctorService {
     private static final String USER = "root";
     private static final String PASS = "";
 
-    public static DoctorModel getDoctorInfo(int doctorID) {
-        try {
-            Class.forName("com.mysql.cj.jdbc.Driver");
-            Connection conn = DriverManager.getConnection(URL, USER, PASS);
+    public DoctorModel getDoctorInfo(int doctorID) {
+        DoctorModel doctor = null;
 
-            PreparedStatement stmt = conn.prepareStatement(
-                    "SELECT d.name, d.specialization, d.email, d.phone, d.bio " +
-                            "FROM doctors d WHERE d.iddoctors = ?"
-            );
+        try (Connection conn = DatabaseConnection.getConnection()) {
+            String query = "SELECT * FROM doctors WHERE iddoctors = ?";
+            PreparedStatement stmt = conn.prepareStatement(query);
             stmt.setInt(1, doctorID);
-
             ResultSet rs = stmt.executeQuery();
 
             if (rs.next()) {
-                return new DoctorModel(
-                        rs.getString("name"),
-                        rs.getString("specialization"),
-                        rs.getString("email"),
-                        rs.getString("phone"),
-                        rs.getString("bio")
-                );
+                doctor = new DoctorModel();
+                doctor.id = rs.getInt("iddoctors");
+                doctor.name = rs.getString("name");
+                doctor.specialization = rs.getString("specialization");
+                doctor.email = rs.getString("email");
+                doctor.phone = rs.getString("phone");
+                doctor.biography = rs.getString("biography");
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
+        return doctor;
+    }
 
-        return null;
+    public static List<MedicalRecordSummary> getDoctorMedicalRecords(int doctorID) {
+        List<MedicalRecordSummary> records = new ArrayList<>();
+
+        try (Connection conn = DatabaseConnection.getConnection()) {
+
+            PreparedStatement ps = conn.prepareStatement(
+                    "SELECT r.idrecords, r.patientID, r.patientName, " +
+                            "r.cc AS chiefComplaint, r.duration " +
+                            "FROM records r " +
+                            "WHERE r.doctorID = ? " +
+                            "ORDER BY r.idrecords DESC"
+            );
+
+            ps.setInt(1, doctorID);
+
+            ResultSet rs = ps.executeQuery();
+
+            while (rs.next()) {
+                records.add(new MedicalRecordSummary(
+                        rs.getInt("idrecords"),
+                        rs.getInt("patientID"),
+                        rs.getString("patientName"),
+                        rs.getString("chiefComplaint"),
+                        rs.getString("duration")
+                ));
+            }
+
+        } catch (SQLException e) {
+            System.err.println("Error fetching doctor's medical records: " + e.getMessage());
+            e.printStackTrace();
+        }
+
+        return records;
     }
 }

@@ -46,18 +46,6 @@
                     </graphic>
                 </Button>
 
-                <Button fx:id="calendarButton" contentDisplay="LEFT" onAction="#handleNavigation" prefWidth="150.0" style="-fx-background-color: #b0e0ff; -fx-text-fill: #0050c0; -fx-font-weight: bold; -fx-background-radius: 5; -fx-border-color: #2090ff; -fx-cursor: hand;" text="Calendar">
-                    <graphic>
-                        <Label style="-fx-font-size: 20px;" text="📅" textFill="#0050c0" />
-                    </graphic>
-                </Button>
-
-                <Button fx:id="notificationsButton" contentDisplay="LEFT" onAction="#handleNavigation" prefWidth="150.0" style="-fx-background-color: #008060; -fx-text-fill: WHITE; -fx-font-weight: bold; -fx-background-radius: 5; -fx-cursor: hand;" text="Chat">
-                    <graphic>
-                        <Label style="-fx-font-size: 20px;" text="💬" textFill="WHITE" />
-                    </graphic>
-                </Button>
-
             </VBox>
 
             <VBox VBox.vgrow="ALWAYS" />

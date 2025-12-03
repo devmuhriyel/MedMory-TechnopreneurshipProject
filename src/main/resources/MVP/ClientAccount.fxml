@@ -3,7 +3,7 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
-<?import javafx.scene.control.PasswordField?>
+<?import javafx.scene.control.Separator?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.image.Image?>
 <?import javafx.scene.image.ImageView?>
@@ -26,7 +26,7 @@
             </ImageView>
 
             <VBox alignment="CENTER" spacing="10.0">
-            <Button fx:id="casesButton1" contentDisplay="LEFT" layoutX="10.0" layoutY="60.0" onAction="#handleNavigation" prefWidth="150.0" style="-fx-background-color: #008060; -fx-text-fill: WHITE; -fx-font-weight: bold; -fx-background-radius: 5; -fx-cursor: hand;" text="Home">
+            <Button fx:id="homeButton" contentDisplay="LEFT" layoutX="10.0" layoutY="60.0" onAction="#handleNavigation" prefWidth="150.0" style="-fx-background-color: #008060; -fx-text-fill: WHITE; -fx-font-weight: bold; -fx-background-radius: 5; -fx-cursor: hand;" text="Home">
                <graphic>
                   <Label style="-fx-font-size: 20px;" textFill="WHITE" />
                </graphic>
@@ -43,18 +43,6 @@
                     </graphic>
                 </Button>
 
-                <Button fx:id="calendarButton" contentDisplay="LEFT" onAction="#handleNavigation" prefWidth="150.0" style="-fx-background-color: #008060; -fx-text-fill: WHITE; -fx-font-weight: bold; -fx-background-radius: 5; -fx-cursor: hand;" text="Calendar">
-                    <graphic>
-                        <Label style="-fx-font-size: 20px;" text="📅" textFill="WHITE" />
-                    </graphic>
-                </Button>
-
-                <Button fx:id="notificationsButton" contentDisplay="LEFT" onAction="#handleNavigation" prefWidth="150.0" style="-fx-background-color: #008060; -fx-text-fill: WHITE; -fx-font-weight: bold; -fx-background-radius: 5; -fx-cursor: hand;" text="Chat">
-                    <graphic>
-                        <Label style="-fx-font-size: 20px;" text="💬" textFill="WHITE" />
-                    </graphic>
-                </Button>
-
             </VBox>
 
             <VBox VBox.vgrow="ALWAYS" />
@@ -68,60 +56,39 @@
     </left>
 
     <center>
-        <VBox alignment="TOP_LEFT" spacing="20.0" style="-fx-background-color: #e6f0e6;">
+        <VBox alignment="TOP_LEFT" spacing="25.0" style="-fx-background-color: #e6f0e6;">
             <padding>
                 <Insets bottom="30.0" left="40.0" right="40.0" top="30.0" />
             </padding>
 
-            <Label text="User Account Management" textFill="#202020">
+            <Label fx:id="headerLabel" text="My Account" textFill="#202020">
                 <font>
-                    <Font name="System Bold" size="30.0" />
+                    <Font name="System Bold" size="34.0" />
                 </font>
             </Label>
 
-            <HBox alignment="TOP_LEFT" spacing="30.0" VBox.vgrow="ALWAYS">
+            <VBox spacing="18.0" style="-fx-background-color: WHITE; -fx-background-radius: 12; -fx-padding: 25;">
 
+                <Label text="Personal Information" textFill="#007744">
+                    <font>
+                        <Font size="19.0" />
+                    </font>
+                </Label>
 
+                <HBox alignment="CENTER_LEFT" spacing="20.0">
+                    <Label prefWidth="120.0" text="Full Name:" />
+                    <TextField fx:id="fullNameField" promptText="Enter your full name" style="-fx-background-radius: 8; -fx-padding: 6;" HBox.hgrow="ALWAYS" />
+                </HBox>
 
-                <VBox spacing="15.0" style="-fx-background-color: WHITE; -fx-background-radius: 10; -fx-padding: 20;" HBox.hgrow="ALWAYS">
-                    <Label text="Personal Information" textFill="#202020">
-                        <font>
-                            <Font name="System Bold" size="20.0" />
-                        </font>
-                    </Label>
+                <Separator />
 
-                    <HBox alignment="CENTER_LEFT" spacing="20.0">
-                        <Label prefWidth="120.0" text="Full Name:" />
-                        <TextField fx:id="fullNameField" promptText="Enter your full name" HBox.hgrow="ALWAYS" />
-                    </HBox>
+                <HBox alignment="CENTER_RIGHT" spacing="12.0">
+                    <Button onAction="#handleSaveChanges" style="-fx-background-color: #00BF63; -fx-text-fill: WHITE;                                -fx-font-weight: bold; -fx-background-radius: 8;                                -fx-padding: 10 25 10 25; -fx-cursor: hand;" text="Save Changes" />
+                    <Button onAction="#handleLogout" style="-fx-background-color: #e34d4d; -fx-text-fill: WHITE;                                -fx-font-weight: bold; -fx-background-radius: 8;                                -fx-padding: 10 25 10 25; -fx-cursor: hand;" text="Logout" />
+                </HBox>
 
-                    <HBox alignment="CENTER_LEFT" spacing="20.0">
-                        <Label prefWidth="120.0" text="Email:" />
-                        <TextField fx:id="emailField" promptText="Enter your email" HBox.hgrow="ALWAYS" />
-                    </HBox>
-
-                    <HBox alignment="CENTER_LEFT" spacing="20.0">
-                        <Label prefWidth="120.0" text="Phone Number:" />
-                        <TextField fx:id="phoneField" promptText="Enter your phone number" HBox.hgrow="ALWAYS" />
-                    </HBox>
-
-                    <HBox alignment="CENTER_LEFT" spacing="20.0" />
-
-                    <HBox alignment="TOP_LEFT" spacing="20.0" />
-
-                    <HBox alignment="CENTER_LEFT" spacing="20.0">
-                        <Label prefWidth="120.0" text="Change Password:" />
-                        <PasswordField fx:id="passwordField" promptText="New Password" HBox.hgrow="ALWAYS" />
-                    </HBox>
-
-                    <HBox alignment="CENTER_RIGHT" spacing="10.0">
-                        <Button onAction="#handleSaveChanges" style="-fx-background-color: #00BF63; -fx-text-fill: WHITE; -fx-font-weight: bold; -fx-background-radius: 5; -fx-padding: 10 20 10 20; -fx-cursor: hand;" text="Save Changes" />
-                        <Button onAction="#handleLogout" style="-fx-background-color: #e57373; -fx-text-fill: WHITE; -fx-font-weight: bold; -fx-background-radius: 5; -fx-padding: 10 20 10 20; -fx-cursor: hand;" text="Logout" />
-                    </HBox>
-
-                </VBox>
-
-            </HBox>
+            </VBox>
         </VBox>
     </center>
+
 </BorderPane>

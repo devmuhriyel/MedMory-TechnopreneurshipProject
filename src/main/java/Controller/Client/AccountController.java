@@ -11,9 +11,6 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.PasswordField;
-import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
 
@@ -21,15 +18,7 @@ import java.io.IOException;
 
 public class AccountController {
 
-    @FXML private Label doctorNameLabel;
-    @FXML private Label specializationLabel;
-
     @FXML private TextField fullNameField;
-    @FXML private TextField emailField;
-    @FXML private TextField phoneField;
-    @FXML private TextField specializationField;
-    @FXML private TextArea bioArea;
-    @FXML private PasswordField passwordField;
 
     @FXML private Button accountButton;
     @FXML private Button casesButton;
@@ -55,23 +44,7 @@ public class AccountController {
             return;
         }
 
-        System.out.println("SESSION USER ID = " + userID);
-
-        System.out.println("CLIENT RETURNED = " + client);
-
-
-        doctorNameLabel.setText(client.name);
-        specializationLabel.setText("Patient");
-
         fullNameField.setText(client.name);
-        emailField.setText(client.email);
-        phoneField.setText(client.phone);
-
-        specializationField.setText("N/A");
-        specializationField.setDisable(true);
-
-        bioArea.setText("No bio available.");
-        passwordField.setText("");
     }
 
     public void handleNavigation(ActionEvent event) {
@@ -79,6 +52,7 @@ public class AccountController {
         String id = clickedButton.getId();
 
         String targetFxml = switch (id) {
+            case "homeButton" -> "ClientHomepage.fxml";
             case "accountButton" -> "ClientAccount.fxml";
             case "casesButton" -> "MedicalRecord.fxml";
             case "calendarButton" -> "ClientCalendar.fxml";
@@ -108,20 +82,7 @@ public class AccountController {
 
     public void handleSaveChanges(ActionEvent event) {
         System.out.println("Saving client changes...");
-
-        String name = fullNameField.getText();
-        String email = emailField.getText();
-        String phone = phoneField.getText();
-        String password = passwordField.getText();
-
-        System.out.println("Updated Name: " + name);
-        System.out.println("Updated Email: " + email);
-        System.out.println("Updated Phone: " + phone);
-
-        if (!password.isEmpty()) {
-            System.out.println("Password will be updated.");
-        }
-
+        System.out.println("Updated Name: " + fullNameField.getText());
     }
 
     public void handleLogout(ActionEvent event) {
