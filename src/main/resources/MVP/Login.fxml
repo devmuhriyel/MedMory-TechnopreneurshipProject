@@ -50,7 +50,7 @@
                         <Button fx:id="loginButton" onAction="#handleLogin" style="-fx-background-color: #00BF63; -fx-text-fill: white; -fx-font-size: 16px; -fx-font-weight: bold; -fx-background-radius: 8px; -fx-padding: 15px 40px; -fx-cursor: hand;" text="Log In" textFill="#30b155" />
 
                         <!-- Signup Link -->
-                        <Button fx:id="signupButton" onAction="#handleSignup" style="-fx-background-color: transparent; -fx-text-fill: #2196F3; -fx-font-size: 16px; -fx-font-weight: bold; -fx-underline: true; -fx-cursor: hand;" text="Don't have account? Sign up" />
+                        <Button fx:id="signupButton" onAction="#handleSignup" style="-fx-background-color: transparent; -fx-text-fill: #2196F3; -fx-font-size: 16px; -fx-font-weight: bold; -fx-underline: true; -fx-cursor: hand;" text="Don't have an account? Sign up" />
                     </children>
                 </VBox>
             </children>
