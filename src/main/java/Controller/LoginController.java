@@ -1,5 +1,7 @@
 package Controller;
 
+import DAO.DatabaseConnection;
+import DAO.RecordDAO;
 import javafx.animation.*;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
@@ -24,11 +26,10 @@ public class LoginController {
     @FXML private VBox formContainer;
     @FXML private VBox logoContainer;
 
-    private SequentialTransition pulseSequence; // Reference to stop it later
+    private SequentialTransition pulseSequence;
 
     @FXML
     private void initialize() {
-        // Defer animations until after the scene is fully laid out
         Platform.runLater(this::startPageAnimations);
     }
 
@@ -66,21 +67,31 @@ public class LoginController {
 
         showLoadingAnimation();
 
-        // Simulate network delay/processing
         Timeline loginProcess = new Timeline(
                 new KeyFrame(Duration.millis(1500), event -> {
-                    // 1. Stop animations and reset button state
                     stopLoadingAnimation();
 
-                    // 2. Validate credentials via DB
-                    // Note: Ensure LoginService and LoginResult classes exist
+                    // 1. Authenticate user credentials
                     LoginResult result = LoginService.validateCredentials(username, password);
 
-                    // 3. Handle result (using Platform.runLater for popups)
                     switch (result.role) {
                         case "doctor":
-                            showSuccessMessage("Doctor login success!");
-                            loadFXML("MVP/DoctorAccount.fxml");
+                            // 2. BLOCKCHAIN INTEGRITY CHECK: Verify records before allowing access
+                            RecordDAO recordDAO = new RecordDAO(DatabaseConnection.getConnection());
+                            if (recordDAO.validateBlockchain()) {
+                                showSuccessMessage("Integrity Verified. Doctor login success!");
+                                loadFXML("MVP/DoctorAccount.fxml");
+                            } else {
+                                // Trigger if any record data or the hash chain was altered in the DB
+                                Platform.runLater(() -> {
+                                    Alert alert = new Alert(Alert.AlertType.WARNING);
+                                    alert.setTitle("Security Alert");
+                                    alert.setHeaderText("Database Integrity Compromised");
+                                    alert.setContentText("Warning: The blockchain validation failed. " +
+                                            "Medical records may have been tampered with. Access denied.");
+                                    alert.showAndWait();
+                                });
+                            }
                             break;
 
                         case "client":
@@ -103,9 +114,7 @@ public class LoginController {
     }
 
     private void stopLoadingAnimation() {
-        if (pulseSequence != null) {
-            pulseSequence.stop();
-        }
+        if (pulseSequence != null) pulseSequence.stop();
         loginButton.getStyleClass().remove("loading");
         loginButton.setScaleX(1.0);
         loginButton.setScaleY(1.0);
@@ -149,8 +158,6 @@ public class LoginController {
         pulseSequence.play();
     }
 
-    // ... (animateLogo, animateFormFields, showErrorAnimation remain the same)
-
     @FXML
     private void handleSignup() {
         ScaleTransition click = new ScaleTransition(Duration.millis(100), signupButton);
@@ -172,7 +179,6 @@ public class LoginController {
         FXMLLoader loader = new FXMLLoader(getClass().getResource("/MVP/Signup.fxml"));
         Parent signupPage = loader.load();
         Stage stage = (Stage) signupButton.getScene().getWindow();
-
         stage.setWidth(900);
         stage.setHeight(850);
         stage.getScene().setRoot(signupPage);
