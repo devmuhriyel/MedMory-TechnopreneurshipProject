@@ -10,7 +10,7 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 
-<BorderPane fx:id="mainContainer" prefHeight="768.0" prefWidth="1366.0" style="-fx-background-color: #e6f0e6;" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="Controller.Client.ClientSettingsController">
+<BorderPane fx:id="mainContainer" prefHeight="768.0" prefWidth="1366.0" style="-fx-background-color: #e6f0e6;" xmlns="http://javafx.com/javafx/24.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="Controller.Client.ClientSettingsController">
 
     <!-- Sidebar -->
     <left>
@@ -63,7 +63,7 @@
                 <Insets bottom="30" left="30" right="30" top="30" />
             </padding>
 
-            <Label style="-fx-font-size: 30px; -fx-font-weight: bold;" text="Doctor Settings" />
+            <Label style="-fx-font-size: 30px; -fx-font-weight: bold;" text="Settings" />
 
             <!-- Notifications Section -->
             <VBox spacing="10.0" style="-fx-background-color: WHITE; -fx-padding: 20; -fx-background-radius: 10;">
