@@ -43,6 +43,8 @@ public class DoctorMedicalRecordController {
 
     private RecordDAO recordDAO;
     private int currentPatientID;
+    private int currentRecordID; // For edit mode
+    private boolean isEditMode = false;
 
     @FXML
     public void initialize() {
@@ -62,18 +64,34 @@ public class DoctorMedicalRecordController {
     /**
      * Gathers data from the UI fields and saves it to the database
      * while linking it to the blockchain.
+     * Handles both CREATE and UPDATE operations.
      */
     @FXML
     public void handleSaveRecord() {
         try {
-            // 1. Create a new MedicalRecord object
+            // Validate required fields
+            if (patientNameField.getText().trim().isEmpty()) {
+                showSimpleAlert(Alert.AlertType.WARNING, "Validation Error", "Patient name is required.");
+                return;
+            }
+            
+            if (ageField.getText().trim().isEmpty()) {
+                showSimpleAlert(Alert.AlertType.WARNING, "Validation Error", "Age is required.");
+                return;
+            }
+
+            // 1. Create a MedicalRecord object
             MedicalRecord record = new MedicalRecord();
 
             // 2. Map UI fields to the object
-            record.setPatientID(currentPatientID);
-            record.setPatientName(patientNameField.getText());
-            record.setAge(Integer.parseInt(ageField.getText()));
-            record.setDoctorID(SessionManager.getDoctorID()); // Uses the logged-in doctor's ID
+            if (isEditMode) {
+                record.setIdrecords(currentRecordID);
+            }
+            
+            record.setPatientID(currentPatientID > 0 ? currentPatientID : 0); // Use 0 if not set
+            record.setPatientName(patientNameField.getText().trim());
+            record.setAge(Integer.parseInt(ageField.getText().trim()));
+            record.setDoctorID(SessionManager.getDoctorID());
 
             record.setSubj(subjField.getText());
             record.setCc(ccField.getText());
@@ -93,20 +111,74 @@ public class DoctorMedicalRecordController {
             record.setSh(shField.getText());
             record.setRos(rosField.getText());
 
-            // 3. Call RecordDAO to insert the record with Blockchain hashing
-            boolean success = recordDAO.insertRecord(record);
-
-            if (success) {
-                showSimpleAlert(Alert.AlertType.INFORMATION, "Success", "Medical record successfully saved and secured in the blockchain.");
+            // 3. Call RecordDAO to insert or update the record with Blockchain hashing
+            boolean success;
+            if (isEditMode) {
+                success = recordDAO.updateRecord(record);
+                if (success) {
+                    showSimpleAlert(Alert.AlertType.INFORMATION, "Success", "Medical record successfully updated and blockchain re-validated.");
+                    // Navigate back to list
+                    navigateToRecordList();
+                } else {
+                    showSimpleAlert(Alert.AlertType.ERROR, "Database Error", "Failed to update the record in the database.");
+                }
             } else {
-                showSimpleAlert(Alert.AlertType.ERROR, "Database Error", "Failed to save the record to the database.");
+                success = recordDAO.insertRecord(record);
+                if (success) {
+                    showSimpleAlert(Alert.AlertType.INFORMATION, "Success", "Medical record successfully saved and secured in the blockchain.");
+                    // Navigate back to list
+                    navigateToRecordList();
+                } else {
+                    showSimpleAlert(Alert.AlertType.ERROR, "Database Error", "Failed to save the record to the database.");
+                }
             }
 
         } catch (NumberFormatException e) {
             showSimpleAlert(Alert.AlertType.WARNING, "Input Error", "Please ensure the Age field contains a valid number.");
         } catch (SQLException e) {
             e.printStackTrace();
-            showSimpleAlert(Alert.AlertType.ERROR, "Blockchain Error", "A database error occurred during the blockchain linking process.");
+            showSimpleAlert(Alert.AlertType.ERROR, "Blockchain Error", "A database error occurred: " + e.getMessage());
+        }
+    }
+    
+    /**
+     * Loads a record for editing
+     */
+    public void loadRecordForEdit(MedicalRecord record) {
+        isEditMode = true;
+        currentRecordID = record.getIdrecords();
+        currentPatientID = record.getPatientID();
+        
+        // Populate fields
+        patientNameField.setText(record.getPatientName());
+        ageField.setText(String.valueOf(record.getAge()));
+        subjField.setText(record.getSubj());
+        ccField.setText(record.getCc());
+        hpiField.setText(record.getHpi());
+        onsetField.setText(record.getOnset());
+        locationField.setText(record.getLocation());
+        durationField.setText(record.getDuration());
+        characField.setText(record.getCharacter());
+        factorsField.setText(record.getFactors());
+        radiationField.setText(record.getRadiation());
+        severityField.setText(record.getSeverity());
+        pmiField.setText(record.getPmi());
+        medField.setText(record.getMed());
+        allergiesField.setText(record.getAllergies());
+        fhField.setText(record.getFh());
+        shField.setText(record.getSh());
+        rosField.setText(record.getRos());
+    }
+    
+    private void navigateToRecordList() {
+        try {
+            FXMLLoader loader = new FXMLLoader(Login.class.getResource("ViewMedicalRecordList.fxml"));
+            Scene scene = new Scene(loader.load(), 1280, 768);
+            Stage stage = (Stage) patientNameField.getScene().getWindow();
+            stage.setScene(scene);
+            stage.show();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 

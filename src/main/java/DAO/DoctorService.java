@@ -12,13 +12,7 @@ public class DoctorService {
         List<DoctorCase> list = new ArrayList<>();
 
         try {
-            Class.forName("com.mysql.cj.jdbc.Driver");
-
-            Connection conn = DriverManager.getConnection(
-                    "jdbc:mysql://localhost:3306/medical",
-                    "root",
-                    ""
-            );
+            Connection conn = DatabaseConnection.getConnection();
 
             String sql = """
                 SELECT 
@@ -27,11 +21,12 @@ public class DoctorService {
                     u.name AS patientName,
                     c.diagnosis,
                     c.treatment,
+                    COALESCE(c.case_date, c.date_completed) AS case_date,
                     c.date_completed
                 FROM cases c
                 JOIN users u ON c.patientID = u.idusers
                 WHERE c.doctorID = ?
-                ORDER BY c.date_completed DESC
+                ORDER BY COALESCE(c.case_date, c.date_completed) DESC, c.date_completed DESC
             """;
 
             PreparedStatement stmt = conn.prepareStatement(sql);
@@ -46,12 +41,12 @@ public class DoctorService {
                 dc.patientName = rs.getString("patientName");
                 dc.diagnosis = rs.getString("diagnosis");
                 dc.treatment = rs.getString("treatment");
+                dc.caseDate = rs.getString("case_date");
                 dc.dateCompleted = rs.getString("date_completed");
 
                 list.add(dc);
             }
 
-            conn.close();
         }
         catch (Exception e) {
             e.printStackTrace();

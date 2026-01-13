@@ -6,6 +6,7 @@ public class DoctorCase {
     public String patientName;
     public String diagnosis;
     public String treatment;
+    public String caseDate;  // Date when case was created/started
     public String dateCompleted;
 
     public int getPatientID() {

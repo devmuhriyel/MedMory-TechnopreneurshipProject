@@ -266,4 +266,162 @@ public class RecordDAO {
 
         return records;
     }
+
+    // =========================================================
+    // UPDATE RECORD (WITH BLOCKCHAIN RE-HASHING)
+    // =========================================================
+    public boolean updateRecord(MedicalRecord r) throws SQLException {
+        // Get previous hash from the record before this one
+        String previousHash = "0";
+        String prevHashSQL = "SELECT current_hash FROM records WHERE idrecords < ? ORDER BY idrecords DESC LIMIT 1";
+        
+        try (PreparedStatement ps = conn.prepareStatement(prevHashSQL)) {
+            ps.setInt(1, r.getIdrecords());
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                previousHash = rs.getString("current_hash");
+            }
+        }
+
+        // Recalculate hash for updated record
+        String dataToHash = r.getPatientID() + r.getPatientName() + r.getCc() + previousHash;
+        String currentHash = sha256(dataToHash);
+
+        // Update all subsequent records' hashes (blockchain integrity)
+        String sql = """
+            UPDATE records 
+            SET patientID = ?, patientName = ?, age = ?, subj = ?, cc = ?, hpi = ?,
+                onset = ?, location = ?, duration = ?, charac = ?, factors = ?,
+                radiation = ?, severity = ?, pmi = ?, med = ?, allergies = ?,
+                fh = ?, sh = ?, ros = ?, previous_hash = ?, current_hash = ?
+            WHERE idrecords = ?
+        """;
+
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, r.getPatientID());
+            stmt.setString(2, r.getPatientName());
+            stmt.setInt(3, r.getAge());
+            stmt.setString(4, r.getSubj());
+            stmt.setString(5, r.getCc());
+            stmt.setString(6, r.getHpi());
+            stmt.setString(7, r.getOnset());
+            stmt.setString(8, r.getLocation());
+            stmt.setString(9, r.getDuration());
+            stmt.setString(10, r.getCharacter());
+            stmt.setString(11, r.getFactors());
+            stmt.setString(12, r.getRadiation());
+            stmt.setString(13, r.getSeverity());
+            stmt.setString(14, r.getPmi());
+            stmt.setString(15, r.getMed());
+            stmt.setString(16, r.getAllergies());
+            stmt.setString(17, r.getFh());
+            stmt.setString(18, r.getSh());
+            stmt.setString(19, r.getRos());
+            stmt.setString(20, previousHash);
+            stmt.setString(21, currentHash);
+            stmt.setInt(22, r.getIdrecords());
+
+            boolean updated = stmt.executeUpdate() > 0;
+            
+            // Recalculate hashes for all subsequent records
+            if (updated) {
+                recalculateSubsequentHashes(r.getIdrecords());
+            }
+            
+            return updated;
+        }
+    }
+
+    // =========================================================
+    // RECALCULATE SUBSEQUENT HASHES (for blockchain integrity)
+    // =========================================================
+    private void recalculateSubsequentHashes(int recordID) throws SQLException {
+        String sql = "SELECT * FROM records WHERE idrecords > ? ORDER BY idrecords ASC";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, recordID);
+            ResultSet rs = ps.executeQuery();
+            
+            String previousHash = null;
+            // Get the hash of the updated record
+            String getHashSQL = "SELECT current_hash FROM records WHERE idrecords = ?";
+            try (PreparedStatement hashPs = conn.prepareStatement(getHashSQL)) {
+                hashPs.setInt(1, recordID);
+                ResultSet hashRs = hashPs.executeQuery();
+                if (hashRs.next()) {
+                    previousHash = hashRs.getString("current_hash");
+                }
+            }
+            
+            while (rs.next() && previousHash != null) {
+                int nextID = rs.getInt("idrecords");
+                String data = rs.getInt("patientID") + rs.getString("patientName") + 
+                             rs.getString("cc") + previousHash;
+                String newHash = sha256(data);
+                
+                String updateHashSQL = "UPDATE records SET previous_hash = ?, current_hash = ? WHERE idrecords = ?";
+                try (PreparedStatement updatePs = conn.prepareStatement(updateHashSQL)) {
+                    updatePs.setString(1, previousHash);
+                    updatePs.setString(2, newHash);
+                    updatePs.setInt(3, nextID);
+                    updatePs.executeUpdate();
+                }
+                
+                previousHash = newHash;
+            }
+        }
+    }
+
+    // =========================================================
+    // DELETE RECORD
+    // =========================================================
+    public boolean deleteRecord(int recordID) throws SQLException {
+        String sql = "DELETE FROM records WHERE idrecords = ?";
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, recordID);
+            return stmt.executeUpdate() > 0;
+        }
+    }
+
+    // =========================================================
+    // SEARCH RECORDS BY DOCTOR ID WITH FILTER
+    // =========================================================
+    public static List<MedicalRecordSummary> searchDoctorMedicalRecords(int doctorID, String searchTerm) {
+        List<MedicalRecordSummary> records = new ArrayList<>();
+        
+        String sql = """
+            SELECT idrecords, patientID, patientName, cc AS diagnosis, duration AS recordDate 
+            FROM records 
+            WHERE doctorID = ? 
+            AND (patientName LIKE ? OR cc LIKE ? OR duration LIKE ?)
+            ORDER BY idrecords DESC
+        """;
+        
+        String searchPattern = "%" + searchTerm + "%";
+        
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            
+            ps.setInt(1, doctorID);
+            ps.setString(2, searchPattern);
+            ps.setString(3, searchPattern);
+            ps.setString(4, searchPattern);
+            
+            ResultSet rs = ps.executeQuery();
+            
+            while (rs.next()) {
+                records.add(new MedicalRecordSummary(
+                    rs.getInt("idrecords"),
+                    rs.getInt("patientID"),
+                    rs.getString("patientName"),
+                    rs.getString("diagnosis"),
+                    rs.getString("recordDate")
+                ));
+            }
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        
+        return records;
+    }
 }

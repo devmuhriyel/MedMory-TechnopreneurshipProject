@@ -12,7 +12,7 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<BorderPane fx:id="mainContainer" prefHeight="768.0" prefWidth="1366.0" style="-fx-background-color: #e6f0e6;" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="Controller.Doctor.HistoryController">
+<BorderPane fx:id="mainContainer" prefHeight="768.0" prefWidth="1366.0" style="-fx-background-color: #e6f0e6;" xmlns="http://javafx.com/javafx/24.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="Controller.Doctor.HistoryController">
 
     <!-- ========== SIDEBAR ========== -->
     <left>
@@ -69,39 +69,41 @@
 
     <!-- ========== CENTER CONTENT ========== -->
     <center>
-        <VBox alignment="TOP_CENTER" spacing="15" style="-fx-background-color: #e6f0e6;" BorderPane.alignment="TOP_LEFT">
-            <padding>
-                <Insets bottom="20" left="20" right="20" top="20" />
-            </padding>
+        <HBox spacing="20" style="-fx-background-color: #e6f0e6;">
 
-            <!-- Search Bar -->
-            <HBox alignment="CENTER_LEFT" prefHeight="40" style="-fx-background-color: white; -fx-background-radius: 10;                          -fx-border-color: #c0d0c0; -fx-border-radius: 10; -fx-border-width: 2;">
-                <TextField fx:id="searchField" promptText="Search Records..." style="-fx-background-color: transparent; -fx-font-size: 14;" HBox.hgrow="ALWAYS">
-                    <HBox.margin>
-                        <Insets left="10" right="10" />
-                    </HBox.margin>
-                </TextField>
-            </HBox>
+            <!-- Main Content Area (Right Side) -->
+            <VBox alignment="TOP_CENTER" spacing="15" style="-fx-background-color: #e6f0e6;" BorderPane.alignment="TOP_LEFT" HBox.hgrow="ALWAYS">
+                <padding>
+                    <Insets bottom="20" left="20" right="20" top="20" />
+                </padding>
 
-            <!-- Title and Create Button -->
-            <HBox alignment="CENTER_LEFT" spacing="15">
-                <Label text="Medical Records" textFill="#202020">
-                    <font>
-                        <Font name="System Bold" size="24" />
-                    </font>
-                </Label>
-                <HBox HBox.hgrow="ALWAYS" />
-                <Button fx:id="createRecordButton" onAction="#handleCreateRecord" 
-                        style="-fx-background-color: #00BF63; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5; -fx-padding: 8 20 8 20; -fx-cursor: hand;" 
-                        text="+ Create New Record" />
-            </HBox>
+                <!-- Search Bar -->
+                <HBox alignment="CENTER_LEFT" prefHeight="40" style="-fx-background-color: white; -fx-background-radius: 10; -fx-border-color: #c0d0c0; -fx-border-radius: 10; -fx-border-width: 2;">
+                    <TextField fx:id="searchField" promptText="Search Records..." style="-fx-background-color: transparent; -fx-font-size: 14;" HBox.hgrow="ALWAYS">
+                        <HBox.margin>
+                            <Insets left="10" right="10" />
+                        </HBox.margin>
+                    </TextField>
+                </HBox>
 
-            <!-- Scrollable List of Medical Records -->
-            <ScrollPane fitToWidth="true" style="-fx-background-color: transparent; -fx-border-color: transparent;" VBox.vgrow="ALWAYS">
-                <VBox fx:id="recordsListVBox" spacing="15" style="-fx-background-color: transparent;" />
-            </ScrollPane>
+                <!-- Title and Create Button -->
+                <HBox alignment="CENTER_LEFT" spacing="15">
+                    <Label text="Medical Records" textFill="#202020">
+                        <font>
+                            <Font name="System Bold" size="24" />
+                        </font>
+                    </Label>
+                    <HBox HBox.hgrow="ALWAYS" />
+                    <Button fx:id="createRecordButton" onAction="#handleCreateRecord" style="-fx-background-color: #00BF63; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5; -fx-padding: 8 20 8 20; -fx-cursor: hand;" text="+ Create New Record" />
+                </HBox>
 
-        </VBox>
+                <!-- Scrollable List of Medical Records -->
+                <ScrollPane fitToWidth="true" style="-fx-background-color: transparent; -fx-border-color: transparent;" VBox.vgrow="ALWAYS">
+                    <VBox fx:id="recordsListVBox" spacing="15" style="-fx-background-color: transparent;" />
+                </ScrollPane>
+
+            </VBox>
+        </HBox>
     </center>
 
 </BorderPane>
