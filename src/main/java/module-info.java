@@ -26,6 +26,12 @@ module org.example.techno_mvp {
     opens Controller.Doctor to javafx.fxml;
     exports Controller.Doctor;
 
+    opens Controller.Admin to javafx.fxml;
+
     opens Controller.Client to javafx.fxml;
     exports Controller.Client;
+
+    opens CommonModel to javafx.base;
+
+    exports Controller.Admin;
 }

@@ -1,22 +1,92 @@
 package Controller.Admin;
 
-import MVP.Login;
+import DAO.DatabaseConnection;
+import DAO.*;
+import DAO.RecordDAO;
+import CommonModel.AdminModel;
 import CommonModel.SessionManager;
-import MVP.Admin.ManageUsers;
-import MVP.Admin.Settings;
+import CommonModel.UserRow;
+import MVP.Doctor.DoctorModel;
+import MVP.Login;
 
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.fxml.Initializable;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
-import javafx.scene.control.TextField;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
+import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.stage.Stage;
 
 import java.io.IOException;
+import java.net.URL;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.util.ResourceBundle;
 
-public class ManageUsersController {
+public class ManageUsersController implements Initializable {
+
+    @FXML private TableView<UserRow> userTable;
+    @FXML private TableColumn<UserRow, String> nameCol;
+    @FXML private TableColumn<UserRow, String> roleCol;
+    @FXML private TableColumn<UserRow, String> statusCol;
+
+    private RecordDAO recordDAO;
+    private Connection conn;
+
+    @Override
+    public void initialize(URL location, ResourceBundle resources) {
+
+        Connection conn = DatabaseConnection.getConnection();
+        recordDAO = new RecordDAO(conn);
+
+        setupColumns();
+        loadAllUsers();
+    }
+
+    private void setupColumns() {
+        nameCol.setCellValueFactory(new PropertyValueFactory<>("name"));
+        roleCol.setCellValueFactory(new PropertyValueFactory<>("role"));
+        statusCol.setCellValueFactory(new PropertyValueFactory<>("status"));
+    }
+
+
+    private void loadAllUsers() {
+
+        ObservableList<UserRow> rows = FXCollections.observableArrayList();
+
+        // Patients
+        for (AdminModel p : recordDAO.getAllPatients()) {
+            rows.add(new UserRow(
+                    p.getId(),       // patient ID
+                    p.getName(),
+                    "PATIENT",
+                    "Active"
+            ));
+        }
+
+        // Doctors
+        for (DoctorModel d : recordDAO.getAllDoctors()) {
+            rows.add(new UserRow(
+                    d.id,            // doctor ID
+                    d.name,
+                    "DOCTOR",
+                    "Active"
+            ));
+        }
+
+        userTable.setItems(rows);
+    }
+
+
+
+    // ================= NAVIGATION =================
+
     public void handleNavigation(ActionEvent event) {
         Button clickedButton = (Button) event.getSource();
         String id = clickedButton.getId();
@@ -27,11 +97,6 @@ public class ManageUsersController {
             default -> throw new IllegalStateException("Unexpected value: " + id);
         };
 
-        if (targetFxml == null) {
-            System.err.println("Unknown navigation target: " + id);
-            return;
-        }
-
         try {
             FXMLLoader loader = new FXMLLoader(Login.class.getResource(targetFxml));
             Scene scene = new Scene(loader.load(), 1280, 768);
@@ -41,16 +106,11 @@ public class ManageUsersController {
             stage.show();
 
         } catch (IOException e) {
-            System.err.println("❌ Failed to load: " + targetFxml);
             e.printStackTrace();
         }
-
-
     }
 
     public void handleLogOut(ActionEvent actionEvent) {
-        System.out.println("Logging out...");
-
         SessionManager.clearSession();
 
         try {
@@ -62,8 +122,63 @@ public class ManageUsersController {
             stage.show();
 
         } catch (IOException e) {
-            System.err.println("Failed to load Login.fxml");
             e.printStackTrace();
         }
     }
+
+    @FXML
+    private void handleDeleteUser() {
+
+        UserRow selected = userTable.getSelectionModel().getSelectedItem();
+
+        if (selected == null) {
+            System.out.println("No Selection" + "Please select a user to delete.");
+            return;
+        }
+
+        boolean success;
+
+        if (selected.getRole().equals("PATIENT")) {
+            success = recordDAO.deletePatientById(selected.getId());
+        } else {
+            success = recordDAO.deleteDoctorById(selected.getId());
+        }
+
+        if (success) {
+            loadAllUsers();
+            System.out.println("Success" + "User deleted successfully.");
+        } else {
+            System.out.println("Error" + "Failed to delete user.");
+        }
+    }
+
+    // =========================
+// DELETE PATIENT
+// =========================
+    public boolean deletePatientById(int id) {
+        String sql = "DELETE FROM users WHERE idusers = ?";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, id);
+            return ps.executeUpdate() > 0;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    // =========================
+// DELETE DOCTOR
+// =========================
+    public boolean deleteDoctorById(int id) {
+        String sql = "DELETE FROM doctors WHERE iddoctors = ?";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, id);
+            return ps.executeUpdate() > 0;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+
 }
