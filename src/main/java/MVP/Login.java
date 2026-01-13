@@ -12,10 +12,9 @@ public class Login extends Application {
     public void start(Stage stage) throws IOException {
         // Load the login page as the main entry point
         FXMLLoader fxmlLoader = new FXMLLoader(Login.class.getResource("Login.fxml"));
-        Scene scene = new Scene(fxmlLoader.load(), 800, 600);
+        Scene scene = new Scene(fxmlLoader.load(), 800, 700);
         stage.setTitle("MEDMORY - Your Medical History");
         stage.setScene(scene);
-        stage.setResizable(false);
         stage.show();
     }
 }
