@@ -51,6 +51,23 @@ public class LoginService {
                     return new LoginResult("client", id, id);
                 }
             }
+            // 2. Check USERS table
+            String adminQuery = "SELECT idadmin, password FROM admin WHERE username = ?";
+            try (PreparedStatement ps = conn.prepareStatement(adminQuery)) {
+                ps.setString(1, username.trim());
+                ResultSet rs = ps.executeQuery();
+
+                if (rs.next()) {
+                    String dbPassword = rs.getString("password");
+
+                    // plaintext comparison
+                    if (password.equals(dbPassword)) {
+                        int id = rs.getInt("idadmin");
+                        SessionManager.setClientSession(id);
+                        return new LoginResult("admin", id, id);
+                    }
+                }
+            }
             return new LoginResult("invalid");
         } catch (Exception e) {
             return new LoginResult("error");
