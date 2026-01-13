@@ -7,7 +7,7 @@
 <?import javafx.scene.shape.Rectangle?>
 <?import javafx.scene.text.Font?>
 
-<AnchorPane prefHeight="768.0" prefWidth="1366.0" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="MVP.Admin.Settings">
+<AnchorPane prefHeight="768.0" prefWidth="1366.0" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="Controller.Admin.ManageUsersController">
     <children>
         <Rectangle arcHeight="5.0" arcWidth="5.0" fill="#00bf63" height="768.0" stroke="BLACK" strokeType="INSIDE" strokeWidth="0.0" width="201.0">
             <effect>
@@ -24,7 +24,7 @@
                 <Font name="System Bold" size="24.0" />
             </font>
         </Button>
-        <Button layoutX="19.0" layoutY="191.0" mnemonicParsing="false" style="-fx-background-color: #008060; -fx-font-weight: bold; -fx-background-radius: 5;" text="⚙ Settings  " textFill="#efefef">
+        <Button fx:id="settingsButton" layoutX="19.0" layoutY="191.0" mnemonicParsing="false" onAction="#handleNavigation" style="-fx-background-color: #008060; -fx-font-weight: bold; -fx-background-radius: 5;" text="⚙ Settings  " textFill="#efefef">
             <font>
                 <Font name="System Bold" size="24.0" />
             </font>
@@ -60,7 +60,7 @@
             <Font size="18.0" />
          </font>
       </Label>
-      <Button layoutX="18.0" layoutY="649.0" mnemonicParsing="false" prefHeight="51.0" prefWidth="164.0" style="-fx-background-color: ff1a1a; -fx-font-weight: bold; -fx-background-radius: 5;" text="Log out" textFill="WHITE">
+      <Button fx:id="logOutButton" layoutX="18.0" layoutY="649.0" mnemonicParsing="false" onAction="#handleLogOut" prefHeight="51.0" prefWidth="164.0" style="-fx-background-color: ff1a1a; -fx-font-weight: bold; -fx-background-radius: 5;" text="Log out" textFill="WHITE">
          <font>
             <Font name="System Bold" size="24.0" />
          </font>
