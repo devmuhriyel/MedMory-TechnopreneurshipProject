@@ -138,5 +138,10 @@
       <Label layoutX="920.0" layoutY="655.0" text="version" />
       <Label layoutX="921.0" layoutY="579.0" text="PDF" />
       <Label layoutX="919.0" layoutY="498.0" text="Back-up and Restore" />
+      <Button layoutX="18.0" layoutY="656.0" mnemonicParsing="false" prefHeight="51.0" prefWidth="164.0" style="-fx-background-color: ff1a1a; -fx-font-weight: bold; -fx-background-radius: 5;" text="Log out" textFill="WHITE">
+         <font>
+            <Font name="System Bold" size="24.0" />
+         </font>
+      </Button>
    </children>
 </AnchorPane>

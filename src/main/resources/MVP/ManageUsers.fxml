@@ -60,5 +60,10 @@
             <Font size="18.0" />
          </font>
       </Label>
+      <Button layoutX="18.0" layoutY="649.0" mnemonicParsing="false" prefHeight="51.0" prefWidth="164.0" style="-fx-background-color: ff1a1a; -fx-font-weight: bold; -fx-background-radius: 5;" text="Log out" textFill="WHITE">
+         <font>
+            <Font name="System Bold" size="24.0" />
+         </font>
+      </Button>
     </children>
 </AnchorPane>
