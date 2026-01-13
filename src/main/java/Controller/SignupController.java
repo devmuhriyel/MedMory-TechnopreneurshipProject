@@ -4,7 +4,6 @@ import javafx.animation.*;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
-import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.GridPane;
@@ -64,12 +63,27 @@ public class SignupController {
 
     @FXML
     private HBox logoContainer;
-    private Node signupPage;
 
     @FXML
     private void initialize() {
-        // Defer animations until after the scene is fully laid out
-        Platform.runLater(this::startPageAnimations);
+        System.out.println("SignupController initialized");
+        System.out.println("cancelButton: " + cancelButton);
+        System.out.println("createAccountButton: " + createAccountButton);
+
+        // Make sure buttons are always visible
+        if (cancelButton != null) {
+            cancelButton.setVisible(true);
+            cancelButton.setOpacity(1.0);
+            cancelButton.setManaged(true);
+        }
+        if (createAccountButton != null) {
+            createAccountButton.setVisible(true);
+            createAccountButton.setOpacity(1.0);
+            createAccountButton.setManaged(true);
+        }
+
+        // Removed: Platform.runLater(this::startPageAnimations);
+        // This prevents animations from playing every time the page loads
     }
 
     private void startPageAnimations() {
@@ -96,8 +110,7 @@ public class SignupController {
                 new KeyFrame(Duration.millis(1000), event -> animateWelcomeSection()),
                 new KeyFrame(Duration.millis(1200), event -> animateLogo()),
                 new KeyFrame(Duration.millis(1400), event -> animateFormFields()),
-                new KeyFrame(Duration.millis(1600), event -> animateConsentSection()),
-                new KeyFrame(Duration.millis(1800), event -> animateButtons())
+                new KeyFrame(Duration.millis(1600), event -> animateConsentSection())
         );
         pageAnimation.play();
     }
@@ -215,35 +228,6 @@ public class SignupController {
 
         ParallelTransition checkboxAnimation = new ParallelTransition(fade, scale);
         checkboxAnimation.play();
-    }
-
-    private void animateButtons() {
-        if (createAccountButton == null || cancelButton == null) return;
-
-        // Animate create account button
-        FadeTransition createFade = new FadeTransition(Duration.millis(400), createAccountButton);
-        createFade.setFromValue(0.0);
-        createFade.setToValue(1.0);
-
-        TranslateTransition createSlide = new TranslateTransition(Duration.millis(400), createAccountButton);
-        createSlide.setFromY(20);
-        createSlide.setToY(0);
-
-        ParallelTransition createAnimation = new ParallelTransition(createFade, createSlide);
-        createAnimation.play();
-
-        // Animate cancel button
-        FadeTransition cancelFade = new FadeTransition(Duration.millis(400), cancelButton);
-        cancelFade.setFromValue(0.0);
-        cancelFade.setToValue(1.0);
-
-        TranslateTransition cancelSlide = new TranslateTransition(Duration.millis(400), cancelButton);
-        cancelSlide.setFromY(20);
-        cancelSlide.setToY(0);
-
-        ParallelTransition cancelAnimation = new ParallelTransition(cancelFade, cancelSlide);
-        cancelAnimation.setDelay(Duration.millis(200));
-        cancelAnimation.play();
     }
 
     @FXML
@@ -452,11 +436,27 @@ public class SignupController {
         // Load login page
         FXMLLoader loader = new FXMLLoader(getClass().getResource("/MVP/Login.fxml"));
         AnchorPane loginPage = loader.load();
-        
+
+        // Get the stage first
+        javafx.stage.Stage stage = (javafx.stage.Stage) cancelButton.getScene().getWindow();
+
+        // Resize stage BEFORE changing the scene content
+        stage.setWidth(800);
+        stage.setHeight(600);
+
         // Replace current scene content
         AnchorPane currentRoot = (AnchorPane) cancelButton.getScene().getRoot();
         currentRoot.getChildren().clear();
         currentRoot.getChildren().add(loginPage);
+
+        // Ensure the login page fills the parent
+        AnchorPane.setTopAnchor(loginPage, 0.0);
+        AnchorPane.setBottomAnchor(loginPage, 0.0);
+        AnchorPane.setLeftAnchor(loginPage, 0.0);
+        AnchorPane.setRightAnchor(loginPage, 0.0);
+
+        // Center the stage after resizing
+        stage.centerOnScreen();
     }
 
     // Additional signup validation methods

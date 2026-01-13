@@ -43,7 +43,7 @@ public class LoginController {
         System.out.println("mainCard: " + mainCard);
         System.out.println("logoContainer: " + logoContainer);
         System.out.println("formContainer: " + formContainer);
-        
+
         // Defer animations until after the scene is fully laid out
         Platform.runLater(this::startPageAnimations);
     }
@@ -312,11 +312,27 @@ public class LoginController {
         // Load signup page
         FXMLLoader loader = new FXMLLoader(getClass().getResource("/MVP/Signup.fxml"));
         AnchorPane signupPage = loader.load();
-        
+
+        // Get the stage first
+        javafx.stage.Stage stage = (javafx.stage.Stage) signupButton.getScene().getWindow();
+
+        // Resize stage BEFORE changing the scene content
+        stage.setWidth(900);
+        stage.setHeight(850);
+
         // Replace current scene content
         AnchorPane currentRoot = (AnchorPane) signupButton.getScene().getRoot();
         currentRoot.getChildren().clear();
         currentRoot.getChildren().add(signupPage);
+
+        // Ensure the signup page fills the parent
+        AnchorPane.setTopAnchor(signupPage, 0.0);
+        AnchorPane.setBottomAnchor(signupPage, 0.0);
+        AnchorPane.setLeftAnchor(signupPage, 0.0);
+        AnchorPane.setRightAnchor(signupPage, 0.0);
+
+        // Center the stage after resizing
+        stage.centerOnScreen();
     }
 
     // Additional login validation methods
