@@ -15,6 +15,7 @@ import javafx.stage.Stage;
 
 import java.io.IOException;
 import java.sql.Connection;
+import java.sql.SQLException;
 
 public class DoctorMedicalRecordController {
 
@@ -41,25 +42,76 @@ public class DoctorMedicalRecordController {
     @FXML private TextArea rosField;
 
     private RecordDAO recordDAO;
-    private int patientID;
+    private int currentPatientID;
 
     @FXML
     public void initialize() {
         Connection conn = DatabaseConnection.getConnection();
         recordDAO = new RecordDAO(conn);
 
-        // GET LOGGED-IN CLIENT
-        int userID = SessionManager.getUserID();
+        // Get the ID of the patient currently being viewed
+        this.currentPatientID = SessionManager.getUserID();
 
-        if (userID > 0) {
-            loadRecord(userID);
+        if (currentPatientID > 0) {
+            loadRecord(currentPatientID);
         } else {
-            System.out.println("⚠ No user session found!");
+            System.out.println("⚠ No patient selected or session found!");
+        }
+    }
+
+    /**
+     * Gathers data from the UI fields and saves it to the database
+     * while linking it to the blockchain.
+     */
+    @FXML
+    public void handleSaveRecord() {
+        try {
+            // 1. Create a new MedicalRecord object
+            MedicalRecord record = new MedicalRecord();
+
+            // 2. Map UI fields to the object
+            record.setPatientID(currentPatientID);
+            record.setPatientName(patientNameField.getText());
+            record.setAge(Integer.parseInt(ageField.getText()));
+            record.setDoctorID(SessionManager.getDoctorID()); // Uses the logged-in doctor's ID
+
+            record.setSubj(subjField.getText());
+            record.setCc(ccField.getText());
+            record.setHpi(hpiField.getText());
+            record.setOnset(onsetField.getText());
+            record.setLocation(locationField.getText());
+            record.setDuration(durationField.getText());
+            record.setCharacter(characField.getText());
+            record.setFactors(factorsField.getText());
+            record.setRadiation(radiationField.getText());
+            record.setSeverity(severityField.getText());
+
+            record.setPmi(pmiField.getText());
+            record.setMed(medField.getText());
+            record.setAllergies(allergiesField.getText());
+            record.setFh(fhField.getText());
+            record.setSh(shField.getText());
+            record.setRos(rosField.getText());
+
+            // 3. Call RecordDAO to insert the record with Blockchain hashing
+            boolean success = recordDAO.insertRecord(record);
+
+            if (success) {
+                showSimpleAlert(Alert.AlertType.INFORMATION, "Success", "Medical record successfully saved and secured in the blockchain.");
+            } else {
+                showSimpleAlert(Alert.AlertType.ERROR, "Database Error", "Failed to save the record to the database.");
+            }
+
+        } catch (NumberFormatException e) {
+            showSimpleAlert(Alert.AlertType.WARNING, "Input Error", "Please ensure the Age field contains a valid number.");
+        } catch (SQLException e) {
+            e.printStackTrace();
+            showSimpleAlert(Alert.AlertType.ERROR, "Blockchain Error", "A database error occurred during the blockchain linking process.");
         }
     }
 
     public void loadRecord(int patientID) {
-        this.patientID = patientID;
+        this.currentPatientID = patientID;
 
         try {
             MedicalRecord r = recordDAO.getRecordByPatientID(patientID);
@@ -71,7 +123,6 @@ public class DoctorMedicalRecordController {
 
             patientNameField.setText(r.getPatientName());
             ageField.setText(String.valueOf(r.getAge()));
-
             subjField.setText(r.getSubj());
             ccField.setText(r.getCc());
             hpiField.setText(r.getHpi());
@@ -82,7 +133,6 @@ public class DoctorMedicalRecordController {
             factorsField.setText(r.getFactors());
             radiationField.setText(r.getRadiation());
             severityField.setText(r.getSeverity());
-
             pmiField.setText(r.getPmi());
             medField.setText(r.getMed());
             allergiesField.setText(r.getAllergies());
@@ -93,6 +143,14 @@ public class DoctorMedicalRecordController {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    private void showSimpleAlert(Alert.AlertType type, String title, String content) {
+        Alert alert = new Alert(type);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(content);
+        alert.showAndWait();
     }
 
     public void handleNavigation(ActionEvent event) {
@@ -114,13 +172,10 @@ public class DoctorMedicalRecordController {
         try {
             FXMLLoader loader = new FXMLLoader(Login.class.getResource(targetFxml));
             Scene scene = new Scene(loader.load(), 1280, 768);
-
             Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
             stage.setScene(scene);
             stage.show();
-
         } catch (IOException e) {
-            System.err.println("Failed to load scene: " + targetFxml);
             e.printStackTrace();
         }
     }
@@ -128,7 +183,6 @@ public class DoctorMedicalRecordController {
     public void clearForm() {
         patientNameField.clear();
         ageField.clear();
-
         subjField.clear();
         ccField.clear();
         hpiField.clear();
@@ -139,7 +193,6 @@ public class DoctorMedicalRecordController {
         factorsField.clear();
         radiationField.clear();
         severityField.clear();
-
         pmiField.clear();
         medField.clear();
         allergiesField.clear();
