@@ -73,6 +73,7 @@ public class LoginController {
 
                     // 1. Authenticate user credentials
                     LoginResult result = LoginService.validateCredentials(username, password);
+                    System.out.println("LOGIN ROLE = [" + result.role + "]");
 
                     switch (result.role) {
                         case "doctor":
@@ -97,6 +98,11 @@ public class LoginController {
                         case "client":
                             showSuccessMessage("Client login success!");
                             loadFXML("MVP/ClientAccount.fxml");
+                            break;
+
+                        case "admin":
+                            showSuccessMessage("Admin login success!");
+                            loadFXML("MVP/ManageUsers.fxml");
                             break;
 
                         case "invalid":
