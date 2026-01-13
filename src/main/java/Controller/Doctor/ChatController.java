@@ -16,6 +16,7 @@ public class ChatController {
 
     // Sidebar Buttons
     @FXML private Button accountButton;
+    @FXML private Button records;
     @FXML private Button casesButton;
     @FXML private Button calendarButton;
     @FXML private Button notificationsButton;
@@ -39,6 +40,9 @@ public class ChatController {
         switch (buttonId) {
             case "accountButton":
                 targetFxml = "DoctorAccount.fxml";
+                break;
+            case "records":
+                targetFxml = "ViewMedicalRecordList.fxml";
                 break;
             case "casesButton":
                 targetFxml = "History.fxml";

@@ -13,7 +13,7 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<BorderPane fx:id="mainContainer" prefHeight="768.0" prefWidth="1366.0" style="-fx-background-color: #e6f0e6;" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="Controller.Doctor.AccountController">
+<BorderPane fx:id="mainContainer" prefHeight="768.0" prefWidth="1366.0" style="-fx-background-color: #e6f0e6;" xmlns="http://javafx.com/javafx/24.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="Controller.Doctor.AccountController">
 
     <left>
         <VBox alignment="TOP_CENTER" prefWidth="170.0" spacing="15.0" style="-fx-background-color: #00BF63;" BorderPane.alignment="TOP_LEFT">
@@ -32,10 +32,27 @@
                         <Label style="-fx-font-size: 20px;" text="👤" textFill="#0050c0" />
                     </graphic>
                 </Button>
+            <Button fx:id="records" contentDisplay="LEFT" onAction="#handleNavigation" prefWidth="150.0" style="-fx-background-color: #008060; -fx-text-fill: WHITE; -fx-font-weight: bold; -fx-background-radius: 5; -fx-cursor: hand;" text="Records">
+               <graphic>
+                  <Label style="-fx-font-size: 20px;" text="💼" textFill="WHITE" />
+               </graphic>
+            </Button>
 
-                <Button fx:id="recordsButton" contentDisplay="LEFT" onAction="#handleNavigation" prefWidth="150.0" style="-fx-background-color: #008060; -fx-text-fill: WHITE; -fx-font-weight: bold; -fx-background-radius: 5; -fx-cursor: hand;" text="Medical Records">
+                <Button fx:id="casesButton" contentDisplay="LEFT" onAction="#handleNavigation" prefWidth="150.0" style="-fx-background-color: #008060; -fx-text-fill: WHITE; -fx-font-weight: bold; -fx-background-radius: 5; -fx-cursor: hand;" text="Cases">
+                    <graphic>
+                        <Label style="-fx-font-size: 20px;" text="💼" textFill="WHITE" />
+                    </graphic>
+                </Button>
+
+                <Button fx:id="calendarButton" contentDisplay="LEFT" onAction="#handleNavigation" prefWidth="150.0" style="-fx-background-color: #008060; -fx-text-fill: WHITE; -fx-font-weight: bold; -fx-background-radius: 5; -fx-cursor: hand;" text="Calendar">
                     <graphic>
                         <Label style="-fx-font-size: 20px;" text="📅" textFill="WHITE" />
+                    </graphic>
+                </Button>
+
+                <Button fx:id="notificationsButton" contentDisplay="LEFT" onAction="#handleNavigation" prefWidth="150.0" style="-fx-background-color: #008060; -fx-text-fill: WHITE; -fx-font-weight: bold; -fx-background-radius: 5; -fx-cursor: hand;" text="Chat">
+                    <graphic>
+                        <Label style="-fx-font-size: 20px;" text="💬" textFill="WHITE" />
                     </graphic>
                 </Button>
 
