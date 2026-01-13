@@ -1,5 +1,6 @@
 package DAO;
 
+import CommonModel.AdminModel;
 import CommonModel.MedicalRecord;
 import CommonModel.MedicalRecordSummary;
 import MVP.Doctor.DoctorModel;
@@ -424,4 +425,109 @@ public class RecordDAO {
         
         return records;
     }
+
+    // =========================================================
+// FETCH ALL USERS (NAME + EMAIL)
+// =========================================================
+    public List<AdminModel> getAllUsers() {
+
+        List<AdminModel> users = new ArrayList<>();
+
+        String sql = "SELECT name, email FROM users ORDER BY idusers ASC";
+
+        try (PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+
+            while (rs.next()) {
+                users.add(new AdminModel(
+                        rs.getString("name")
+                ));
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return users;
+    }
+
+    public List<AdminModel> getAllPatients() {
+
+        List<AdminModel> patients = new ArrayList<>();
+
+        String sql = "SELECT name FROM users ORDER BY idusers ASC";
+
+        try (PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+
+            while (rs.next()) {
+                patients.add(new AdminModel(
+                        rs.getString("name")
+                ));
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return patients;
+    }
+
+    public List<DoctorModel> getAllDoctors() {
+
+        List<DoctorModel> doctors = new ArrayList<>();
+
+        String sql = "SELECT * FROM doctors ORDER BY iddoctors ASC";
+
+        try (PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+
+            while (rs.next()) {
+                DoctorModel d = new DoctorModel();
+                d.id = rs.getInt("iddoctors");
+                d.name = rs.getString("name");
+                d.specialization = rs.getString("specialization");
+                d.email = rs.getString("email");
+                d.phone = rs.getString("phone");
+                d.biography = rs.getString("biography");
+
+                doctors.add(d);
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return doctors;
+    }
+
+    // =========================
+// DELETE PATIENT
+// =========================
+    public boolean deletePatientById(int id) {
+        String sql = "DELETE FROM users WHERE idusers = ?";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, id);
+            return ps.executeUpdate() > 0;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    // =========================
+// DELETE DOCTOR
+// =========================
+    public boolean deleteDoctorById(int id) {
+        String sql = "DELETE FROM doctors WHERE iddoctors = ?";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, id);
+            return ps.executeUpdate() > 0;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+
 }

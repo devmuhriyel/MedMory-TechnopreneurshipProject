@@ -10,6 +10,7 @@ import java.util.Base64;
 public class LoginService {
 
     public static String hashPassword(String password) {
+        System.out.println(password);
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
             byte[] hash = digest.digest(password.getBytes(StandardCharsets.UTF_8));
@@ -26,11 +27,19 @@ public class LoginService {
         try (Connection conn = DatabaseConnection.getConnection()) {
             if (conn == null) return new LoginResult("error");
 
+            System.out.println("USERNAME = [" + username + "]");
+            System.out.println("PLAIN PASSWORD = [" + password + "]");
+            System.out.println("HASHED PASSWORD = [" + hashedInput + "]");
+
+
             // 1. Check DOCTOR table
-            String doctorQuery = "SELECT iddoctors FROM doctors WHERE name = ? AND password = ?";
+            String doctorQuery =
+                    "SELECT iddoctors FROM doctors WHERE name = ? AND password = ?";
+
             try (PreparedStatement ds = conn.prepareStatement(doctorQuery)) {
-                ds.setString(1, username);
-                ds.setString(2, hashedInput);
+                ds.setString(1, username.trim());
+                ds.setString(2, password); // ✅ REQUIRED
+
                 ResultSet dr = ds.executeQuery();
                 if (dr.next()) {
                     int id = dr.getInt("iddoctors");
@@ -39,11 +48,15 @@ public class LoginService {
                 }
             }
 
+
             // 2. Check USERS table
-            String clientQuery = "SELECT idusers FROM users WHERE name = ? AND password = ?";
+            String clientQuery =
+                    "SELECT idusers FROM users WHERE name = ? AND password = ?";
+
             try (PreparedStatement cs = conn.prepareStatement(clientQuery)) {
-                cs.setString(1, username);
-                cs.setString(2, hashedInput);
+                cs.setString(1, username.trim());
+                cs.setString(2, password); // ✅ REQUIRED
+
                 ResultSet cr = cs.executeQuery();
                 if (cr.next()) {
                     int id = cr.getInt("idusers");
@@ -51,25 +64,26 @@ public class LoginService {
                     return new LoginResult("client", id, id);
                 }
             }
+
             // 2. Check USERS table
-            String adminQuery = "SELECT idadmin, password FROM admin WHERE username = ?";
+            String adminQuery =
+                    "SELECT idadmin FROM admin WHERE username = ? AND password = ?";
+
             try (PreparedStatement ps = conn.prepareStatement(adminQuery)) {
                 ps.setString(1, username.trim());
+                ps.setString(2, password); // ✅ THIS WAS MISSING
+
                 ResultSet rs = ps.executeQuery();
-
                 if (rs.next()) {
-                    String dbPassword = rs.getString("password");
-
-                    // plaintext comparison
-                    if (password.equals(dbPassword)) {
-                        int id = rs.getInt("idadmin");
-                        SessionManager.setClientSession(id);
-                        return new LoginResult("admin", id, id);
-                    }
+                    int id = rs.getInt("idadmin");
+                    SessionManager.setClientSession(id);
+                    return new LoginResult("admin", id, id);
                 }
             }
+
             return new LoginResult("invalid");
         } catch (Exception e) {
+            e.printStackTrace();
             return new LoginResult("error");
         }
     }
