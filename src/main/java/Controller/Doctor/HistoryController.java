@@ -27,6 +27,7 @@ public class HistoryController {
     @FXML private Button calendarButton;
     @FXML private Button notificationsButton;
     @FXML private Button settingsButton;
+    @FXML private Button createRecordButton;
     @FXML private VBox recordsListVBox;
 
     @FXML
@@ -39,6 +40,7 @@ public class HistoryController {
         switch (id) {
             case "accountButton": targetFxml = "DoctorAccount.fxml"; break;
             case "recordsButton": targetFxml = "ViewMedicalRecordList.fxml"; break;
+            case "casesButton": targetFxml = "History.fxml"; break;
             case "calendarButton": targetFxml = "Calendar.fxml"; break;
             case "notificationsButton": targetFxml = "Chat.fxml"; break;
             case "settingsButton": targetFxml = "DoctorSettings.fxml"; break;
@@ -127,6 +129,25 @@ public class HistoryController {
         } catch (Exception e) {
             System.err.println("Error opening medical record: " + e.getMessage());
             e.printStackTrace();
+        }
+    }
+
+    /**
+     * Handles the "Create New Record" button click.
+     * Navigates to the DoctorMedicalRecord.fxml interface for creating a new record.
+     */
+    @FXML
+    public void handleCreateRecord(ActionEvent event) {
+        try {
+            FXMLLoader loader = new FXMLLoader(Login.class.getResource("DoctorMedicalRecord.fxml"));
+            Scene scene = new Scene(loader.load(), 1280, 768);
+            
+            Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
+            stage.setScene(scene);
+            stage.show();
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.err.println("Failed to load DoctorMedicalRecord.fxml");
         }
     }
 }

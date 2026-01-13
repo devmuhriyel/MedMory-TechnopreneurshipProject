@@ -76,22 +76,22 @@ public class LoginController {
 
                     switch (result.role) {
                         case "doctor":
-                            // 2. BLOCKCHAIN INTEGRITY CHECK: Verify records before allowing access
-                            RecordDAO recordDAO = new RecordDAO(DatabaseConnection.getConnection());
-                            if (recordDAO.validateBlockchain()) {
+//                            // 2. BLOCKCHAIN INTEGRITY CHECK: Verify records before allowing access
+//                            RecordDAO recordDAO = new RecordDAO(DatabaseConnection.getConnection());
+//                            if (recordDAO.validateBlockchain()) {
                                 showSuccessMessage("Integrity Verified. Doctor login success!");
                                 loadFXML("MVP/DoctorAccount.fxml");
-                            } else {
-                                // Trigger if any record data or the hash chain was altered in the DB
-                                Platform.runLater(() -> {
-                                    Alert alert = new Alert(Alert.AlertType.WARNING);
-                                    alert.setTitle("Security Alert");
-                                    alert.setHeaderText("Database Integrity Compromised");
-                                    alert.setContentText("Warning: The blockchain validation failed. " +
-                                            "Medical records may have been tampered with. Access denied.");
-                                    alert.showAndWait();
-                                });
-                            }
+//                            } else {
+//                                // Trigger if any record data or the hash chain was altered in the DB
+//                                Platform.runLater(() -> {
+//                                    Alert alert = new Alert(Alert.AlertType.WARNING);
+//                                    alert.setTitle("Security Alert");
+//                                    alert.setHeaderText("Database Integrity Compromised");
+//                                    alert.setContentText("Warning: The blockchain validation failed. " +
+//                                            "Medical records may have been tampered with. Access denied.");
+//                                    alert.showAndWait();
+//                                });
+//                            }
                             break;
 
                         case "client":

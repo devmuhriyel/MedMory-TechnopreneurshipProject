@@ -16,6 +16,7 @@ public class SettingsController {
 
     // Sidebar Buttons
     @FXML private Button accountButton;
+    @FXML private Button records;
     @FXML private Button casesButton;
     @FXML private Button calendarButton;
     @FXML private Button notificationsButton;
@@ -52,16 +53,31 @@ public class SettingsController {
     @FXML
     private void handleNavigation(ActionEvent event) {
         Button clickedButton = (Button) event.getSource();
+        String buttonId = clickedButton.getId();
         String targetFxml = "";
 
-        if (clickedButton == accountButton) targetFxml = "DoctorAccount.fxml";
-        else if (clickedButton == casesButton) targetFxml = "History.fxml";
-        else if (clickedButton == calendarButton) targetFxml = "DoctorCalendar.fxml";
-        else if (clickedButton == notificationsButton) targetFxml = "Chat.fxml";
-        else if (clickedButton == settingsButton) targetFxml = "Settings.fxml";
-        else {
-            System.out.println("Unknown target: " + clickedButton);
-            return;
+        switch (buttonId) {
+            case "accountButton":
+                targetFxml = "DoctorAccount.fxml";
+                break;
+            case "records":
+                targetFxml = "ViewMedicalRecordList.fxml";
+                break;
+            case "casesButton":
+                targetFxml = "History.fxml";
+                break;
+            case "calendarButton":
+                targetFxml = "Calendar.fxml";
+                break;
+            case "notificationsButton":
+                targetFxml = "Chat.fxml";
+                break;
+            case "settingsButton":
+                targetFxml = "DoctorSettings.fxml";
+                break;
+            default:
+                System.out.println("Unknown navigation target: " + buttonId);
+                return;
         }
 
         try {
@@ -72,6 +88,7 @@ public class SettingsController {
             stage.show();
         } catch (IOException e) {
             e.printStackTrace();
+            System.err.println("Failed to load scene: " + targetFxml);
         }
     }
 

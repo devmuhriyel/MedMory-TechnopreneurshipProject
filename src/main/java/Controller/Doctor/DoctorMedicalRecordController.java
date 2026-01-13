@@ -159,11 +159,12 @@ public class DoctorMedicalRecordController {
         String targetFxml = "";
 
         switch (buttonId) {
-            case "accountButton": targetFxml = "ClientAccount.fxml"; break;
-            case "casesButton": targetFxml = "MedicalRecord.fxml"; break;
-            case "calendarButton": targetFxml = "ClientCalendar.fxml"; break;
+            case "accountButton": targetFxml = "DoctorAccount.fxml"; break;
+            case "records": targetFxml = "ViewMedicalRecordList.fxml"; break;
+            case "casesButton": targetFxml = "History.fxml"; break;
+            case "calendarButton": targetFxml = "Calendar.fxml"; break;
             case "notificationsButton": targetFxml = "Chat.fxml"; break;
-            case "settingsButton": targetFxml = "ClientSettings.fxml"; break;
+            case "settingsButton": targetFxml = "DoctorSettings.fxml"; break;
             default:
                 System.out.println("Unknown navigation target: " + buttonId);
                 return;
@@ -180,6 +181,11 @@ public class DoctorMedicalRecordController {
         }
     }
 
+    @FXML
+    public void clearForm(ActionEvent event) {
+        clearForm();
+    }
+    
     public void clearForm() {
         patientNameField.clear();
         ageField.clear();
@@ -199,5 +205,6 @@ public class DoctorMedicalRecordController {
         fhField.clear();
         shField.clear();
         rosField.clear();
+        currentPatientID = 0; // Reset patient ID
     }
 }

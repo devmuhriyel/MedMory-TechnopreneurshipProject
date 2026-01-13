@@ -25,6 +25,7 @@ import java.util.Locale;
 public class CalendarController {
 
     @FXML private Button accountButton;
+    @FXML private Button records;
     @FXML private Button casesButton;
     @FXML private Button calendarButton;
     @FXML private Button notificationsButton;
@@ -159,8 +160,9 @@ public class CalendarController {
 
         switch (clickedButton.getId()) {
             case "accountButton": targetFxml = "DoctorAccount.fxml"; break;
+            case "records": targetFxml = "ViewMedicalRecordList.fxml"; break;
             case "casesButton": targetFxml = "History.fxml"; break;
-            case "calendarButton": targetFxml = "DoctorCalendar.fxml"; break;
+            case "calendarButton": targetFxml = "Calendar.fxml"; break;
             case "notificationsButton": targetFxml = "Chat.fxml"; break;
             case "settingsButton": targetFxml = "DoctorSettings.fxml"; break;
             default:

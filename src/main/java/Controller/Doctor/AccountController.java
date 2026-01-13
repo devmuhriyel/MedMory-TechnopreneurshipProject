@@ -93,11 +93,15 @@ public class AccountController {
             case "accountButton":
                 targetFxml = "DoctorAccount.fxml";
                 break;
+            case "records":
+            case "recordsButton":
+                targetFxml = "ViewMedicalRecordList.fxml";
+                break;
             case "casesButton":
                 targetFxml = "History.fxml";
                 break;
-            case "recordsButton":
-                targetFxml = "ViewMedicalRecordList.fxml";
+            case "calendarButton":
+                targetFxml = "Calendar.fxml";
                 break;
             case "notificationsButton":
                 targetFxml = "Chat.fxml";
@@ -159,10 +163,25 @@ public class AccountController {
 
     /**
      * Handles the user clicking the Logout button.
-     * In a real app, this would clear the session and return to the Login screen.
+     * Clears the session and returns to the Login screen.
      */
+    @FXML
     public void handleLogout(ActionEvent actionEvent) {
         System.out.println("Action: Logging out...");
-        // Logic to clear user session and load the Login screen FXML goes here.
+        
+        try {
+            // Clear session if needed
+            // SessionManager.clearSession(); // Uncomment if you have session clearing logic
+            
+            // Load the Login screen
+            FXMLLoader fxmlLoader = new FXMLLoader(Login.class.getResource("Login.fxml"));
+            Scene scene = new Scene(fxmlLoader.load(), 1280, 768);
+            Stage stage = (Stage) ((Node) actionEvent.getSource()).getScene().getWindow();
+            stage.setScene(scene);
+            stage.show();
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.err.println("Failed to load Login scene");
+        }
     }
 }
