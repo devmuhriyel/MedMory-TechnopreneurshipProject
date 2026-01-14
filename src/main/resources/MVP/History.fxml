@@ -4,6 +4,8 @@
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.image.Image?>
 <?import javafx.scene.image.ImageView?>
@@ -12,7 +14,7 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<BorderPane fx:id="mainContainer" prefHeight="768.0" prefWidth="1366.0" style="-fx-background-color: #e6f0e6;" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="Controller.Doctor.HistoryController">
+<BorderPane fx:id="mainContainer" prefHeight="768.0" prefWidth="1366.0" style="-fx-background-color: #e6f0e6;" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="Controller.Doctor.HistoryController">
 
     <left>
         <VBox alignment="TOP_CENTER" prefWidth="170.0" spacing="15.0" style="-fx-background-color: #00BF63;" BorderPane.alignment="TOP_LEFT">
@@ -36,9 +38,9 @@
                         <Label style="-fx-font-size: 20px;" text="💼" textFill="WHITE" />
                     </graphic>
                 </Button>
-                <Button fx:id="casesButton" contentDisplay="LEFT" onAction="#handleNavigation" prefWidth="150.0" style="-fx-background-color: #b0e0ff; -fx-background-radius: 5; -fx-font-weight: bold; -fx-border-color: #2090ff; -fx-text-fill: #0050c0; -fx-cursor: hand;" text="Cases">
+                <Button fx:id="casesButton" contentDisplay="LEFT" onAction="#handleNavigation" prefWidth="150.0" style="-fx-background-color: #b0e0ff; -fx-background-radius: 5; -fx-font-weight: bold; -fx-border-color: #2090ff; -fx-text-fill: #0050c0; -fx-cursor: hand;" text="Patients">
                     <graphic>
-                        <Label style="-fx-font-size: 20px;" text="💼" textFill="#0050c0" />
+                        <Label style="-fx-font-size: 20px;" text="👤" textFill="#0050c0" />
                     </graphic>
                 </Button>
                 <Button fx:id="calendarButton" contentDisplay="LEFT" onAction="#handleNavigation" prefWidth="150.0" style="-fx-background-color: #008060; -fx-text-fill: WHITE; -fx-font-weight: bold; -fx-background-radius: 5; -fx-cursor: hand;" text="Calendar">
@@ -70,7 +72,7 @@
             </padding>
 
             <!-- Header -->
-            <Label text="Cases History" textFill="#202020" style="-fx-font-size: 20px; -fx-font-weight: bold;">
+            <Label style="-fx-font-size: 20px; -fx-font-weight: bold;" text="Patients" textFill="#202020">
                 <VBox.margin>
                     <Insets bottom="10.0" />
                 </VBox.margin>
@@ -86,7 +88,7 @@
             </HBox>
 
             <!-- Title -->
-            <Label text="Cases" textFill="#202020">
+            <Label text="List" textFill="#202020">
                 <font>
                     <Font name="System Bold" size="24.0" />
                 </font>
@@ -97,16 +99,26 @@
 
             <!-- Cases Table Header -->
             <HBox spacing="20" style="-fx-background-color: #f0f0f0; -fx-padding: 12; -fx-background-radius: 5;">
-                <Label text="Date" prefWidth="150" style="-fx-font-weight: bold; -fx-font-size: 14px;" />
-                <Label text="Treatment" prefWidth="150" style="-fx-font-weight: bold; -fx-font-size: 14px;" />
-                <Label text="Patient" prefWidth="200" style="-fx-font-weight: bold; -fx-font-size: 14px;" />
-                <Label text="Diagnosis" prefWidth="250" style="-fx-font-weight: bold; -fx-font-size: 14px;" />
-                <Label text="Completion Date" prefWidth="150" style="-fx-font-weight: bold; -fx-font-size: 14px;" />
+                <Label prefWidth="150" style="-fx-font-weight: bold; -fx-font-size: 14px;" text="Date" />
+                <Label prefWidth="150" style="-fx-font-weight: bold; -fx-font-size: 14px;" text="Treatment" />
+                <Label prefWidth="200" style="-fx-font-weight: bold; -fx-font-size: 14px;" text="Patient" />
+                <Label prefWidth="250" style="-fx-font-weight: bold; -fx-font-size: 14px;" text="Diagnosis" />
+                <Label prefWidth="150" style="-fx-font-weight: bold; -fx-font-size: 14px;" text="Completion Date" />
             </HBox>
-
+   
             <!-- Cases List -->
-            <ScrollPane fitToWidth="true" style="-fx-background-color: transparent; -fx-border-color: transparent;" VBox.vgrow="ALWAYS">
-                <VBox fx:id="casesListVBox" spacing="10.0" style="-fx-background-color: transparent;" />
+            <ScrollPane fitToWidth="true" prefHeight="472.0" prefWidth="1009.0" style="-fx-background-color: transparent; -fx-border-color: transparent;" VBox.vgrow="ALWAYS">
+            <content>
+               <TableView prefHeight="481.0" prefWidth="1151.0">
+                 <columns>
+                   <TableColumn prefWidth="107.99996602535248" />
+                   <TableColumn prefWidth="197.59998321533203" />
+                     <TableColumn prefWidth="192.79995727539062" />
+                     <TableColumn prefWidth="211.19992065429688" />
+                     <TableColumn prefWidth="304.79998779296875" />
+                 </columns>
+               </TableView>
+            </content>
             </ScrollPane>
         </VBox>
     </center>

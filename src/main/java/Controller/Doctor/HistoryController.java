@@ -1,5 +1,6 @@
 package Controller.Doctor;
 
+import javafx.scene.Parent;
 import CommonModel.DoctorCase;
 import CommonModel.MedicalRecord;
 import CommonModel.MedicalRecordSummary;
@@ -469,4 +470,26 @@ public class HistoryController {
             .toList();
         displayRecords(filtered);
     }
+
+    public void goToHistory(ActionEvent actionEvent) {
+        try {
+            FXMLLoader loader = new FXMLLoader(
+                    Login.class.getResource("History.fxml")
+            );
+
+            Parent root = loader.load();
+
+            Stage stage = (Stage) ((Node) actionEvent.getSource())
+                    .getScene()
+                    .getWindow();
+
+            stage.setScene(new Scene(root, 1280, 768));
+            stage.show();
+
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.err.println("Failed to load History.fxml");
+        }
+    }
+
 }
