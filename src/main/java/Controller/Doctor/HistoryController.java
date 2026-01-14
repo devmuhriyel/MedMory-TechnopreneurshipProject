@@ -1,10 +1,7 @@
 package Controller.Doctor;
 
+import CommonModel.*;
 import javafx.scene.Parent;
-import CommonModel.DoctorCase;
-import CommonModel.MedicalRecord;
-import CommonModel.MedicalRecordSummary;
-import CommonModel.SessionManager;
 import DAO.DatabaseConnection;
 import DAO.DoctorService;
 import DAO.RecordDAO;
@@ -25,17 +22,28 @@ import java.util.List;
 
 public class HistoryController {
 
-    @FXML private Button accountButton;
-    @FXML private Button recordsButton;
-    @FXML private Button calendarButton;
-    @FXML private Button notificationsButton;
-    @FXML private Button settingsButton;
-    @FXML private Button createRecordButton;
-    @FXML private TextField searchField;
-    @FXML private VBox recordsListVBox;
-    @FXML private VBox casesListVBox;
-    @FXML private VBox filterOptionsVBox;
-    
+    @FXML private TableView<UserRow> userTable;
+    @FXML
+    private Button accountButton;
+    @FXML
+    private Button recordsButton;
+    @FXML
+    private Button calendarButton;
+    @FXML
+    private Button notificationsButton;
+    @FXML
+    private Button settingsButton;
+    @FXML
+    private Button createRecordButton;
+    @FXML
+    private TextField searchField;
+    @FXML
+    private VBox recordsListVBox;
+    @FXML
+    private VBox casesListVBox;
+    @FXML
+    private VBox filterOptionsVBox;
+
     private List<MedicalRecordSummary> allRecords;
     private List<DoctorCase> allCases;
     private RecordDAO recordDAO;
@@ -49,13 +57,25 @@ public class HistoryController {
         String targetFxml;
 
         switch (id) {
-            case "accountButton": targetFxml = "DoctorAccount.fxml"; break;
+            case "accountButton":
+                targetFxml = "DoctorAccount.fxml";
+                break;
             case "records":
-            case "recordsButton": targetFxml = "ViewMedicalRecordList.fxml"; break;
-            case "casesButton": targetFxml = "Patient.fxml"; break;
-            case "calendarButton": targetFxml = "Calendar.fxml"; break;
-            case "notificationsButton": targetFxml = "Chat.fxml"; break;
-            case "settingsButton": targetFxml = "DoctorSettings.fxml"; break;
+            case "recordsButton":
+                targetFxml = "ViewMedicalRecordList.fxml";
+                break;
+            case "casesButton":
+                targetFxml = "Patient.fxml";
+                break;
+            case "calendarButton":
+                targetFxml = "Calendar.fxml";
+                break;
+            case "notificationsButton":
+                targetFxml = "Chat.fxml";
+                break;
+            case "settingsButton":
+                targetFxml = "DoctorSettings.fxml";
+                break;
             default:
                 System.out.println("Unknown navigation button: " + id);
                 return;
@@ -85,7 +105,7 @@ public class HistoryController {
         if (casesListVBox != null) {
             // This is the Cases view - load cases
             loadCases(doctorID);
-            
+
             // Setup search field listener for cases
             if (searchField != null) {
                 searchField.textProperty().addListener((observable, oldValue, newValue) -> {
@@ -95,7 +115,7 @@ public class HistoryController {
         } else if (recordsListVBox != null) {
             // This is the Records view - load records
             allRecords = RecordDAO.getDoctorMedicalRecords(doctorID);
-            
+
             // Setup search field listener for records
             if (searchField != null) {
                 searchField.textProperty().addListener((observable, oldValue, newValue) -> {
@@ -106,17 +126,17 @@ public class HistoryController {
             displayRecords(allRecords);
         }
     }
-    
+
     private void loadCases(int doctorID) {
         allCases = DoctorService.getCasesHandledByDoctor(doctorID);
         displayCases(allCases);
     }
-    
+
     private void displayCases(List<DoctorCase> cases) {
         if (casesListVBox == null) return;
-        
+
         casesListVBox.getChildren().clear();
-        
+
         if (cases.isEmpty()) {
             Label empty = new Label("No cases found.");
             empty.setStyle("-fx-font-size: 16px; -fx-text-fill: #666;");
@@ -128,23 +148,23 @@ public class HistoryController {
             addCaseItem(doctorCase);
         }
     }
-    
+
     private void filterCases(String searchTerm) {
         if (searchTerm == null || searchTerm.trim().isEmpty()) {
             displayCases(allCases);
         } else {
             List<DoctorCase> filtered = allCases.stream()
-                .filter(c -> 
-                    (c.patientName != null && c.patientName.toLowerCase().contains(searchTerm.toLowerCase())) ||
-                    (c.diagnosis != null && c.diagnosis.toLowerCase().contains(searchTerm.toLowerCase())) ||
-                    (c.treatment != null && c.treatment.toLowerCase().contains(searchTerm.toLowerCase())) ||
-                    (c.dateCompleted != null && c.dateCompleted.toLowerCase().contains(searchTerm.toLowerCase()))
-                )
-                .toList();
+                    .filter(c ->
+                            (c.patientName != null && c.patientName.toLowerCase().contains(searchTerm.toLowerCase())) ||
+                                    (c.diagnosis != null && c.diagnosis.toLowerCase().contains(searchTerm.toLowerCase())) ||
+                                    (c.treatment != null && c.treatment.toLowerCase().contains(searchTerm.toLowerCase())) ||
+                                    (c.dateCompleted != null && c.dateCompleted.toLowerCase().contains(searchTerm.toLowerCase()))
+                    )
+                    .toList();
             displayCases(filtered);
         }
     }
-    
+
     private void addCaseItem(DoctorCase doctorCase) {
         HBox row = new HBox(20);
         row.setStyle("-fx-background-color: white; -fx-padding: 15; -fx-background-radius: 8;"
@@ -179,7 +199,7 @@ public class HistoryController {
         row.getChildren().addAll(dateLabel, treatmentLabel, patientLabel, diagnosisLabel, completionLabel);
         casesListVBox.getChildren().add(row);
     }
-    
+
     private String formatCaseDate(String dateStr) {
         if (dateStr == null || dateStr.trim().isEmpty()) {
             return "N/A";
@@ -192,10 +212,10 @@ public class HistoryController {
                     int year = Integer.parseInt(parts[0]);
                     int month = Integer.parseInt(parts[1]);
                     int day = Integer.parseInt(parts[2]);
-                    
+
                     String[] monthNames = {"", "January", "February", "March", "April", "May", "June",
-                                          "July", "August", "September", "October", "November", "December"};
-                    
+                            "July", "August", "September", "October", "November", "December"};
+
                     if (month >= 1 && month <= 12) {
                         return monthNames[month] + " " + day + " " + year;
                     }
@@ -206,7 +226,7 @@ public class HistoryController {
             return dateStr;
         }
     }
-    
+
     private String formatCompletionDate(String dateStr) {
         if (dateStr == null || dateStr.trim().isEmpty()) {
             return "N/A";
@@ -224,10 +244,10 @@ public class HistoryController {
             return dateStr;
         }
     }
-    
+
     private void displayRecords(List<MedicalRecordSummary> records) {
         recordsListVBox.getChildren().clear();
-        
+
         if (records.isEmpty()) {
             Label empty = new Label("No medical records found.");
             empty.setStyle("-fx-font-size: 16px; -fx-text-fill: #666;");
@@ -239,7 +259,7 @@ public class HistoryController {
             addRecordItem(summary);
         }
     }
-    
+
     private void filterRecords(String searchTerm) {
         if (searchTerm == null || searchTerm.trim().isEmpty()) {
             displayRecords(allRecords);
@@ -325,7 +345,7 @@ public class HistoryController {
         try {
             FXMLLoader loader = new FXMLLoader(Login.class.getResource("DoctorMedicalRecord.fxml"));
             Scene scene = new Scene(loader.load(), 1280, 768);
-            
+
             Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
             stage.setScene(scene);
             stage.show();
@@ -334,7 +354,7 @@ public class HistoryController {
             System.err.println("Failed to load DoctorMedicalRecord.fxml");
         }
     }
-    
+
     /**
      * Opens record in edit mode
      */
@@ -342,18 +362,18 @@ public class HistoryController {
         try {
             FXMLLoader loader = new FXMLLoader(Login.class.getResource("DoctorMedicalRecord.fxml"));
             Scene scene = new Scene(loader.load(), 1280, 768);
-            
+
             RecordDAO dao = new RecordDAO(DatabaseConnection.getConnection());
             MedicalRecord record = dao.getRecordByID(recordID);
-            
+
             if (record == null) {
                 showAlert(Alert.AlertType.ERROR, "Error", "Record not found!");
                 return;
             }
-            
+
             DoctorMedicalRecordController controller = loader.getController();
             controller.loadRecordForEdit(record);
-            
+
             Stage stage = (Stage) recordsListVBox.getScene().getWindow();
             stage.setScene(scene);
             stage.show();
@@ -362,7 +382,7 @@ public class HistoryController {
             showAlert(Alert.AlertType.ERROR, "Error", "Failed to load record for editing: " + e.getMessage());
         }
     }
-    
+
     /**
      * Deletes a medical record with confirmation
      */
@@ -371,12 +391,12 @@ public class HistoryController {
         confirmAlert.setTitle("Delete Record");
         confirmAlert.setHeaderText("Confirm Deletion");
         confirmAlert.setContentText("Are you sure you want to delete this medical record? This action cannot be undone.");
-        
+
         confirmAlert.showAndWait().ifPresent(response -> {
             if (response == ButtonType.OK) {
                 try {
                     boolean deleted = recordDAO.deleteRecord(recordID);
-                    
+
                     if (deleted) {
                         showAlert(Alert.AlertType.INFORMATION, "Success", "Medical record deleted successfully.");
                         // Refresh the list
@@ -398,7 +418,7 @@ public class HistoryController {
             }
         });
     }
-    
+
     private void showAlert(Alert.AlertType type, String title, String message) {
         Alert alert = new Alert(type);
         alert.setTitle(title);
@@ -406,7 +426,7 @@ public class HistoryController {
         alert.setContentText(message);
         alert.showAndWait();
     }
-    
+
     /**
      * Handles filter button clicks
      */
@@ -414,7 +434,7 @@ public class HistoryController {
     public void handleFilterClick(ActionEvent event) {
         Button clickedButton = (Button) event.getSource();
         String filterText = clickedButton.getText();
-        
+
         // Toggle filter selection
         if (currentFilter != null && currentFilter.equals(filterText)) {
             // Deselect if clicking the same filter
@@ -427,7 +447,7 @@ public class HistoryController {
         } else {
             // Select new filter
             currentFilter = filterText;
-            
+
             // Reset all filter buttons
             if (filterOptionsVBox != null) {
                 for (var child : filterOptionsVBox.getChildren()) {
@@ -437,41 +457,49 @@ public class HistoryController {
                     }
                 }
             }
-            
+
             // Highlight selected filter
             clickedButton.setStyle("-fx-background-color: #b0e0ff; -fx-text-fill: #0050c0; -fx-alignment: center-left; -fx-padding: 10; -fx-background-radius: 5; -fx-border-color: #2090ff; -fx-border-width: 2; -fx-cursor: hand;");
-            
+
             // Apply filter to records
             if (recordsListVBox != null && allRecords != null) {
                 filterRecordsByType(filterText);
             }
         }
     }
-    
+
     private void filterRecordsByType(String filterType) {
         // Filter records based on diagnosis or other criteria matching the filter type
         List<MedicalRecordSummary> filtered = allRecords.stream()
-            .filter(record -> {
-                String diagnosis = record.diagnosis != null ? record.diagnosis.toLowerCase() : "";
-                // Match filter keywords
-                if (filterType.contains("Constant mild")) {
-                    return diagnosis.contains("constant") || diagnosis.contains("mild");
-                } else if (filterType.contains("Mild daily")) {
-                    return diagnosis.contains("mild") || diagnosis.contains("daily");
-                } else if (filterType.contains("Daily episodes")) {
-                    return diagnosis.contains("daily") || diagnosis.contains("episode");
-                } else if (filterType.contains("Continuous mild")) {
-                    return diagnosis.contains("continuous") || diagnosis.contains("mild");
-                } else if (filterType.contains("Short intermitten")) {
-                    return diagnosis.contains("short") || diagnosis.contains("intermittent");
-                }
-                return false;
-            })
-            .toList();
+                .filter(record -> {
+                    String diagnosis = record.diagnosis != null ? record.diagnosis.toLowerCase() : "";
+                    // Match filter keywords
+                    if (filterType.contains("Constant mild")) {
+                        return diagnosis.contains("constant") || diagnosis.contains("mild");
+                    } else if (filterType.contains("Mild daily")) {
+                        return diagnosis.contains("mild") || diagnosis.contains("daily");
+                    } else if (filterType.contains("Daily episodes")) {
+                        return diagnosis.contains("daily") || diagnosis.contains("episode");
+                    } else if (filterType.contains("Continuous mild")) {
+                        return diagnosis.contains("continuous") || diagnosis.contains("mild");
+                    } else if (filterType.contains("Short intermitten")) {
+                        return diagnosis.contains("short") || diagnosis.contains("intermittent");
+                    }
+                    return false;
+                })
+                .toList();
         displayRecords(filtered);
     }
 
     public void goToHistory(ActionEvent actionEvent) {
+
+        UserRow selected = userTable.getSelectionModel().getSelectedItem();
+
+        if (selected == null) {
+            System.out.println("Please select a user to edit.");
+            return;
+        }
+
         try {
             FXMLLoader loader = new FXMLLoader(
                     Login.class.getResource("History.fxml")
@@ -479,11 +507,14 @@ public class HistoryController {
 
             Parent root = loader.load();
 
+            // Get current stage
             Stage stage = (Stage) ((Node) actionEvent.getSource())
                     .getScene()
                     .getWindow();
 
-            stage.setScene(new Scene(root, 1280, 768));
+            // Switch scene
+            stage.setScene(new Scene(root));
+            stage.setTitle("History");
             stage.show();
 
         } catch (IOException e) {
@@ -491,6 +522,8 @@ public class HistoryController {
             System.err.println("Failed to load History.fxml");
         }
     }
+
+
     @FXML
     private void handleReturn(ActionEvent event) {
         try {
@@ -509,7 +542,5 @@ public class HistoryController {
         }
     }
 
-
-
-}
+    }
 

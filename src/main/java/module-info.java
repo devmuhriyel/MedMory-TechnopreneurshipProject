@@ -10,6 +10,7 @@ module org.example.techno_mvp {
     requires java.desktop;
     requires javafx.base;
     requires javafx.graphics;
+    requires org.example.techno_mvp;
 
     opens MVP to javafx.fxml;
     exports MVP;
