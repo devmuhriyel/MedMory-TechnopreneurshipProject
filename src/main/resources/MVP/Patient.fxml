@@ -96,12 +96,13 @@
                         <!-- Cases List -->
             <ScrollPane fitToWidth="true" prefHeight="558.0" prefWidth="477.0" style="-fx-background-color: transparent; -fx-border-color: transparent;" VBox.vgrow="ALWAYS">
             <content>
-                    <TableView prefHeight="482.0" prefWidth="894.0">
-                        <columns>
-                            <TableColumn prefWidth="309.6000179052353" />
-                     <TableColumn prefWidth="309.6000179052353" />
-                        </columns>
-                    </TableView>
+                <TableView fx:id="userTable" prefHeight="482.0" prefWidth="894.0">
+                    <columns>
+                        <TableColumn fx:id="nameColumn" text="Patient Name" prefWidth="309.6" />
+                        <TableColumn fx:id="detailColumn" text="Detail" prefWidth="309.6" />
+                    </columns>
+                </TableView>
+
             </content>
             </ScrollPane>
          <Button contentDisplay="CENTER" mnemonicParsing="false" onAction="#goToHistory" text="Go to Details" textAlignment="CENTER">
