@@ -26,14 +26,7 @@
             </font>
         </Label>
 
-        <VBox layoutX="20" layoutY="120" spacing="15">
-
-            <Button prefWidth="180" style="                         -fx-background-color: #E6FFF4;                         -fx-text-fill: #006B4F;                         -fx-font-size: 18px;                         -fx-font-weight: bold;                         -fx-background-radius: 10;                     " text="👤  Users" />
-
-            <Button fx:id="settingsButton" onAction="#handleNavigation" prefWidth="180" style="                         -fx-background-color: #008060;                         -fx-text-fill: white;                         -fx-font-size: 18px;                         -fx-font-weight: bold;                         -fx-background-radius: 10;                     " text="⚙  Settings" />
-        </VBox>
-
-        <Button fx:id="logOutButton" layoutX="20" layoutY="690" onAction="#handleLogOut" prefWidth="180" style="                     -fx-background-color: #E63946;                     -fx-text-fill: white;                     -fx-font-size: 18px;                     -fx-font-weight: bold;                     -fx-background-radius: 10;                 " text="Log Out" />
+        <VBox layoutX="20" layoutY="120" spacing="15" />
 
         <!-- Main Content Card -->
         <AnchorPane layoutX="250.0" layoutY="40.0" prefHeight="680" prefWidth="1050" style="                         -fx-background-color: white;                         -fx-background-radius: 15;                     ">

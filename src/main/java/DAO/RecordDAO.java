@@ -566,20 +566,18 @@ public class RecordDAO {
     }
 
 
-    public boolean updateDoctor(int id, String name, String status) {
+    public boolean updateDoctor(int id, String name) {
 
         System.out.println("=== DAO.updateDoctor DEBUG ===");
         System.out.println("ID     : " + id);
         System.out.println("Name   : '" + name + "'");
-        System.out.println("Status : '" + status + "'");
 
-        String sql = "UPDATE doctors SET name = ?, status = ? WHERE iddoctors = ?";
+        String sql = "UPDATE doctors SET name = ? WHERE iddoctors = ?";
 
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
 
             ps.setString(1, name);
-            ps.setString(2, status);
-            ps.setInt(3, id);
+            ps.setInt(2, id);
 
             int rows = ps.executeUpdate();
 

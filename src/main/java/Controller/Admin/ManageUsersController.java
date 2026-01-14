@@ -16,6 +16,7 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.scene.Node;
+import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.TableColumn;
@@ -195,24 +196,24 @@ public class ManageUsersController implements Initializable {
                     Login.class.getResource("EditUser.fxml")
             );
 
-            Scene scene = new Scene(loader.load());
-            Stage stage = new Stage();
+            Parent root = loader.load();
 
+            // Pass selected user to controller
             EditUserController controller = loader.getController();
             controller.setUser(selected);
 
-            stage.setTitle("Edit User");
-            stage.setScene(scene);
-            stage.initOwner(userTable.getScene().getWindow());
-            stage.showAndWait();
+            // Get current stage
+            Stage stage = (Stage) userTable.getScene().getWindow();
 
-            // Refresh table after edit
-            loadAllUsers();
+            // Switch scene
+            stage.setScene(new Scene(root));
+            stage.setTitle("Edit User");
 
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
+
 
 
 
