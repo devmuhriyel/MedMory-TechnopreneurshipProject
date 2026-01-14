@@ -1,5 +1,6 @@
 package Controller.Doctor;
 
+import javafx.scene.Parent;
 import CommonModel.DoctorCase;
 import CommonModel.MedicalRecord;
 import CommonModel.MedicalRecordSummary;
@@ -51,7 +52,7 @@ public class HistoryController {
             case "accountButton": targetFxml = "DoctorAccount.fxml"; break;
             case "records":
             case "recordsButton": targetFxml = "ViewMedicalRecordList.fxml"; break;
-            case "casesButton": targetFxml = "History.fxml"; break;
+            case "casesButton": targetFxml = "Patient.fxml"; break;
             case "calendarButton": targetFxml = "Calendar.fxml"; break;
             case "notificationsButton": targetFxml = "Chat.fxml"; break;
             case "settingsButton": targetFxml = "DoctorSettings.fxml"; break;
@@ -469,4 +470,46 @@ public class HistoryController {
             .toList();
         displayRecords(filtered);
     }
+
+    public void goToHistory(ActionEvent actionEvent) {
+        try {
+            FXMLLoader loader = new FXMLLoader(
+                    Login.class.getResource("History.fxml")
+            );
+
+            Parent root = loader.load();
+
+            Stage stage = (Stage) ((Node) actionEvent.getSource())
+                    .getScene()
+                    .getWindow();
+
+            stage.setScene(new Scene(root, 1280, 768));
+            stage.show();
+
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.err.println("Failed to load History.fxml");
+        }
+    }
+    @FXML
+    private void handleReturn(ActionEvent event) {
+        try {
+            // Absolute path from classpath root
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/MVP/Patient.fxml"));
+
+            Parent root = loader.load();
+
+            Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
+            stage.setScene(new Scene(root, 1280, 768));
+            stage.show();
+
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.err.println("Failed to load Patients.fxml");
+        }
+    }
+
+
+
 }
+

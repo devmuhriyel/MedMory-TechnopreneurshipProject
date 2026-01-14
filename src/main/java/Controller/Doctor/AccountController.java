@@ -98,7 +98,7 @@ public class AccountController {
                 targetFxml = "ViewMedicalRecordList.fxml";
                 break;
             case "casesButton":
-                targetFxml = "History.fxml";
+                targetFxml = "Patient.fxml";
                 break;
             case "calendarButton":
                 targetFxml = "Calendar.fxml";
