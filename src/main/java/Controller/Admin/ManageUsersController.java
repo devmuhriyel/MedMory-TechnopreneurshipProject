@@ -153,8 +153,8 @@ public class ManageUsersController implements Initializable {
     }
 
     // =========================
-// DELETE PATIENT
-// =========================
+    // DELETE PATIENT
+    // =========================
     public boolean deletePatientById(int id) {
         String sql = "DELETE FROM users WHERE idusers = ?";
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -167,8 +167,8 @@ public class ManageUsersController implements Initializable {
     }
 
     // =========================
-// DELETE DOCTOR
-// =========================
+    // DELETE DOCTOR
+    // =========================
     public boolean deleteDoctorById(int id) {
         String sql = "DELETE FROM doctors WHERE iddoctors = ?";
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -179,6 +179,41 @@ public class ManageUsersController implements Initializable {
             return false;
         }
     }
+
+    @FXML
+    private void handleEditUser() {
+
+        UserRow selected = userTable.getSelectionModel().getSelectedItem();
+
+        if (selected == null) {
+            System.out.println("Please select a user to edit.");
+            return;
+        }
+
+        try {
+            FXMLLoader loader = new FXMLLoader(
+                    Login.class.getResource("EditUser.fxml")
+            );
+
+            Scene scene = new Scene(loader.load());
+            Stage stage = new Stage();
+
+            EditUserController controller = loader.getController();
+            controller.setUser(selected);
+
+            stage.setTitle("Edit User");
+            stage.setScene(scene);
+            stage.initOwner(userTable.getScene().getWindow());
+            stage.showAndWait();
+
+            // Refresh table after edit
+            loadAllUsers();
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
 
 
 }

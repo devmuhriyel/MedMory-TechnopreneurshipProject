@@ -455,15 +455,16 @@ public class RecordDAO {
 
         List<AdminModel> patients = new ArrayList<>();
 
-        String sql = "SELECT name FROM users ORDER BY idusers ASC";
+        String sql = "SELECT idusers, name FROM users ORDER BY idusers ASC";
 
         try (PreparedStatement ps = conn.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
 
             while (rs.next()) {
-                patients.add(new AdminModel(
-                        rs.getString("name")
-                ));
+                AdminModel patient = new AdminModel();
+                patient.setId(rs.getInt("idusers"));   // 🔥 THIS WAS MISSING
+                patient.setName(rs.getString("name"));
+                patients.add(patient);
             }
 
         } catch (Exception e) {
@@ -472,6 +473,7 @@ public class RecordDAO {
 
         return patients;
     }
+
 
     public List<DoctorModel> getAllDoctors() {
 
@@ -528,6 +530,78 @@ public class RecordDAO {
             return false;
         }
     }
+
+    public boolean updatePatient(int id, String name) {
+
+        System.out.println("=== DAO.updatePatient DEBUG ===");
+        System.out.println("ID   : " + id);
+        System.out.println("Name : '" + name + "'");
+
+        String sql = "UPDATE users SET name = ? WHERE idusers = ?";
+
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setString(1, name);
+            ps.setInt(2, id);
+
+            int rows = ps.executeUpdate();
+
+            System.out.println("Rows affected: " + rows);
+
+            if (rows == 0) {
+                System.out.println("⚠ No rows updated. Possible causes:");
+                System.out.println(" - ID does not exist");
+                System.out.println(" - Name is same as existing value");
+            }
+
+            return rows > 0;
+
+        } catch (Exception e) {
+            System.out.println("❌ Exception in updatePatient()");
+            e.printStackTrace();
+            return false;
+        } finally {
+            System.out.println("=== END updatePatient DEBUG ===");
+        }
+    }
+
+
+    public boolean updateDoctor(int id, String name, String status) {
+
+        System.out.println("=== DAO.updateDoctor DEBUG ===");
+        System.out.println("ID     : " + id);
+        System.out.println("Name   : '" + name + "'");
+        System.out.println("Status : '" + status + "'");
+
+        String sql = "UPDATE doctors SET name = ?, status = ? WHERE iddoctors = ?";
+
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setString(1, name);
+            ps.setString(2, status);
+            ps.setInt(3, id);
+
+            int rows = ps.executeUpdate();
+
+            System.out.println("Rows affected: " + rows);
+
+            if (rows == 0) {
+                System.out.println("⚠ No rows updated. Possible causes:");
+                System.out.println(" - Doctor ID does not exist");
+                System.out.println(" - Data is unchanged");
+            }
+
+            return rows > 0;
+
+        } catch (Exception e) {
+            System.out.println("❌ Exception in updateDoctor()");
+            e.printStackTrace();
+            return false;
+        } finally {
+            System.out.println("=== END updateDoctor DEBUG ===");
+        }
+    }
+
 
 
 }

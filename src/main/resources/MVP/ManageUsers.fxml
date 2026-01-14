@@ -1,125 +1,65 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.control.*?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
 <?import javafx.scene.effect.DropShadow?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.shape.Rectangle?>
 <?import javafx.scene.text.Font?>
 
-<AnchorPane prefHeight="768.0" prefWidth="1366.0"
-            xmlns="http://javafx.com/javafx/25"
-            xmlns:fx="http://javafx.com/fxml/1"
-            fx:controller="Controller.Admin.ManageUsersController">
+<AnchorPane prefHeight="768.0" prefWidth="1366.0" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="Controller.Admin.ManageUsersController">
 
     <children>
 
         <!-- Sidebar -->
-        <Rectangle width="220.0" height="768.0"
-                   fill="#00A86B">
+        <Rectangle fill="#00A86B" height="768.0" width="220.0">
             <effect>
-                <DropShadow radius="10" offsetX="2" color="#00000033"/>
+                <DropShadow color="#00000033" offsetX="2" radius="10" />
             </effect>
         </Rectangle>
 
-        <Label layoutX="40" layoutY="35"
-               text="Admin"
-               textFill="WHITE">
+        <Label layoutX="40" layoutY="35" text="Admin" textFill="WHITE">
             <font>
-                <Font name="System Bold" size="36"/>
+                <Font name="System Bold" size="36" />
             </font>
         </Label>
 
         <VBox layoutX="20" layoutY="120" spacing="15">
 
-            <Button text="👤  Users"
-                    prefWidth="180"
-                    style="
-                        -fx-background-color: #E6FFF4;
-                        -fx-text-fill: #006B4F;
-                        -fx-font-size: 18px;
-                        -fx-font-weight: bold;
-                        -fx-background-radius: 10;
-                    "/>
+            <Button prefWidth="180" style="                         -fx-background-color: #E6FFF4;                         -fx-text-fill: #006B4F;                         -fx-font-size: 18px;                         -fx-font-weight: bold;                         -fx-background-radius: 10;                     " text="👤  Users" />
 
-            <Button fx:id="settingsButton"
-                    text="⚙  Settings"
-                    onAction="#handleNavigation"
-                    prefWidth="180"
-                    style="
-                        -fx-background-color: #008060;
-                        -fx-text-fill: white;
-                        -fx-font-size: 18px;
-                        -fx-font-weight: bold;
-                        -fx-background-radius: 10;
-                    "/>
+            <Button fx:id="settingsButton" onAction="#handleNavigation" prefWidth="180" style="                         -fx-background-color: #008060;                         -fx-text-fill: white;                         -fx-font-size: 18px;                         -fx-font-weight: bold;                         -fx-background-radius: 10;                     " text="⚙  Settings" />
         </VBox>
 
-        <Button fx:id="logOutButton"
-                layoutX="20"
-                layoutY="690"
-                prefWidth="180"
-                text="Log Out"
-                onAction="#handleLogOut"
-                style="
-                    -fx-background-color: #E63946;
-                    -fx-text-fill: white;
-                    -fx-font-size: 18px;
-                    -fx-font-weight: bold;
-                    -fx-background-radius: 10;
-                "/>
+        <Button fx:id="logOutButton" layoutX="20" layoutY="690" onAction="#handleLogOut" prefWidth="180" style="                     -fx-background-color: #E63946;                     -fx-text-fill: white;                     -fx-font-size: 18px;                     -fx-font-weight: bold;                     -fx-background-radius: 10;                 " text="Log Out" />
 
         <!-- Main Content Card -->
-        <AnchorPane layoutX="250" layoutY="40"
-                    prefWidth="1050"
-                    prefHeight="680"
-                    style="
-                        -fx-background-color: white;
-                        -fx-background-radius: 15;
-                    ">
+        <AnchorPane layoutX="250" layoutY="40" prefHeight="680" prefWidth="1050" style="                         -fx-background-color: white;                         -fx-background-radius: 15;                     ">
             <effect>
-                <DropShadow radius="15" color="#00000022"/>
+                <DropShadow color="#00000022" radius="15" />
             </effect>
 
             <children>
 
-                <Label layoutX="30" layoutY="25"
-                       text="Manage Users"
-                       textFill="#00A86B">
+                <Label layoutX="30" layoutY="25" text="Manage Users" textFill="#00A86B">
                     <font>
-                        <Font name="System Bold" size="32"/>
+                        <Font name="System Bold" size="32" />
                     </font>
                 </Label>
 
-                <TableView fx:id="userTable"
-                           layoutX="30"
-                           layoutY="90"
-                           prefWidth="990"
-                           prefHeight="470"
-                           style="
-                               -fx-background-radius: 10;
-                               -fx-border-radius: 10;
-                           ">
+                <TableView fx:id="userTable" layoutX="30" layoutY="90" prefHeight="470" prefWidth="990" style="                                -fx-background-radius: 10;                                -fx-border-radius: 10;                            ">
                     <columns>
-                        <TableColumn fx:id="nameCol" text="Name" prefWidth="330"/>
-                        <TableColumn fx:id="roleCol" text="Role" prefWidth="330"/>
-                        <TableColumn fx:id="statusCol" text="Status" prefWidth="330"/>
+                        <TableColumn fx:id="nameCol" prefWidth="330" text="Name" />
+                        <TableColumn fx:id="roleCol" prefWidth="330" text="Role" />
+                        <TableColumn fx:id="statusCol" prefWidth="330" text="Status" />
                     </columns>
                 </TableView>
 
-                <Button fx:id="deleteButton"
-                        layoutX="420"
-                        layoutY="585"
-                        prefWidth="200"
-                        text="🗑 Delete User"
-                        onAction="#handleDeleteUser"
-                        style="
-                            -fx-background-color: #FF6B6B;
-                            -fx-text-fill: white;
-                            -fx-font-size: 18px;
-                            -fx-font-weight: bold;
-                            -fx-background-radius: 12;
-                        "/>
+                <Button fx:id="deleteButton" layoutX="548.0" layoutY="586.0" onAction="#handleDeleteUser" prefWidth="200" style="                             -fx-background-color: #FF6B6B;                             -fx-text-fill: white;                             -fx-font-size: 18px;                             -fx-font-weight: bold;                             -fx-background-radius: 12;                         " text="🗑 Delete User" />
+                <Button fx:id="editButton" layoutX="303.0" layoutY="586.0" onAction="#handleEditUser" prefWidth="200" style="-fx-background-color: #0e8dad; -fx-text-fill: white; -fx-font-size: 18px; -fx-font-weight: bold; -fx-background-radius: 12;" text="🗑 Edit User" />
 
             </children>
         </AnchorPane>
