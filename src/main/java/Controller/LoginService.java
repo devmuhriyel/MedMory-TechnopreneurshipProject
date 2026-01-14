@@ -38,7 +38,7 @@ public class LoginService {
 
             try (PreparedStatement ds = conn.prepareStatement(doctorQuery)) {
                 ds.setString(1, username.trim());
-                ds.setString(2, password); // ✅ REQUIRED
+                ds.setString(2, password.trim()); // ✅ REQUIRED
 
                 ResultSet dr = ds.executeQuery();
                 if (dr.next()) {

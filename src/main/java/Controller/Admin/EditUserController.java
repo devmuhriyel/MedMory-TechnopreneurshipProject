@@ -39,7 +39,7 @@ public class EditUserController implements Initializable {
 
         userNameField.setText(user.getName());
         iDField.setText(String.valueOf(user.getId()));
-        iDField.setDisable(true); // IDs should not be editable
+        iDField.setDisable(true);
     }
 
 
@@ -76,8 +76,7 @@ public class EditUserController implements Initializable {
 
                 success = recordDAO.updateDoctor(
                         user.getId(),
-                        userNameField.getText(),
-                        userPasswordField.getText()
+                        userNameField.getText()
                 );
             }
 
@@ -105,14 +104,13 @@ public class EditUserController implements Initializable {
         stage.close();
     }
 
-    // Optional navigation handlers (safe to keep)
     public void handleNavigation(ActionEvent event) {
         Button clickedButton = (Button) event.getSource();
         String id = clickedButton.getId();
 
         String targetFxml = switch (id) {
             case "settingsButton" -> "Settings.fxml";
-            case "logOutButton" -> "Login.fxml";
+            case "backButton" -> "ManageUsers.fxml";
             default -> null;
         };
 
@@ -129,16 +127,4 @@ public class EditUserController implements Initializable {
         }
     }
 
-    public void handleLogOut(ActionEvent event) {
-        SessionManager.clearSession();
-        try {
-            FXMLLoader loader = new FXMLLoader(Login.class.getResource("Login.fxml"));
-            Scene scene = new Scene(loader.load(), 1280, 768);
-            Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
-            stage.setScene(scene);
-            stage.show();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
 }
