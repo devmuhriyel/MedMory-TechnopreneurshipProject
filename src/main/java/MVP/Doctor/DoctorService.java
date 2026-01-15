@@ -37,6 +37,31 @@ public class DoctorService {
         return doctor;
     }
 
+    /**
+     * Verifies if the provided password matches the doctor's current password in the database.
+     * @param doctorID The ID of the doctor
+     * @param currentPassword The password to verify
+     * @return true if the password matches, false otherwise
+     */
+    public boolean verifyCurrentPassword(int doctorID, String currentPassword) {
+        try (Connection conn = DatabaseConnection.getConnection()) {
+            String query = "SELECT password FROM doctors WHERE iddoctors = ?";
+            PreparedStatement stmt = conn.prepareStatement(query);
+            stmt.setInt(1, doctorID);
+            ResultSet rs = stmt.executeQuery();
+
+            if (rs.next()) {
+                String dbPassword = rs.getString("password");
+                // Compare passwords (currently stored as plain text based on LoginService)
+                return currentPassword.equals(dbPassword);
+            }
+        } catch (Exception e) {
+            System.err.println("Error verifying current password: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return false;
+    }
+
     public static List<MedicalRecordSummary> getDoctorMedicalRecords(int doctorID) {
         List<MedicalRecordSummary> records = new ArrayList<>();
 

@@ -34,7 +34,9 @@ public class AccountController {
     @FXML private TextField phoneField;
     @FXML private TextField specializationField;
     @FXML private TextArea bioArea;
-    @FXML private PasswordField passwordField;
+    @FXML private PasswordField passwordField;  // Retype Password
+    @FXML private PasswordField passwordField1; // New Password
+    @FXML private PasswordField passwordField2; // Current Password
 
     // FXML Injections for Navigation Buttons (to read their IDs in handleNavigation)
     @FXML private Button accountButton;
@@ -76,7 +78,10 @@ public class AccountController {
         phoneField.setText(doctor.phone);
         specializationField.setText(doctor.specialization);
         bioArea.setText(doctor.biography);
-        passwordField.setText(""); // Always blank for security
+        // Clear all password fields for security
+        passwordField.clear();
+        passwordField1.clear();
+        passwordField2.clear();
     }
 
 
@@ -159,7 +164,11 @@ public class AccountController {
         String phone = phoneField.getText().trim();
         String specialization = specializationField.getText().trim();
         String biography = bioArea.getText().trim();
-        String newPassword = passwordField.getText().trim();
+        
+        // Password fields
+        String currentPassword = passwordField2.getText().trim();
+        String newPassword = passwordField1.getText().trim();
+        String retypePassword = passwordField.getText().trim();
 
         // Validate required fields
         if (name.isEmpty()) {
@@ -172,13 +181,51 @@ public class AccountController {
             return;
         }
 
+        // Validate password change if any password field is filled
+        boolean attemptingPasswordChange = !currentPassword.isEmpty() || !newPassword.isEmpty() || !retypePassword.isEmpty();
+        
+        if (attemptingPasswordChange) {
+            // All three password fields must be filled to change password
+            if (currentPassword.isEmpty()) {
+                showAlert(Alert.AlertType.WARNING, "Password Error", "Please enter your current password to change it.");
+                return;
+            }
+            
+            if (newPassword.isEmpty()) {
+                showAlert(Alert.AlertType.WARNING, "Password Error", "Please enter a new password.");
+                return;
+            }
+            
+            if (retypePassword.isEmpty()) {
+                showAlert(Alert.AlertType.WARNING, "Password Error", "Please retype your new password.");
+                return;
+            }
+            
+            // Verify that new password and retype password match
+            if (!newPassword.equals(retypePassword)) {
+                showAlert(Alert.AlertType.ERROR, "Password Mismatch", "New password and retype password do not match. Please try again.");
+                return;
+            }
+            
+            // Verify current password
+            DoctorService service = new DoctorService();
+            if (!service.verifyCurrentPassword(doctorID, currentPassword)) {
+                showAlert(Alert.AlertType.ERROR, "Invalid Password", "Current password is incorrect. Please try again.");
+                return;
+            }
+        }
+
         // Create service instance and update doctor information
         DoctorService service = new DoctorService();
-        boolean success = service.updateDoctor(doctorID, name, email, phone, specialization, biography, newPassword);
+        // Only pass new password if password change is being attempted
+        String passwordToUpdate = attemptingPasswordChange ? newPassword : null;
+        boolean success = service.updateDoctor(doctorID, name, email, phone, specialization, biography, passwordToUpdate);
 
         if (success) {
-            // Clear password field after successful save
+            // Clear all password fields after successful save
             passwordField.clear();
+            passwordField1.clear();
+            passwordField2.clear();
             
             // Update displayed labels
             doctorNameLabel.setText("Dr. " + name);
@@ -186,7 +233,11 @@ public class AccountController {
                 specializationLabel.setText(specialization);
             }
             
-            showAlert(Alert.AlertType.INFORMATION, "Success", "Your changes have been saved successfully!");
+            String successMessage = "Your changes have been saved successfully!";
+            if (attemptingPasswordChange) {
+                successMessage = "Your profile and password have been updated successfully!";
+            }
+            showAlert(Alert.AlertType.INFORMATION, "Success", successMessage);
         } else {
             showAlert(Alert.AlertType.ERROR, "Error", "Failed to save changes. Please try again.");
         }
