@@ -237,6 +237,29 @@ public class RecordDAO {
     }
 
     // =========================================================
+// REGISTER DOCTOR
+// =========================================================
+    // Inside DAO.RecordDAO.java
+    public boolean registerDoctor(String name, String email, String password, String phone, String license, String year) {
+        // Note: Your DB image shows columns: name, password, email, phone, biography, specialization
+        // We omit 'license_number' since it doesn't exist in your phpMyAdmin
+        String sql = "INSERT INTO doctors (name, email, password, phone, specialization, biography) VALUES (?, ?, ?, ?, ?, ?)";
+
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, name);
+            ps.setString(2, email);
+            ps.setString(3, password);
+            ps.setString(4, phone);
+            ps.setString(5, "PRC License: " + license); // Storing in specialization
+            ps.setString(6, "Registered in: " + year);  // Storing in biography
+
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+    // =========================================================
     // DOCTOR INFO
     // =========================================================
     public DoctorModel getDoctorInfo(int doctorID) {

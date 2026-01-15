@@ -2,6 +2,7 @@
 
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.CheckBox?>
+<?import javafx.scene.control.Hyperlink?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.PasswordField?>
 <?import javafx.scene.control.TextField?>
@@ -15,13 +16,10 @@
 
 <AnchorPane fx:id="mainCard" prefHeight="717.0" prefWidth="812.0" xmlns="http://javafx.com/javafx/24.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="Controller.SignupController">
    <children>
-      <!-- Background -->
       <Rectangle fill="#2c2c2c" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
 
-      <!-- Main Content Card -->
       <VBox layoutX="33.0" layoutY="37.0" prefHeight="694.0" prefWidth="757.0" spacing="20.0" style="-fx-background-color: white; -fx-background-radius: 10px; -fx-padding: 20px;" AnchorPane.bottomAnchor="48.0" AnchorPane.leftAnchor="33.0" AnchorPane.rightAnchor="22.0" AnchorPane.topAnchor="37.0">
          <children>
-            <!-- Welcome Section -->
             <VBox prefWidth="717.0" spacing="10.0" styleClass="welcome-section">
                <children>
                   <Label style="-fx-text-fill: #2c2c2c; -fx-font-size: 32px; -fx-font-weight: bold;" text="Welcome" />
@@ -29,7 +27,6 @@
                </children>
             </VBox>
 
-            <!-- MEDMORY Logo -->
             <HBox fx:id="logoContainer" alignment="CENTER_RIGHT" prefHeight="45.0" prefWidth="798.0" spacing="5.0">
                <children>
                   <Label style="-fx-text-fill: #4CAF50; -fx-font-size: 20px;" text="🌿" />
@@ -44,7 +41,6 @@
                </children>
             </HBox>
 
-            <!-- Form Fields -->
             <GridPane fx:id="formGrid" hgap="20.0" vgap="15.0">
                <columnConstraints>
                   <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
@@ -57,13 +53,11 @@
                   <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
                </rowConstraints>
                <children>
-                  <!-- Left Column -->
                   <TextField fx:id="firstNameField" promptText="First Name" style="-fx-background-color: #f5f5f5; -fx-border-color: #e0e0e0; -fx-border-width: 1px; -fx-border-radius: 5px; -fx-background-radius: 5px; -fx-padding: 12px 15px; -fx-font-size: 14px; -fx-pref-height: 45px;" GridPane.columnIndex="0" GridPane.rowIndex="0" />
                   <TextField fx:id="lastNameField" prefHeight="69.0" prefWidth="546.0" promptText="Last Name" style="-fx-background-color: #f5f5f5; -fx-border-color: #e0e0e0; -fx-border-width: 1px; -fx-border-radius: 5px; -fx-background-radius: 5px; -fx-padding: 12px 15px; -fx-font-size: 14px; -fx-pref-height: 45px;" GridPane.columnIndex="0" GridPane.rowIndex="1" />
                   <TextField fx:id="emailField" promptText="Email" style="-fx-background-color: #f5f5f5; -fx-border-color: #e0e0e0; -fx-border-width: 1px; -fx-border-radius: 5px; -fx-background-radius: 5px; -fx-padding: 12px 15px; -fx-font-size: 14px; -fx-pref-height: 45px;" GridPane.columnIndex="0" GridPane.rowIndex="2" />
                   <TextField fx:id="phoneField" promptText="Phone Number (+63)" style="-fx-background-color: #f5f5f5; -fx-border-color: #e0e0e0; -fx-border-width: 1px; -fx-border-radius: 5px; -fx-background-radius: 5px; -fx-padding: 12px 15px; -fx-font-size: 14px; -fx-pref-height: 45px;" GridPane.columnIndex="0" GridPane.rowIndex="3" />
 
-                  <!-- Right Column -->
                   <TextField fx:id="birthdayField" promptText="Birthday (DD-MM-YY)" style="-fx-background-color: #f5f5f5; -fx-border-color: #e0e0e0; -fx-border-width: 1px; -fx-border-radius: 5px; -fx-background-radius: 5px; -fx-padding: 12px 15px; -fx-font-size: 14px; -fx-pref-height: 45px;" GridPane.columnIndex="1" GridPane.rowIndex="0" />
                   <TextField fx:id="locationField" promptText="Location" style="-fx-background-color: #f5f5f5; -fx-border-color: #e0e0e0; -fx-border-width: 1px; -fx-border-radius: 5px; -fx-background-radius: 5px; -fx-padding: 12px 15px; -fx-font-size: 14px; -fx-pref-height: 45px;" GridPane.columnIndex="1" GridPane.rowIndex="1" />
                   <PasswordField fx:id="passwordField" promptText="Password" style="-fx-background-color: #f5f5f5; -fx-border-color: #e0e0e0; -fx-border-width: 1px; -fx-border-radius: 5px; -fx-background-radius: 5px; -fx-padding: 12px 15px; -fx-font-size: 14px; -fx-pref-height: 45px;" GridPane.columnIndex="1" GridPane.rowIndex="2" />
@@ -71,9 +65,10 @@
                </children>
             </GridPane>
 
-            <!-- Consent Section -->
             <VBox fx:id="consentContainer" spacing="15.0">
                <children>
+                  <Hyperlink fx:id="doctorSignupLink" onAction="#handleDoctorSignupLink" text="Click here to signup as Doctor" />
+
                   <Label style="-fx-text-fill: #2c2c2c; -fx-font-size: 14px; -fx-font-weight: bold;" text="I hereby consent and agree to the terms and conditions of Medmory." />
 
                   <VBox spacing="10.0">
@@ -103,7 +98,6 @@
                </children>
             </VBox>
 
-            <!-- Action Buttons -->
             <HBox alignment="CENTER_LEFT" prefHeight="50.0" prefWidth="1110.0" spacing="20.0">
                <children>
                   <Button fx:id="cancelButton" onAction="#handleCancel" style="-fx-background-color: transparent; -fx-text-fill: #2c2c2c; -fx-font-size: 16px; -fx-font-weight: bold; -fx-opacity: 1.0;" text="cancel" />
