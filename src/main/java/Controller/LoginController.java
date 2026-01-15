@@ -102,7 +102,7 @@ public class LoginController {
 
                         case "admin":
                             showSuccessMessage("Admin login success!");
-                            loadFXML("MVP/ManageUsers.fxml");
+                            loadFXML("MVP/AdminDashboard.fxml");
                             break;
 
                         case "invalid":

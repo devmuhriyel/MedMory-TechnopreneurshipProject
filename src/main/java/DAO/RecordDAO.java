@@ -133,6 +133,33 @@ public class RecordDAO {
         return stmt.executeUpdate() > 0;
     }
 
+    public boolean createPatient(String name, String password) {
+        String sql = "INSERT INTO users (name,password) VALUES (?,?)";
+
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, name);
+            ps.setString(2,password);
+            return ps.executeUpdate() > 0;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public boolean createDoctor(String name, String password) {
+        String sql = "INSERT INTO doctors (name, password) VALUES (?, ?)";
+
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, name);
+            ps.setString(2, password);
+            return ps.executeUpdate() > 0;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+
     // =========================================================
     // FETCH RECORD BY ID (FULL)
     // =========================================================
@@ -462,7 +489,7 @@ public class RecordDAO {
 
             while (rs.next()) {
                 AdminModel patient = new AdminModel();
-                patient.setId(rs.getInt("idusers"));   // 🔥 THIS WAS MISSING
+                patient.setId(rs.getInt("idusers"));
                 patient.setName(rs.getString("name"));
                 patients.add(patient);
             }

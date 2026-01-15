@@ -1,9 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.TableColumn?>
 <?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextField?>
 <?import javafx.scene.effect.DropShadow?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.VBox?>
@@ -14,25 +16,20 @@
 
     <children>
 
-        <!-- Sidebar -->
+           <!-- Sidebar -->
         <Rectangle fill="#00A86B" height="768.0" width="220.0">
             <effect>
                 <DropShadow color="#00000033" offsetX="2" radius="10" />
             </effect>
         </Rectangle>
 
-        <Label layoutX="40" layoutY="35" text="Admin" textFill="WHITE">
+        <Label layoutX="54.0" layoutY="40.0" text="Admin" textFill="WHITE">
             <font>
                 <Font name="System Bold" size="36" />
             </font>
         </Label>
 
-        <VBox layoutX="20" layoutY="120" spacing="15">
-
-            <Button prefWidth="180" style="                         -fx-background-color: #E6FFF4;                         -fx-text-fill: #006B4F;                         -fx-font-size: 18px;                         -fx-font-weight: bold;                         -fx-background-radius: 10;                     " text="👤  Users" />
-
-            <Button fx:id="settingsButton" onAction="#handleNavigation" prefWidth="180" style="                         -fx-background-color: #008060;                         -fx-text-fill: white;                         -fx-font-size: 18px;                         -fx-font-weight: bold;                         -fx-background-radius: 10;                     " text="⚙  Settings" />
-        </VBox>
+        <VBox layoutX="20" layoutY="120" spacing="15" />
 
         <Button fx:id="logOutButton" layoutX="20" layoutY="690" onAction="#handleLogOut" prefWidth="180" style="                     -fx-background-color: #E63946;                     -fx-text-fill: white;                     -fx-font-size: 18px;                     -fx-font-weight: bold;                     -fx-background-radius: 10;                 " text="Log Out" />
 
@@ -44,7 +41,7 @@
 
             <children>
 
-                <Label layoutX="30" layoutY="25" text="Manage Users" textFill="#00A86B">
+                <Label layoutX="30.0" layoutY="14.0" text="Manage Users" textFill="#00A86B">
                     <font>
                         <Font name="System Bold" size="32" />
                     </font>
@@ -52,17 +49,29 @@
 
                 <TableView fx:id="userTable" layoutX="30" layoutY="90" prefHeight="470" prefWidth="990" style="                                -fx-background-radius: 10;                                -fx-border-radius: 10;                            ">
                     <columns>
-                        <TableColumn fx:id="nameCol" prefWidth="330" text="Name" />
-                        <TableColumn fx:id="roleCol" prefWidth="330" text="Role" />
-                        <TableColumn fx:id="statusCol" prefWidth="330" text="Status" />
+                        <TableColumn fx:id="idCol" prefWidth="67.0" text="ID" />
+                        <TableColumn fx:id="nameCol" minWidth="0.0" prefWidth="376.0" text="Name" />
+                        <TableColumn fx:id="roleCol" minWidth="0.0" prefWidth="337.0" text="Role" />
+                        <TableColumn fx:id="statusCol" prefWidth="228.0" text="Status" />
                     </columns>
                 </TableView>
 
-                <Button fx:id="deleteButton" layoutX="548.0" layoutY="586.0" onAction="#handleDeleteUser" prefWidth="200" style="                             -fx-background-color: #FF6B6B;                             -fx-text-fill: white;                             -fx-font-size: 18px;                             -fx-font-weight: bold;                             -fx-background-radius: 12;                         " text="🗑 Delete User" />
-                <Button fx:id="editButton" layoutX="303.0" layoutY="586.0" onAction="#handleEditUser" prefWidth="200" style="-fx-background-color: #0e8dad; -fx-text-fill: white; -fx-font-size: 18px; -fx-font-weight: bold; -fx-background-radius: 12;" text="🗑 Edit User" />
+                <Button fx:id="createButton" layoutX="426.0" layoutY="586.0" onAction="#handleCreateButton" prefWidth="200" style="-fx-background-color: #6AC920; -fx-text-fill: white; -fx-font-size: 18px; -fx-font-weight: bold; -fx-background-radius: 12;" text="Create User" />
+                <Button fx:id="editButton" layoutX="189.0" layoutY="586.0" onAction="#handleEditUser" prefWidth="200" style="-fx-background-color: #0e8dad; -fx-text-fill: white; -fx-font-size: 18px; -fx-font-weight: bold; -fx-background-radius: 12;" text="Edit User" />
+            <Button fx:id="deleteButton1" layoutX="654.0" layoutY="586.0" onAction="#handleDeleteUser" prefWidth="200" style="                             -fx-background-color: #FF6B6B;                             -fx-text-fill: white;                             -fx-font-size: 18px;                             -fx-font-weight: bold;                             -fx-background-radius: 12;                         " text="🗑 Delete User" />
+            <TextField fx:id="searchField" layoutX="715.0" layoutY="38.0" prefHeight="30.0" prefWidth="279.0" promptText="Search Here" style="-fx-background-color: transparent; -fx-border-color: black; -fx-font-size: 14; -fx-border-radius: 16;">
+               <opaqueInsets>
+                  <Insets />
+               </opaqueInsets>
+            </TextField>
 
             </children>
         </AnchorPane>
+      <Button fx:id="homeButton" layoutX="20.0" layoutY="111.0" onAction="#handleNavigation" prefWidth="180" style="-fx-background-color: #008060; -fx-text-fill: white; -fx-font-size: 18px; -fx-font-weight: bold; -fx-background-radius: 10;" text="Home" />
+
+         <Button layoutX="20.0" layoutY="172.0" prefWidth="180" style="                         -fx-background-color: #E6FFF4;                         -fx-text-fill: #006B4F;                         -fx-font-size: 18px;                         -fx-font-weight: bold;                         -fx-background-radius: 10;                     " text="👤  Accounts" />
+
+         <Button fx:id="settingsButton" layoutX="20.0" layoutY="226.0" onAction="#handleNavigation" prefWidth="180" style="                         -fx-background-color: #008060;                         -fx-text-fill: white;                         -fx-font-size: 18px;                         -fx-font-weight: bold;                         -fx-background-radius: 10;                     " text="⚙  Settings" />
 
     </children>
 </AnchorPane>
