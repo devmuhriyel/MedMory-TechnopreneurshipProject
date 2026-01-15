@@ -33,6 +33,7 @@ import java.util.ResourceBundle;
 public class ManageUsersController implements Initializable {
 
     @FXML private TableView<UserRow> userTable;
+    @FXML private TableColumn<UserRow, String> idCol;
     @FXML private TableColumn<UserRow, String> nameCol;
     @FXML private TableColumn<UserRow, String> roleCol;
     @FXML private TableColumn<UserRow, String> statusCol;
@@ -51,6 +52,7 @@ public class ManageUsersController implements Initializable {
     }
 
     private void setupColumns() {
+        idCol.setCellValueFactory(new PropertyValueFactory<>("id"));
         nameCol.setCellValueFactory(new PropertyValueFactory<>("name"));
         roleCol.setCellValueFactory(new PropertyValueFactory<>("role"));
         statusCol.setCellValueFactory(new PropertyValueFactory<>("status"));
@@ -93,8 +95,8 @@ public class ManageUsersController implements Initializable {
         String id = clickedButton.getId();
 
         String targetFxml = switch (id) {
+            case "homeButton" -> "AdminDashboard.fxml";
             case "settingsButton" -> "Settings.fxml";
-            case "logOutButton" -> "Login.fxml";
             default -> throw new IllegalStateException("Unexpected value: " + id);
         };
 
@@ -152,32 +154,25 @@ public class ManageUsersController implements Initializable {
             System.out.println("Error" + "Failed to delete user.");
         }
     }
+    @FXML
+    private void handleCreateButton() {
 
-    // =========================
-    // DELETE PATIENT
-    // =========================
-    public boolean deletePatientById(int id) {
-        String sql = "DELETE FROM users WHERE idusers = ?";
-        try (PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setInt(1, id);
-            return ps.executeUpdate() > 0;
-        } catch (Exception e) {
-            e.printStackTrace();
-            return false;
-        }
-    }
+        try {
+            FXMLLoader loader = new FXMLLoader(
+                    Login.class.getResource("AddUser.fxml")
+            );
 
-    // =========================
-    // DELETE DOCTOR
-    // =========================
-    public boolean deleteDoctorById(int id) {
-        String sql = "DELETE FROM doctors WHERE iddoctors = ?";
-        try (PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setInt(1, id);
-            return ps.executeUpdate() > 0;
-        } catch (Exception e) {
+            Parent root = loader.load();
+
+
+            Stage stage = (Stage) userTable.getScene().getWindow();
+
+
+            stage.setScene(new Scene(root));
+            stage.setTitle("Edit User");
+
+        } catch (IOException e) {
             e.printStackTrace();
-            return false;
         }
     }
 
@@ -198,14 +193,14 @@ public class ManageUsersController implements Initializable {
 
             Parent root = loader.load();
 
-            // Pass selected user to controller
+
             EditUserController controller = loader.getController();
             controller.setUser(selected);
 
-            // Get current stage
+
             Stage stage = (Stage) userTable.getScene().getWindow();
 
-            // Switch scene
+
             stage.setScene(new Scene(root));
             stage.setTitle("Edit User");
 
