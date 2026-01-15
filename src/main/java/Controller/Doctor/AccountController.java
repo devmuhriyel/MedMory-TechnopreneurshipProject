@@ -1,7 +1,6 @@
 package Controller.Doctor;
 
 import CommonModel.SessionManager;
-import MVP.Doctor.DoctorModel;
 import MVP.Doctor.DoctorService;
 import MVP.Login; // Assuming MVP.Login is used for resource loading path
 import javafx.event.ActionEvent;
@@ -9,6 +8,7 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
@@ -145,20 +145,62 @@ public class AccountController {
      */
     public void handleSaveChanges(ActionEvent actionEvent) {
         System.out.println("Action: Saving changes...");
+        
+        // Get the current doctor ID from session
+        int doctorID = SessionManager.getDoctorID();
+        if (doctorID <= 0) {
+            showAlert(Alert.AlertType.ERROR, "Error", "No doctor session found. Please log in again.");
+            return;
+        }
+        
         // Retrieve data from fields
-        String name = fullNameField.getText();
-        String email = emailField.getText();
-        String specialization = specializationField.getText();
-        String newPassword = passwordField.getText();
+        String name = fullNameField.getText().trim();
+        String email = emailField.getText().trim();
+        String phone = phoneField.getText().trim();
+        String specialization = specializationField.getText().trim();
+        String biography = bioArea.getText().trim();
+        String newPassword = passwordField.getText().trim();
 
-        // Print to console (Mock save operation)
-        System.out.println("Name to save: " + name);
-        System.out.println("Email to save: " + email);
-        if (!newPassword.isEmpty()) {
-            System.out.println("Password will be updated.");
+        // Validate required fields
+        if (name.isEmpty()) {
+            showAlert(Alert.AlertType.WARNING, "Validation Error", "Name cannot be empty.");
+            return;
+        }
+        
+        if (email.isEmpty()) {
+            showAlert(Alert.AlertType.WARNING, "Validation Error", "Email cannot be empty.");
+            return;
         }
 
-        // Logic to update the database goes here.
+        // Create service instance and update doctor information
+        DoctorService service = new DoctorService();
+        boolean success = service.updateDoctor(doctorID, name, email, phone, specialization, biography, newPassword);
+
+        if (success) {
+            // Clear password field after successful save
+            passwordField.clear();
+            
+            // Update displayed labels
+            doctorNameLabel.setText("Dr. " + name);
+            if (specialization != null && !specialization.isEmpty()) {
+                specializationLabel.setText(specialization);
+            }
+            
+            showAlert(Alert.AlertType.INFORMATION, "Success", "Your changes have been saved successfully!");
+        } else {
+            showAlert(Alert.AlertType.ERROR, "Error", "Failed to save changes. Please try again.");
+        }
+    }
+    
+    /**
+     * Helper method to show alert dialogs
+     */
+    private void showAlert(Alert.AlertType type, String title, String content) {
+        Alert alert = new Alert(type);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(content);
+        alert.showAndWait();
     }
 
     /**

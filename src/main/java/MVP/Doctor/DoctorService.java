@@ -71,4 +71,54 @@ public class DoctorService {
 
         return records;
     }
+
+    /**
+     * Updates doctor information in the database.
+     * @param doctorID The ID of the doctor to update
+     * @param name The doctor's name
+     * @param email The doctor's email
+     * @param phone The doctor's phone number
+     * @param specialization The doctor's specialization
+     * @param biography The doctor's biography
+     * @param password The new password (if provided, otherwise null/empty to skip password update)
+     * @return true if update was successful, false otherwise
+     */
+    public boolean updateDoctor(int doctorID, String name, String email, String phone, 
+                                 String specialization, String biography, String password) {
+        try (Connection conn = DatabaseConnection.getConnection()) {
+            String sql;
+            PreparedStatement stmt;
+            
+            // If password is provided and not empty, update all fields including password
+            if (password != null && !password.trim().isEmpty()) {
+                sql = "UPDATE doctors SET name = ?, email = ?, phone = ?, specialization = ?, biography = ?, password = ? WHERE iddoctors = ?";
+                stmt = conn.prepareStatement(sql);
+                stmt.setString(1, name);
+                stmt.setString(2, email);
+                stmt.setString(3, phone);
+                stmt.setString(4, specialization);
+                stmt.setString(5, biography);
+                stmt.setString(6, password);
+                stmt.setInt(7, doctorID);
+            } else {
+                // Update all fields except password
+                sql = "UPDATE doctors SET name = ?, email = ?, phone = ?, specialization = ?, biography = ? WHERE iddoctors = ?";
+                stmt = conn.prepareStatement(sql);
+                stmt.setString(1, name);
+                stmt.setString(2, email);
+                stmt.setString(3, phone);
+                stmt.setString(4, specialization);
+                stmt.setString(5, biography);
+                stmt.setInt(6, doctorID);
+            }
+            
+            int rowsAffected = stmt.executeUpdate();
+            return rowsAffected > 0;
+            
+        } catch (Exception e) {
+            System.err.println("Error updating doctor information: " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        }
+    }
 }
