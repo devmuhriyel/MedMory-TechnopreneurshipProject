@@ -6,45 +6,39 @@ public class DoctorCase {
     public String patientName;
     public String diagnosis;
     public String treatment;
-    public String caseDate;  // Date when case was created/started
-    public String dateCompleted;
+    public String caseDate;      // when case started
+    public String dateCompleted; // when case finished
 
-    public int getPatientID() {
-        return patientID;
-    }
-    public void setPatientID(int patientID) {
-        this.patientID = patientID;
-    }
-    public int getCaseID() {
-        return caseID;
-    }
-    public void setCaseID(int caseID) {
+    // Corrected constructor
+    public DoctorCase(int caseID, int patientID, String patientName, String dateCompleted, String diagnosis, String treatment) {
         this.caseID = caseID;
-    }
-    public String getPatientName() {
-        return patientName;
-    }
-    public void setPatientName(String patientName) {
+        this.patientID = patientID;
         this.patientName = patientName;
-    }
-    public String getDiagnosis() {
-        return diagnosis;
-    }
-    public void setDiagnosis(String diagnosis) {
+        this.dateCompleted = dateCompleted;
         this.diagnosis = diagnosis;
-    }
-    public String getTreatment() {
-        return treatment;
-    }
-    public void setTreatment(String treatment) {
         this.treatment = treatment;
     }
-    public String getDateCompleted() {
-        return dateCompleted;
-    }
-    public void setDateCompleted(String dateCompleted) {
-        this.dateCompleted = dateCompleted;
-    }
 
+    public DoctorCase() {}
+
+    public int getCaseID() { return caseID; }
+    public void setCaseID(int caseID) { this.caseID = caseID; }
+
+    public int getPatientID() { return patientID; }
+    public void setPatientID(int patientID) { this.patientID = patientID; }
+
+    public String getPatientName() { return patientName; }
+    public void setPatientName(String patientName) { this.patientName = patientName; }
+
+    public String getDiagnosis() { return diagnosis; }
+    public void setDiagnosis(String diagnosis) { this.diagnosis = diagnosis; }
+
+    public String getTreatment() { return treatment; }
+    public void setTreatment(String treatment) { this.treatment = treatment; }
+
+    public String getCaseDate() { return caseDate; }
+    public void setCaseDate(String caseDate) { this.caseDate = caseDate; }
+
+    public String getDateCompleted() { return dateCompleted; }
+    public void setDateCompleted(String dateCompleted) { this.dateCompleted = dateCompleted; }
 }
-

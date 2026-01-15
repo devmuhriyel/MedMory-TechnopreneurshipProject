@@ -6,6 +6,11 @@ import DAO.DatabaseConnection;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+import CommonModel.DoctorCase;
+import java.util.HashSet;
+import java.util.Set;
+
+
 
 public class DoctorService {
 
@@ -146,4 +151,59 @@ public class DoctorService {
             return false;
         }
     }
+
+    public static List<DoctorCase> getCasesHandledByDoctor(int doctorID) {
+        List<DoctorCase> cases = new ArrayList<>();
+
+        try (Connection conn = DatabaseConnection.getConnection()) {
+            if (conn == null) {
+                System.err.println("Database connection failed!");
+                return cases;
+            }
+
+            String query = "SELECT c.case_id, c.patientID, u.name AS patientName, c.diagnosis, c.treatment, c.date_completed " +
+                    "FROM cases c " +
+                    "JOIN users u ON c.patientID = u.idusers " +
+                    "WHERE c.doctorID = ? " +
+                    "ORDER BY c.date_completed DESC";
+
+            PreparedStatement stmt = conn.prepareStatement(query);
+            stmt.setInt(1, doctorID);
+            ResultSet rs = stmt.executeQuery();
+
+            Set<Integer> addedPatients = new HashSet<>();
+
+            while (rs.next()) {
+                int patientID = rs.getInt("patientID");
+                if (addedPatients.contains(patientID)) continue; // Avoid duplicates
+                addedPatients.add(patientID);
+
+                DoctorCase c = new DoctorCase(
+                        rs.getInt("case_id"),
+                        patientID,
+                        rs.getString("patientName"),
+                        rs.getString("date_completed"),
+                        rs.getString("diagnosis"),
+                        rs.getString("treatment")
+                );
+
+                cases.add(c);
+
+                // Debug print
+                System.out.println("Loaded patient: " + patientID + " - " + rs.getString("patientName"));
+                System.out.println("PatientID=" + patientID + ", Name=" + rs.getString("patientName"));
+
+            }
+
+            System.out.println("Total unique patients loaded: " + cases.size());
+
+        } catch (SQLException e) {
+            System.err.println("Error fetching cases: " + e.getMessage());
+            e.printStackTrace();
+        }
+
+        return cases;
+    }
+
+
 }

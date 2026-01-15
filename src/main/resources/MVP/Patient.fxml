@@ -14,7 +14,8 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<BorderPane fx:id="mainContainer" prefHeight="768.0" prefWidth="1366.0" style="-fx-background-color: #e6f0e6;" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="Controller.Doctor.HistoryController">
+<BorderPane fx:id="mainContainer" prefHeight="768.0" prefWidth="1366.0" style="-fx-background-color: #e6f0e6;" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="Controller.Doctor.PatientController">
+
 
     <left>
         <VBox alignment="TOP_CENTER" prefWidth="170.0" spacing="15.0" style="-fx-background-color: #00BF63;" BorderPane.alignment="TOP_LEFT">
@@ -105,7 +106,7 @@
 
             </content>
             </ScrollPane>
-         <Button contentDisplay="CENTER" mnemonicParsing="false" onAction="#goToHistory" text="Go to Details" textAlignment="CENTER">
+         <Button contentDisplay="CENTER" mnemonicParsing="false" onAction="#goToHistory" text="Go to Details" textAlignment="CENTER" >
             <font>
                <Font size="30.0" />
             </font>

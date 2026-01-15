@@ -44,6 +44,7 @@ public class HistoryController {
     @FXML
     private VBox filterOptionsVBox;
 
+    private UserRow selectedPatient;
     private List<MedicalRecordSummary> allRecords;
     private List<DoctorCase> allCases;
     private RecordDAO recordDAO;
@@ -491,35 +492,31 @@ public class HistoryController {
         displayRecords(filtered);
     }
 
-    public void goToHistory(ActionEvent actionEvent) {
+    private void loadPatientHistory(int patientID) {
+        if (userTable == null) return;
 
-        UserRow selected = userTable.getSelectionModel().getSelectedItem();
+        userTable.getItems().clear();
 
-        if (selected == null) {
-            System.out.println("Please select a user to edit.");
-            return;
+        // Get all cases handled by this patient for this doctor
+        int doctorID = SessionManager.getDoctorID();
+        List<DoctorCase> cases = DoctorService.getCasesHandledByDoctor(doctorID);
+
+        if (cases == null || cases.isEmpty()) return;
+
+        for (DoctorCase c : cases) {
+            if (c.patientID == patientID) {
+                userTable.getItems().add(new UserRow(c.patientID, c.patientName));
+            }
         }
+    }
 
-        try {
-            FXMLLoader loader = new FXMLLoader(
-                    Login.class.getResource("History.fxml")
-            );
+    public void setPatient(UserRow patient) {
+        this.selectedPatient = patient;
+        System.out.println("Selected patient: " + patient.getName() + " (ID: " + patient.getId() + ")");
 
-            Parent root = loader.load();
-
-            // Get current stage
-            Stage stage = (Stage) ((Node) actionEvent.getSource())
-                    .getScene()
-                    .getWindow();
-
-            // Switch scene
-            stage.setScene(new Scene(root));
-            stage.setTitle("History");
-            stage.show();
-
-        } catch (IOException e) {
-            e.printStackTrace();
-            System.err.println("Failed to load History.fxml");
+        // Load patient history
+        if (patient != null) {
+            loadPatientHistory(patient.getId());
         }
     }
 
