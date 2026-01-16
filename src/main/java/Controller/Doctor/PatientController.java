@@ -123,18 +123,20 @@ public class PatientController {
         }
 
         try {
-            FXMLLoader loader = new FXMLLoader(Login.class.getResource("History.fxml"));
+            // Load the FXML from resources
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/MVP/History.fxml"));
             Parent root = loader.load();
 
             // Pass the selected patient to the controller
             HistoryController controller = loader.getController();
-            controller.setPatient(selected); // similar to EditUserController setUser()
+            controller.setPatient(selected);
 
-            // Get current stage from any injected node (here we use userTable)
+            // Get the current stage (window)
             Stage stage = (Stage) userTable.getScene().getWindow();
 
-            // Replace the scene in the existing stage
-            stage.setScene(new Scene(root, 1280, 768));
+            // Replace the current scene with the History scene
+            Scene scene = new Scene(root, 1280, 768);
+            stage.setScene(scene);
             stage.setTitle("Patient History - " + selected.getName());
             stage.show();
 
@@ -144,4 +146,9 @@ public class PatientController {
         }
     }
 
+
 }
+
+
+
+

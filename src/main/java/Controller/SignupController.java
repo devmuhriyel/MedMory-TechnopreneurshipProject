@@ -1,10 +1,12 @@
 package Controller;
 
+import MVP.Login;
 import javafx.animation.*;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
@@ -27,6 +29,54 @@ public class SignupController {
     @FXML private GridPane formGrid;
     @FXML private VBox consentContainer;
     @FXML private HBox logoContainer;
+
+
+    @FXML
+    public void handleNavigation(ActionEvent event) {
+        Button clickedButton = (Button) event.getSource();
+        String id = clickedButton.getId();
+
+        String targetFxml;
+
+        switch (id) {
+            case "accountButton":
+                targetFxml = "DoctorAccount.fxml";
+                break;
+            case "records":
+            case "recordsButton":
+                targetFxml = "ViewMedicalRecordList.fxml";
+                break;
+            case "casesButton":
+                targetFxml = "Patient.fxml";
+                break;
+            case "calendarButton":
+                targetFxml = "Calendar.fxml";
+                break;
+            case "notificationsButton":
+                targetFxml = "Chat.fxml";
+                break;
+            case "settingsButton":
+                targetFxml = "DoctorSettings.fxml";
+                break;
+            default:
+                System.out.println("Unknown navigation button: " + id);
+                return;
+        }
+
+        try {
+            FXMLLoader loader = new FXMLLoader(Login.class.getResource(targetFxml));
+            Scene scene = new Scene(loader.load(), 1280, 768);
+
+            Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
+            stage.setScene(scene);
+            stage.show();
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+
 
     @FXML
     private void initialize() {
@@ -64,7 +114,6 @@ public class SignupController {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/MVP/Validation.fxml"));
             Parent root = loader.load();
 
-            // DATA PASSING LOGIC: Pass fields to the Validation controller
             Controller.Doctor.Validation validationController = loader.getController();
             validationController.setDoctorData(
                     firstNameField.getText() + " " + lastNameField.getText(),
@@ -81,6 +130,8 @@ public class SignupController {
             e.printStackTrace();
             System.err.println("Error loading Validation.fxml. Check your file paths.");
         }
+
+
     }
 
     @FXML

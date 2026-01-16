@@ -240,21 +240,25 @@ public class RecordDAO {
 // REGISTER DOCTOR
 // =========================================================
     // Inside DAO.RecordDAO.java
+    // Inside DAO.RecordDAO.java
+
     public boolean registerDoctor(String name, String email, String password, String phone, String license, String year) {
-        // Note: Your DB image shows columns: name, password, email, phone, biography, specialization
-        // We omit 'license_number' since it doesn't exist in your phpMyAdmin
+        // We target the columns that exist in your doctors table
         String sql = "INSERT INTO doctors (name, email, password, phone, specialization, biography) VALUES (?, ?, ?, ?, ?, ?)";
 
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            // We set values, ensuring 'name' is the first parameter
             ps.setString(1, name);
             ps.setString(2, email);
             ps.setString(3, password);
             ps.setString(4, phone);
-            ps.setString(5, "PRC License: " + license); // Storing in specialization
-            ps.setString(6, "Registered in: " + year);  // Storing in biography
+            ps.setString(5, "PRC License: " + license); // Specialization field
+            ps.setString(6, "Registered in: " + year);  // Biography field
 
             return ps.executeUpdate() > 0;
         } catch (SQLException e) {
+            // This catch block will now capture specific database errors
+            System.err.println("SQL Error in registerDoctor: " + e.getMessage());
             e.printStackTrace();
             return false;
         }
