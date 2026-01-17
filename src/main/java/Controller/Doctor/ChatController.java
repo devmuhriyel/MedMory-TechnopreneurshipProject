@@ -41,11 +41,8 @@ public class ChatController {
             case "accountButton":
                 targetFxml = "DoctorAccount.fxml";
                 break;
-            case "records":
-                targetFxml = "ViewMedicalRecordList.fxml";
-                break;
             case "casesButton":
-                targetFxml = "History.fxml";
+                targetFxml = "Patient.fxml";
                 break;
             case "calendarButton":
                 targetFxml = "Calendar.fxml";

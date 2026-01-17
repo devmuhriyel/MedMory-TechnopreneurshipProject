@@ -41,10 +41,6 @@ public class PatientController {
             case "accountButton":
                 targetFxml = "DoctorAccount.fxml";
                 break;
-            case "records":
-            case "recordsButton":
-                targetFxml = "ViewMedicalRecordList.fxml";
-                break;
             case "casesButton":
                 targetFxml = "Patient.fxml";
                 break;
