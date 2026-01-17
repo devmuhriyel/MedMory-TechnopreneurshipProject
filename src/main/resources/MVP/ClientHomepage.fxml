@@ -23,31 +23,44 @@
             </ImageView>
 
             <VBox alignment="CENTER" spacing="10.0">
-                <Button fx:id="homeButton" contentDisplay="LEFT" onAction="#handleNavigation" prefWidth="150.0" style="-fx-background-color: #b0e0ff; -fx-background-radius: 5; -fx-font-weight: bold; -fx-border-color: #2090ff; -fx-text-fill: #0050c0; -fx-cursor: hand;" text="Home" />
+                <Button fx:id="homeButton" contentDisplay="LEFT" onAction="#handleNavigation" prefWidth="150.0" style="-fx-background-color: #b0e0ff; -fx-background-radius: 5; -fx-font-weight: bold; -fx-border-color: #2090ff; -fx-text-fill: #0050c0; -fx-cursor: hand;" text="Home">
+                    <graphic>
+                        <Label style="-fx-font-size: 20px;" text="🏠" textFill="#0050c0" />
+                    </graphic>
+                </Button>
 
                 <Button fx:id="accountButton" contentDisplay="LEFT" onAction="#handleNavigation" prefWidth="150.0" style="-fx-background-color: #008060; -fx-text-fill: WHITE; -fx-font-weight: bold; -fx-background-radius: 5; -fx-cursor: hand;" text="Account">
                     <graphic>
-                        <Label style="-fx-font-size: 20px;" textFill="WHITE">
-                            <graphic>
-                                <Label style="-fx-font-size: 20px;" text="👤" textFill="WHITE" />
-                            </graphic></Label>
+                        <Label style="-fx-font-size: 20px;" text="👤" textFill="WHITE" />
                     </graphic>
                 </Button>
+
                 <Button fx:id="casesButton" contentDisplay="LEFT" onAction="#handleNavigation" prefWidth="150.0" style="-fx-background-color: #008060; -fx-text-fill: WHITE; -fx-font-weight: bold; -fx-background-radius: 5; -fx-cursor: hand;" text="Medical Record">
                     <graphic>
                         <Label style="-fx-font-size: 20px;" text="💼" textFill="WHITE" />
                     </graphic>
                 </Button>
 
+                <Button fx:id="calendarButton" contentDisplay="LEFT" onAction="#handleNavigation" prefWidth="150.0" style="-fx-background-color: #008060; -fx-text-fill: WHITE; -fx-font-weight: bold; -fx-background-radius: 5; -fx-cursor: hand;" text="Calendar">
+                    <graphic>
+                        <Label style="-fx-font-size: 20px;" text="📅" textFill="WHITE" />
+                    </graphic>
+                </Button>
+
+                <Button fx:id="chatButton" contentDisplay="LEFT" onAction="#handleNavigation" prefWidth="150.0" style="-fx-background-color: #008060; -fx-text-fill: WHITE; -fx-font-weight: bold; -fx-background-radius: 5; -fx-cursor: hand;" text="Chat">
+                    <graphic>
+                        <Label style="-fx-font-size: 20px;" text="💬" textFill="WHITE" />
+                    </graphic>
+                </Button>
             </VBox>
 
             <VBox VBox.vgrow="ALWAYS" />
+
             <Button fx:id="settingsButton" contentDisplay="LEFT" onAction="#handleNavigation" prefWidth="150.0" style="-fx-background-color: #008060; -fx-text-fill: WHITE; -fx-font-weight: bold; -fx-background-radius: 5; -fx-cursor: hand;" text="Settings">
                 <graphic>
                     <Label style="-fx-font-size: 20px;" text="⚙" textFill="WHITE" />
                 </graphic>
             </Button>
-
         </VBox>
     </left>
 
@@ -57,23 +70,19 @@
                 <Insets bottom="30.0" left="40.0" right="40.0" top="30.0" />
             </padding>
 
-            <!-- MedMory Logo and Welcome Section -->
             <VBox alignment="CENTER" maxWidth="1111.0" prefHeight="702.0" prefWidth="1111.0" spacing="20.0" style="-fx-background-color: WHITE; -fx-background-radius: 15; -fx-padding: 60;">
-                <!-- Logo Image -->
                 <ImageView fitHeight="286.0" fitWidth="312.0" preserveRatio="true">
                     <image>
                         <Image url="@../images/bigLogo.png" />
                     </image>
                 </ImageView>
 
-                <!-- Tagline -->
                 <Label text="Your history in one place." textAlignment="CENTER" textFill="#333333">
                     <font>
                         <Font name="System" size="24.0" />
                     </font>
                 </Label>
             </VBox>
-
         </VBox>
     </center>
 </BorderPane>
