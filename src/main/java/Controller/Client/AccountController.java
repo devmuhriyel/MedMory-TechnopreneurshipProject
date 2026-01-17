@@ -108,31 +108,35 @@ public class AccountController {
 
         showAlert(Alert.AlertType.INFORMATION, "Success", "Profile information updated successfully!");
     }
-
     @FXML
     public void handlePasswordChange(ActionEvent event) {
-        String currentPos = currentPasswordField.getText();
+        String currentPass = currentPasswordField.getText();
         String newPass = newPasswordField.getText();
         String confirmPass = confirmPasswordField.getText();
 
-        if (currentPos.isEmpty() || newPass.isEmpty() || confirmPass.isEmpty()) {
-            showAlert(Alert.AlertType.ERROR, "Error", "Please fill in all password fields.");
+        if (currentPass.isEmpty() || newPass.isEmpty() || confirmPass.isEmpty()) {
+            showAlert(Alert.AlertType.ERROR, "Error", "All fields are required.");
             return;
         }
 
         if (!newPass.equals(confirmPass)) {
-            showAlert(Alert.AlertType.ERROR, "Error", "New passwords do not match!");
+            showAlert(Alert.AlertType.ERROR, "Error", "New passwords do not match.");
             return;
         }
 
-        // Logic to call your ClientService to update password
-        System.out.println("Password change requested...");
-        showAlert(Alert.AlertType.INFORMATION, "Success", "Password has been changed successfully.");
+        int userID = SessionManager.getUserID();
 
-        // Clear fields after success
-        currentPasswordField.clear();
-        newPasswordField.clear();
-        confirmPasswordField.clear();
+        // Call the Service
+        boolean isChanged = ClientService.updatePassword(userID, currentPass, newPass);
+
+        if (isChanged) {
+            showAlert(Alert.AlertType.INFORMATION, "Success", "Password updated successfully!");
+            currentPasswordField.clear();
+            newPasswordField.clear();
+            confirmPasswordField.clear();
+        } else {
+            showAlert(Alert.AlertType.ERROR, "Error", "Failed to update. Check your current password.");
+        }
     }
 
     @FXML
