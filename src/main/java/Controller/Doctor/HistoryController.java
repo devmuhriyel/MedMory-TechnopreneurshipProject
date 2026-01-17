@@ -132,9 +132,6 @@ public class HistoryController {
 
     @FXML
     private void handleUploadFile() {
-        DoctorCase selectedCase = casesTable.getSelectionModel().getSelectedItem();
-        if (selectedCase == null) return;
-
         FileChooser chooser = new FileChooser();
         chooser.setTitle("Upload File");
         chooser.getExtensionFilters().add(
@@ -144,10 +141,19 @@ public class HistoryController {
         File file = chooser.showOpenDialog(uploadButton.getScene().getWindow());
         if (file != null) {
             Attachment att = new Attachment(file);
-            selectedCase.getAttachments().add(att);
-            attachmentsList.setAll(selectedCase.getAttachments());
+
+            DoctorCase selectedCase = casesTable.getSelectionModel().getSelectedItem();
+            if (selectedCase != null) {
+                // Case selected → attach to that case
+                selectedCase.getAttachments().add(att);
+                attachmentsList.setAll(selectedCase.getAttachments());
+            } else {
+                // No case selected → just show in files table independently
+                attachmentsList.add(att);
+            }
         }
     }
+
 
     private void openFile(File file) {
         try {

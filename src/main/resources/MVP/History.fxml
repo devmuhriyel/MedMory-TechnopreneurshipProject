@@ -8,16 +8,12 @@
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.HBox?>
-<?import javafx.scene.layout.Pane?>
 <?import javafx.scene.layout.VBox?>
-<BorderPane fx:id="mainContainer" prefHeight="768.0" prefWidth="1366.0"
-            xmlns="http://javafx.com/javafx/23.0.1"
-            xmlns:fx="http://javafx.com/fxml/1"
-            fx:controller="Controller.Doctor.HistoryController">
+
+<BorderPane fx:id="mainContainer" prefHeight="768.0" prefWidth="1366.0" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="Controller.Doctor.HistoryController">
 
     <center>
-        <VBox alignment="TOP_LEFT" spacing="15.0" style="-fx-background-color: #e6f0e6;"
-              BorderPane.alignment="TOP_LEFT">
+        <VBox alignment="TOP_LEFT" spacing="15.0" style="-fx-background-color: #e6f0e6;" BorderPane.alignment="TOP_LEFT">
             <padding>
                 <Insets bottom="20" left="20" right="20" top="20" />
             </padding>
@@ -32,24 +28,24 @@
             <!-- Cases Table -->
             <TableView fx:id="casesTable" prefHeight="300.0" prefWidth="1304.0">
                 <columns>
-                    <TableColumn fx:id="caseDateCol" prefWidth="150.0" text="Case Date" />
-                    <TableColumn fx:id="treatmentCol" prefWidth="200.0" text="Treatment" />
-                    <TableColumn fx:id="patientCol" prefWidth="150.0" text="Patient" />
-                    <TableColumn fx:id="diagnosisCol" prefWidth="200.0" text="Diagnosis" />
-                    <TableColumn fx:id="completionDateCol" prefWidth="150.0" text="Completion Date" />
+                    <TableColumn fx:id="caseDateCol" prefWidth="186.0" text="Case Date" />
+                    <TableColumn fx:id="treatmentCol" prefWidth="310.0" text="Treatment" />
+                    <TableColumn fx:id="patientCol" prefWidth="163.0" text="Patient" />
+                    <TableColumn fx:id="diagnosisCol" prefWidth="290.0" text="Diagnosis" />
+                    <TableColumn fx:id="completionDateCol" prefWidth="376.0" text="Completion Date" />
                 </columns>
             </TableView>
 
             <!-- Files Section -->
-            <Label style="-fx-font-size: 18px; -fx-font-weight: bold;" text="Attachments" />
-            <TableView fx:id="filesTable" prefHeight="200.0" prefWidth="600.0">
+            <Label style="-fx-font-size: 18px; -fx-font-weight: bold;" text="Patient Files" />
+            <TableView fx:id="filesTable" prefHeight="193.0" prefWidth="1082.0">
                 <columns>
-                    <TableColumn fx:id="fileNameCol" prefWidth="300.0" text="File Name" />
+                    <TableColumn fx:id="fileNameCol" prefWidth="1325.0" text="File Name" />
                 </columns>
             </TableView>
 
             <!-- Upload Button -->
-            <Button fx:id="uploadButton" text="Upload File" onAction="#handleUploadFile" />
+            <Button fx:id="uploadButton" onAction="#handleUploadFile" text="Upload File" />
 
             <!-- Return Button -->
             <Button fx:id="returnButton" onAction="#handleReturn" prefWidth="120" text="Return" />

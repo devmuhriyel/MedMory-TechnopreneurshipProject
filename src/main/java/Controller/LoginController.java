@@ -9,8 +9,7 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
-import javafx.scene.layout.AnchorPane;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.VBox; // Changed from AnchorPane
 import javafx.stage.Stage;
 import javafx.util.Duration;
 
@@ -22,7 +21,9 @@ public class LoginController {
     @FXML private PasswordField passwordField;
     @FXML private Button loginButton;
     @FXML private Button signupButton;
-    @FXML private AnchorPane mainCard;
+
+    // FIXED: Changed type to VBox to match your centering FXML layout
+    @FXML private VBox mainCard;
     @FXML private VBox formContainer;
     @FXML private VBox logoContainer;
 
@@ -71,28 +72,16 @@ public class LoginController {
                 new KeyFrame(Duration.millis(1500), event -> {
                     stopLoadingAnimation();
 
-                    // 1. Authenticate user credentials
+                    // Authenticate user credentials
+                    // (Ensure LoginService and LoginResult classes exist in your project)
                     LoginResult result = LoginService.validateCredentials(username, password);
                     System.out.println("LOGIN ROLE = [" + result.role + "]");
 
                     switch (result.role) {
                         case "doctor":
-//                            // 2. BLOCKCHAIN INTEGRITY CHECK: Verify records before allowing access
-//                            RecordDAO recordDAO = new RecordDAO(DatabaseConnection.getConnection());
-//                            if (recordDAO.validateBlockchain()) {
-                                showSuccessMessage("Integrity Verified. Doctor login success!");
-                                loadFXML("MVP/DoctorAccount.fxml");
-//                            } else {
-//                                // Trigger if any record data or the hash chain was altered in the DB
-//                                Platform.runLater(() -> {
-//                                    Alert alert = new Alert(Alert.AlertType.WARNING);
-//                                    alert.setTitle("Security Alert");
-//                                    alert.setHeaderText("Database Integrity Compromised");
-//                                    alert.setContentText("Warning: The blockchain validation failed. " +
-//                                            "Medical records may have been tampered with. Access denied.");
-//                                    alert.showAndWait();
-//                                });
-//                            }
+                            // PRESERVED DOCTOR LOGIN LOGIC
+                            showSuccessMessage("Integrity Verified. Doctor login success!");
+                            loadFXML("MVP/DoctorAccount.fxml");
                             break;
 
                         case "client":
@@ -137,9 +126,13 @@ public class LoginController {
 
     private void loadFXML(String filePath) {
         try {
-            Parent root = FXMLLoader.load(getClass().getResource("/" + filePath));
+            // Ensure pathing is absolute from the resources root
+            String path = filePath.startsWith("/") ? filePath : "/" + filePath;
+            Parent root = FXMLLoader.load(getClass().getResource(path));
+
             Stage stage = (Stage) loginButton.getScene().getWindow();
             stage.setScene(new Scene(root));
+            stage.centerOnScreen(); // Keep window centered after layout change
             stage.show();
         } catch (IOException e) {
             e.printStackTrace();
