@@ -1,26 +1,22 @@
 package CommonModel;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class DoctorCase {
-    public int caseID;
+
+     public int caseID;
     public int patientID;
-    public String patientName;
-    public String diagnosis;
+     public String patientName;
     public String treatment;
-    public String caseDate;      // when case started
-    public String dateCompleted; // when case finished
+    public String diagnosis;
+    public  String dateCompleted;
+    public String caseDate;
 
-    // Corrected constructor
-    public DoctorCase(int caseID, int patientID, String patientName, String dateCompleted, String diagnosis, String treatment) {
-        this.caseID = caseID;
-        this.patientID = patientID;
-        this.patientName = patientName;
-        this.dateCompleted = dateCompleted;
-        this.diagnosis = diagnosis;
-        this.treatment = treatment;
-    }
+    // Each case can have multiple attachments
+    private List<Attachment> attachments = new ArrayList<>();
 
-    public DoctorCase() {}
-
+    // Getters & Setters
     public int getCaseID() { return caseID; }
     public void setCaseID(int caseID) { this.caseID = caseID; }
 
@@ -30,15 +26,17 @@ public class DoctorCase {
     public String getPatientName() { return patientName; }
     public void setPatientName(String patientName) { this.patientName = patientName; }
 
+    public String getTreatment() { return treatment; }
+    public void setTreatment(String treatment) { this.treatment = treatment; }
+
     public String getDiagnosis() { return diagnosis; }
     public void setDiagnosis(String diagnosis) { this.diagnosis = diagnosis; }
 
-    public String getTreatment() { return treatment; }
-    public void setTreatment(String treatment) { this.treatment = treatment; }
+    public String getDateCompleted() { return dateCompleted; }
+    public void setDateCompleted(String dateCompleted) { this.dateCompleted = dateCompleted; }
 
     public String getCaseDate() { return caseDate; }
     public void setCaseDate(String caseDate) { this.caseDate = caseDate; }
 
-    public String getDateCompleted() { return dateCompleted; }
-    public void setDateCompleted(String dateCompleted) { this.dateCompleted = dateCompleted; }
+    public List<Attachment> getAttachments() { return attachments; }
 }

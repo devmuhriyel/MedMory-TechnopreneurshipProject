@@ -178,14 +178,13 @@ public class DoctorService {
                 if (addedPatients.contains(patientID)) continue; // Avoid duplicates
                 addedPatients.add(patientID);
 
-                DoctorCase c = new DoctorCase(
-                        rs.getInt("case_id"),
-                        patientID,
-                        rs.getString("patientName"),
-                        rs.getString("date_completed"),
-                        rs.getString("diagnosis"),
-                        rs.getString("treatment")
-                );
+                DoctorCase c = new DoctorCase();
+                c.setCaseID(rs.getInt("case_id"));
+                c.setPatientID(patientID);
+                c.setPatientName(rs.getString("patientName"));
+                c.setCaseDate(rs.getString("date_completed"));
+                c.setDiagnosis(rs.getString("diagnosis"));
+                c.setTreatment(rs.getString("treatment"));
 
                 cases.add(c);
 

@@ -1,5 +1,6 @@
 package Controller.Doctor;
 
+import CommonModel.Attachment;
 import CommonModel.DoctorCase;
 import CommonModel.UserRow;
 import javafx.collections.FXCollections;
@@ -8,13 +9,13 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
-import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableView;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
+import java.awt.Desktop;
+import java.io.File;
 import java.sql.*;
 
 public class HistoryController {
@@ -26,28 +27,54 @@ public class HistoryController {
     @FXML private TableColumn<DoctorCase, String> diagnosisCol;
     @FXML private TableColumn<DoctorCase, String> completionDateCol;
 
+    @FXML private TableView<Attachment> filesTable;
+    @FXML private TableColumn<Attachment, String> fileNameCol;
+
     @FXML private TextField searchField;
+    @FXML private Button uploadButton;
     @FXML private Button returnButton;
 
     private UserRow selectedPatient;
 
-    // Database credentials (adjust as needed)
-    private final String URL = "jdbc:mysql://localhost:3306/medical";
-    private final String USER = "root";
-    private final String PASS = ""; // your DB password
-
     private final ObservableList<DoctorCase> casesList = FXCollections.observableArrayList();
+    private final ObservableList<Attachment> attachmentsList = FXCollections.observableArrayList();
 
     @FXML
     public void initialize() {
-        // Bind columns to DoctorCase properties
+        // --- Cases table setup ---
         caseDateCol.setCellValueFactory(new PropertyValueFactory<>("caseDate"));
         treatmentCol.setCellValueFactory(new PropertyValueFactory<>("treatment"));
         patientCol.setCellValueFactory(new PropertyValueFactory<>("patientName"));
         diagnosisCol.setCellValueFactory(new PropertyValueFactory<>("diagnosis"));
         completionDateCol.setCellValueFactory(new PropertyValueFactory<>("dateCompleted"));
 
-        // Optional: filter by search
+        casesTable.setItems(casesList);
+
+        // --- Files table setup ---
+        fileNameCol.setCellValueFactory(new PropertyValueFactory<>("fileName"));
+        filesTable.setItems(attachmentsList);
+
+        // Open file on double-click
+        filesTable.setRowFactory(tv -> {
+            TableRow<Attachment> row = new TableRow<>();
+            row.setOnMouseClicked(e -> {
+                if (e.getClickCount() == 2 && !row.isEmpty()) {
+                    openFile(row.getItem().getFile());
+                }
+            });
+            return row;
+        });
+
+        // Update attachments when a case is selected
+        casesTable.getSelectionModel().selectedItemProperty().addListener((obs, oldCase, newCase) -> {
+            if (newCase != null) {
+                attachmentsList.setAll(newCase.getAttachments());
+            } else {
+                attachmentsList.clear();
+            }
+        });
+
+        // Search filter for cases
         searchField.textProperty().addListener((obs, oldVal, newVal) -> filterCases(newVal));
     }
 
@@ -58,6 +85,10 @@ public class HistoryController {
 
     private void loadCasesForPatient(int patientID) {
         casesList.clear();
+
+        String URL = "jdbc:mysql://localhost:3306/medical";
+        String USER = "root";
+        String PASS = "";
 
         try (Connection conn = DriverManager.getConnection(URL, USER, PASS)) {
             String sql = "SELECT c.case_id, c.patientID, u.name AS patientName, c.diagnosis, c.treatment, c.date_completed " +
@@ -72,18 +103,14 @@ public class HistoryController {
                 dc.setCaseID(rs.getInt("case_id"));
                 dc.setPatientID(rs.getInt("patientID"));
                 dc.setPatientName(rs.getString("patientName"));
+                dc.setCaseDate(rs.getString("date_completed"));
                 dc.setDiagnosis(rs.getString("diagnosis"));
                 dc.setTreatment(rs.getString("treatment"));
-                dc.setDateCompleted(rs.getString("date_completed"));
-                dc.setCaseDate(rs.getString("date_completed")); // or leave blank if you have another field
                 casesList.add(dc);
             }
 
-            casesTable.setItems(casesList);
-
         } catch (SQLException e) {
             e.printStackTrace();
-            System.err.println("Failed to load patient cases.");
         }
     }
 
@@ -102,6 +129,36 @@ public class HistoryController {
         }
         casesTable.setItems(filtered);
     }
+
+    @FXML
+    private void handleUploadFile() {
+        DoctorCase selectedCase = casesTable.getSelectionModel().getSelectedItem();
+        if (selectedCase == null) return;
+
+        FileChooser chooser = new FileChooser();
+        chooser.setTitle("Upload File");
+        chooser.getExtensionFilters().add(
+                new FileChooser.ExtensionFilter("PDF & Images", "*.pdf", "*.png", "*.jpg", "*.jpeg")
+        );
+
+        File file = chooser.showOpenDialog(uploadButton.getScene().getWindow());
+        if (file != null) {
+            Attachment att = new Attachment(file);
+            selectedCase.getAttachments().add(att);
+            attachmentsList.setAll(selectedCase.getAttachments());
+        }
+    }
+
+    private void openFile(File file) {
+        try {
+            if (Desktop.isDesktopSupported()) {
+                Desktop.getDesktop().open(file);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
 
     @FXML
     private void handleReturn() {
@@ -124,5 +181,6 @@ public class HistoryController {
             System.err.println("Failed to return to Patients tab.");
         }
     }
+
 
 }

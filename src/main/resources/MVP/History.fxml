@@ -8,39 +8,51 @@
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Pane?>
 <?import javafx.scene.layout.VBox?>
-<?import javafx.scene.text.Font?>
-
 <BorderPane fx:id="mainContainer" prefHeight="768.0" prefWidth="1366.0"
-            xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1"
+            xmlns="http://javafx.com/javafx/23.0.1"
+            xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="Controller.Doctor.HistoryController">
 
     <center>
-        <VBox alignment="TOP_LEFT" spacing="15.0" style="-fx-background-color: #e6f0e6;" BorderPane.alignment="TOP_LEFT">
+        <VBox alignment="TOP_LEFT" spacing="15.0" style="-fx-background-color: #e6f0e6;"
+              BorderPane.alignment="TOP_LEFT">
             <padding>
-                <Insets top="20" right="20" bottom="20" left="20"/>
+                <Insets bottom="20" left="20" right="20" top="20" />
             </padding>
 
             <!-- Header -->
-            <Label text="Patient History" style="-fx-font-size: 24px; -fx-font-weight: bold;" />
+            <Label style="-fx-font-size: 24px; -fx-font-weight: bold;" text="Patient History" />
 
             <!-- Search Field -->
-            <HBox spacing="10" alignment="CENTER_LEFT">
-                <TextField fx:id="searchField" promptText="Search treatment/diagnosis" HBox.hgrow="ALWAYS"/>
-            </HBox>
+            <HBox alignment="CENTER_LEFT" spacing="10" />
+            <TextField fx:id="searchField" promptText="Search treatment/diagnosis" />
 
-            <!-- TableView for Cases -->
-            <TableView fx:id="casesTable" prefHeight="500">
+            <!-- Cases Table -->
+            <TableView fx:id="casesTable" prefHeight="300.0" prefWidth="1304.0">
                 <columns>
-                    <TableColumn fx:id="caseDateCol" text="Case Date" prefWidth="150"/>
-                    <TableColumn fx:id="treatmentCol" text="Treatment" prefWidth="200"/>
-                    <TableColumn fx:id="patientCol" text="Patient" prefWidth="200"/>
-                    <TableColumn fx:id="diagnosisCol" text="Diagnosis" prefWidth="250"/>
-                    <TableColumn fx:id="completionDateCol" text="Completion Date" prefWidth="150"/>
+                    <TableColumn fx:id="caseDateCol" prefWidth="150.0" text="Case Date" />
+                    <TableColumn fx:id="treatmentCol" prefWidth="200.0" text="Treatment" />
+                    <TableColumn fx:id="patientCol" prefWidth="150.0" text="Patient" />
+                    <TableColumn fx:id="diagnosisCol" prefWidth="200.0" text="Diagnosis" />
+                    <TableColumn fx:id="completionDateCol" prefWidth="150.0" text="Completion Date" />
                 </columns>
             </TableView>
 
-            <Button text="Return" fx:id="returnButton" onAction="#handleReturn" prefWidth="120"/>
+            <!-- Files Section -->
+            <Label style="-fx-font-size: 18px; -fx-font-weight: bold;" text="Attachments" />
+            <TableView fx:id="filesTable" prefHeight="200.0" prefWidth="600.0">
+                <columns>
+                    <TableColumn fx:id="fileNameCol" prefWidth="300.0" text="File Name" />
+                </columns>
+            </TableView>
+
+            <!-- Upload Button -->
+            <Button fx:id="uploadButton" text="Upload File" onAction="#handleUploadFile" />
+
+            <!-- Return Button -->
+            <Button fx:id="returnButton" onAction="#handleReturn" prefWidth="120" text="Return" />
         </VBox>
     </center>
 </BorderPane>
