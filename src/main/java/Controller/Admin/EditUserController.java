@@ -89,7 +89,6 @@ public class EditUserController implements Initializable {
 
         if (success) {
             System.out.println("✅ Update SUCCESS");
-            closeWindow();
         } else {
             System.out.println("❌ Update FAILED");
         }
