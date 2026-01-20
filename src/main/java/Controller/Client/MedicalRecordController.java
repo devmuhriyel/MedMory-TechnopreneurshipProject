@@ -145,8 +145,9 @@ public class MedicalRecordController {
         switch (buttonId) {
             case "homeButton": targetFxml = "ClientHomepage.fxml"; break;
             case "accountButton": targetFxml = "ClientAccount.fxml"; break;
-            case "casesButton": targetFxml = "MedicalRecord.fxml"; break;
+            case "medicalRecordButton": targetFxml = "MedicalRecord.fxml"; break;
             case "calendarButton": targetFxml = "ClientCalendar.fxml"; break;
+            case "chatsButton": targetFxml = "ClientChat.fxml"; break;
             case "settingsButton": targetFxml = "ClientSettings.fxml"; break;
             default: return;
         }

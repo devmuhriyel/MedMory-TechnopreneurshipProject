@@ -29,7 +29,7 @@
             <VBox alignment="CENTER" spacing="10.0">
             <Button fx:id="homeButton" contentDisplay="LEFT" onAction="#handleNavigation" prefWidth="150.0" style="-fx-background-color: #008060; -fx-text-fill: WHITE; -fx-font-weight: bold; -fx-background-radius: 5; -fx-cursor: hand;" text="Home">
                <graphic>
-                  <Label style="-fx-font-size: 20px;" textFill="WHITE" />
+                  <Label style="-fx-font-size: 20px;" text="🏠" textFill="WHITE" />
                </graphic>
             </Button>
             <Button fx:id="accountButton" contentDisplay="LEFT" layoutX="10.0" layoutY="10.0" onAction="#handleNavigation" prefWidth="150.0" style="-fx-background-color: #008060; -fx-text-fill: WHITE; -fx-font-weight: bold; -fx-background-radius: 5; -fx-cursor: hand;" text="Account">
@@ -41,16 +41,22 @@
                   </Label>
                </graphic>
             </Button>
-            <Button fx:id="caseButton" contentDisplay="LEFT" layoutX="10.0" layoutY="58.0" onAction="#handleNavigation" prefWidth="150.0" style="-fx-background-color: #b0e0ff; -fx-background-radius: 5; -fx-font-weight: bold; -fx-border-color: #2090ff; -fx-text-fill: #0050c0;" text="Medical Record">
-               <graphic>
-                  <Label style="-fx-font-size: 20px;" textFill="#0050c0">
-                     <graphic>
+                <Button fx:id="medicalRecordButton" contentDisplay="LEFT" onAction="#handleNavigation" prefWidth="150.0" style="-fx-background-color: #b0e0ff; -fx-text-fill: #0050c0; -fx-font-weight: bold; -fx-background-radius: 5; -fx-cursor: hand; -fx-border-color: #2090ff;" text="Medical Record">
+                    <graphic>
                         <Label style="-fx-font-size: 20px;" text="💼" textFill="#0050c0" />
-                     </graphic>
-                  </Label>
-               </graphic>
-            </Button>
+                    </graphic>
+                </Button>
+                <Button fx:id="calendarButton" contentDisplay="LEFT" onAction="#handleNavigation" prefWidth="150.0" style="-fx-background-color: #008060; -fx-text-fill: WHITE; -fx-font-weight: bold; -fx-background-radius: 5; -fx-cursor: hand;" text="Calendar">
+                    <graphic>
+                        <Label style="-fx-font-size: 20px;" text="📅" textFill="WHITE" />
+                    </graphic>
+                </Button>
 
+                <Button fx:id="chatsButton" contentDisplay="LEFT" onAction="#handleNavigation" prefWidth="150.0" style="-fx-background-color: #008060; -fx-text-fill: WHITE; -fx-font-weight: bold; -fx-background-radius: 5; -fx-cursor: hand;" text="Chat">
+                    <graphic>
+                        <Label style="-fx-font-size: 20px;" text="💬" textFill="WHITE" />
+                    </graphic>
+                </Button>
             </VBox>
 
             <VBox VBox.vgrow="ALWAYS" />

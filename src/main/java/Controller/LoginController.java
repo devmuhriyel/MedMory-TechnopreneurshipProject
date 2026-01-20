@@ -86,7 +86,7 @@ public class LoginController {
 
                         case "client":
                             showSuccessMessage("Client login success!");
-                            loadFXML("MVP/ClientAccount.fxml");
+                            loadFXML("MVP/ClientHomePage.fxml");
                             break;
 
                         case "admin":

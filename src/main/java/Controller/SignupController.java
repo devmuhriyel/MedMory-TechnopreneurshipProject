@@ -52,7 +52,7 @@ public class SignupController {
             case "calendarButton":
                 targetFxml = "Calendar.fxml";
                 break;
-            case "notificationsButton":
+            case "chatButton":
                 targetFxml = "Chat.fxml";
                 break;
             case "settingsButton":

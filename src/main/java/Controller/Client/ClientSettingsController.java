@@ -20,16 +20,19 @@ public class ClientSettingsController {
         String targetFxml = "";
 
         switch (buttonId) {
+            case "homeButton":
+                targetFxml = "ClientHomepage.fxml";
+                break;
             case "accountButton":
                 targetFxml = "ClientAccount.fxml";
                 break;
-            case "casesButton":
+            case "medicalRecordButton":
                 targetFxml = "MedicalRecord.fxml";
                 break;
             case "calendarButton":
                 targetFxml = "ClientCalendar.fxml";
                 break;
-            case "notificationsButton":
+            case "chatsButton":
                 targetFxml = "Chat.fxml";
                 break;
             case "settingsButton":
