@@ -153,7 +153,7 @@ public class SignupController {
         String pass = passwordField.getText();
 
         // Placeholder for Patient DAO registration logic
-        boolean isSaved = true;
+        boolean isSaved = LoginService.registerUser(fullName, pass);
 
         Timeline createProcess = new Timeline(new KeyFrame(Duration.millis(2000), event -> {
             createAccountButton.getStyleClass().remove("loading");
