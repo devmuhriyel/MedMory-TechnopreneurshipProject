@@ -9,6 +9,11 @@ import CommonModel.UserRow;
 import MVP.Doctor.DoctorModel;
 import MVP.Login;
 
+import javafx.collections.transformation.FilteredList;
+import javafx.collections.transformation.SortedList;
+import javafx.scene.control.TextField;
+
+
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -38,6 +43,12 @@ public class ManageUsersController implements Initializable {
     @FXML private TableColumn<UserRow, String> roleCol;
     @FXML private TableColumn<UserRow, String> statusCol;
 
+    @FXML
+    private TextField searchField;
+
+    private ObservableList<UserRow> masterData = FXCollections.observableArrayList();
+
+
     private RecordDAO recordDAO;
     private Connection conn;
 
@@ -61,12 +72,12 @@ public class ManageUsersController implements Initializable {
 
     private void loadAllUsers() {
 
-        ObservableList<UserRow> rows = FXCollections.observableArrayList();
+        masterData.clear();
 
         // Patients
         for (AdminModel p : recordDAO.getAllPatients()) {
-            rows.add(new UserRow(
-                    p.getId(),       // patient ID
+            masterData.add(new UserRow(
+                    p.getId(),
                     p.getName(),
                     "PATIENT",
                     "Active"
@@ -75,17 +86,53 @@ public class ManageUsersController implements Initializable {
 
         // Doctors
         for (DoctorModel d : recordDAO.getAllDoctors()) {
-            rows.add(new UserRow(
-                    d.id,            // doctor ID
+            masterData.add(new UserRow(
+                    d.id,
                     d.name,
                     "DOCTOR",
                     "Active"
             ));
         }
 
-        userTable.setItems(rows);
+        setupSearchFilter();
     }
 
+
+    private void setupSearchFilter() {
+
+        FilteredList<UserRow> filteredData = new FilteredList<>(masterData, p -> true);
+
+        searchField.textProperty().addListener((observable, oldValue, newValue) -> {
+            String lowerCaseFilter = newValue.toLowerCase();
+
+            filteredData.setPredicate(user -> {
+
+                if (newValue == null || newValue.isEmpty()) {
+                    return true;
+                }
+
+                if (String.valueOf(user.getId()).contains(lowerCaseFilter)) {
+                    return true;
+                }
+                if (user.getName().toLowerCase().contains(lowerCaseFilter)) {
+                    return true;
+                }
+                if (user.getRole().toLowerCase().contains(lowerCaseFilter)) {
+                    return true;
+                }
+                if (user.getStatus().toLowerCase().contains(lowerCaseFilter)) {
+                    return true;
+                }
+
+                return false;
+            });
+        });
+
+        SortedList<UserRow> sortedData = new SortedList<>(filteredData);
+        sortedData.comparatorProperty().bind(userTable.comparatorProperty());
+
+        userTable.setItems(sortedData);
+    }
 
 
     // ================= NAVIGATION =================
