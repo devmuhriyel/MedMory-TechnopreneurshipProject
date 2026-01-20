@@ -50,7 +50,7 @@ public class ClientChatController {
                 targetFxml = "MedicalRecord.fxml";
                 break;
             case "calendarButton":
-                targetFxml = "Calendar.fxml";
+                targetFxml = "ClientCalendar.fxml";
                 break;
             case "chatsButton":
                 targetFxml = "ClientChat.fxml"; // Stay in Chat
