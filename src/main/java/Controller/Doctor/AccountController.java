@@ -141,26 +141,28 @@ public class AccountController {
         // Logic to open a file chooser and upload image goes here.
     }
 
+
+
     /**
      * Handles saving all changes made in the profile fields.
      */
     public void handleSaveChanges(ActionEvent actionEvent) {
         System.out.println("Action: Saving changes...");
-        
+
         // Get the current doctor ID from session
         int doctorID = SessionManager.getDoctorID();
         if (doctorID <= 0) {
             showAlert(Alert.AlertType.ERROR, "Error", "No doctor session found. Please log in again.");
             return;
         }
-        
+
         // Retrieve data from fields
         String name = fullNameField.getText().trim();
         String email = emailField.getText().trim();
         String phone = phoneField.getText().trim();
         String specialization = specializationField.getText().trim();
         String biography = bioArea.getText().trim();
-        
+
         // Password fields
         String currentPassword = passwordField2.getText().trim();
         String newPassword = passwordField1.getText().trim();
@@ -171,7 +173,7 @@ public class AccountController {
             showAlert(Alert.AlertType.WARNING, "Validation Error", "Name cannot be empty.");
             return;
         }
-        
+
         if (email.isEmpty()) {
             showAlert(Alert.AlertType.WARNING, "Validation Error", "Email cannot be empty.");
             return;
@@ -179,30 +181,30 @@ public class AccountController {
 
         // Validate password change if any password field is filled
         boolean attemptingPasswordChange = !currentPassword.isEmpty() || !newPassword.isEmpty() || !retypePassword.isEmpty();
-        
+
         if (attemptingPasswordChange) {
             // All three password fields must be filled to change password
             if (currentPassword.isEmpty()) {
                 showAlert(Alert.AlertType.WARNING, "Password Error", "Please enter your current password to change it.");
                 return;
             }
-            
+
             if (newPassword.isEmpty()) {
                 showAlert(Alert.AlertType.WARNING, "Password Error", "Please enter a new password.");
                 return;
             }
-            
+
             if (retypePassword.isEmpty()) {
                 showAlert(Alert.AlertType.WARNING, "Password Error", "Please retype your new password.");
                 return;
             }
-            
+
             // Verify that new password and retype password match
             if (!newPassword.equals(retypePassword)) {
                 showAlert(Alert.AlertType.ERROR, "Password Mismatch", "New password and retype password do not match. Please try again.");
                 return;
             }
-            
+
             // Verify current password
             DoctorService service = new DoctorService();
             if (!service.verifyCurrentPassword(doctorID, currentPassword)) {
@@ -222,13 +224,13 @@ public class AccountController {
             passwordField.clear();
             passwordField1.clear();
             passwordField2.clear();
-            
+
             // Update displayed labels
             doctorNameLabel.setText("Dr. " + name);
             if (specialization != null && !specialization.isEmpty()) {
                 specializationLabel.setText(specialization);
             }
-            
+
             String successMessage = "Your changes have been saved successfully!";
             if (attemptingPasswordChange) {
                 successMessage = "Your profile and password have been updated successfully!";

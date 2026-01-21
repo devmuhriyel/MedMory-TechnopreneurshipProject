@@ -81,7 +81,7 @@
                 <VBox alignment="TOP_CENTER" minWidth="250.0" spacing="15.0" style="-fx-background-color: WHITE; -fx-background-radius: 10; -fx-padding: 20;">
                     <ImageView fitHeight="150.0" fitWidth="150.0" style="-fx-border-color: #00BF63; -fx-border-width: 3; -fx-border-radius: 75;">
                         <image>
-                            <Image url=""/>
+                            <Image url="@../images/bigLogo.png"/>
                         </image>
                     </ImageView>
 
