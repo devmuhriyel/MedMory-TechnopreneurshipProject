@@ -95,46 +95,69 @@ public class HistoryController {
 
     @FXML
     public void initialize() {
-        // --- Cases Table ---
+
         caseDateCol.setCellValueFactory(new PropertyValueFactory<>("caseDate"));
         treatmentCol.setCellValueFactory(new PropertyValueFactory<>("treatment"));
         patientCol.setCellValueFactory(new PropertyValueFactory<>("patientName"));
         diagnosisCol.setCellValueFactory(new PropertyValueFactory<>("diagnosis"));
         completionDateCol.setCellValueFactory(new PropertyValueFactory<>("dateCompleted"));
+
         casesTable.setItems(casesList);
 
-        // --- Files Table ---
         fileNameCol.setCellValueFactory(new PropertyValueFactory<>("fileName"));
         filesTable.setItems(attachmentsList);
 
-        // Double-click to open file
-        filesTable.setRowFactory(tv -> {
-            TableRow<Attachment> row = new TableRow<>();
-            row.setOnMouseClicked(e -> {
-                if (e.getClickCount() == 2 && !row.isEmpty()) {
-                    openFileFromDB(row.getItem());
-                }
-            });
-            return row;
-        });
+        int doctorId = SessionManager.getDoctorID();
+        if (doctorId > 0) {
+            loadAllCasesForDoctor(doctorId); // ✅ THIS FIXES IT
+        }
 
-        // Load attachments whenever a case is selected
-        casesTable.getSelectionModel().selectedItemProperty().addListener((obs, oldCase, newCase) -> {
-            if (newCase != null) {
-                attachmentsList.setAll(newCase.getAttachments());
-      }
-        });
-
-        // Search filter for cases
-        searchField.textProperty().addListener((obs, oldVal, newVal) -> filterCases(newVal));
-
+        searchField.textProperty().addListener(
+                (obs, oldVal, newVal) -> filterCases(newVal)
+        );
     }
+
 
     public void setPatient(UserRow patient) {
         this.selectedPatient = patient;
         loadCasesForPatient(patient.getId());
         loadAttachmentsForPatient(patient.getId()); // only load files here
     }
+
+    private void loadAllCasesForDoctor(int doctorId) {
+        casesList.clear();
+
+        String sql = """
+        SELECT c.case_id, c.patientID, u.name AS patientName,
+               c.diagnosis, c.treatment, c.date_completed
+        FROM cases c
+        JOIN users u ON c.patientID = u.idusers
+        WHERE c.doctorID = ?
+        ORDER BY c.date_completed DESC
+    """;
+
+        try (Connection conn = DriverManager.getConnection(URL, USER, PASS);
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setInt(1, doctorId);
+            ResultSet rs = ps.executeQuery();
+
+            while (rs.next()) {
+                DoctorCase dc = new DoctorCase();
+                dc.setCaseID(rs.getInt("case_id"));
+                dc.setPatientID(rs.getInt("patientID"));
+                dc.setPatientName(rs.getString("patientName"));
+                dc.setCaseDate(rs.getString("date_completed"));
+                dc.setDiagnosis(rs.getString("diagnosis"));
+                dc.setTreatment(rs.getString("treatment"));
+                casesList.add(dc);
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
 
 
 
@@ -455,30 +478,4 @@ public class HistoryController {
         alert.setContentText(message);
         alert.showAndWait();
     }
-
-    @FXML
-    private void handleAddRecord(ActionEvent event) {
-        // TODO: implemented
-    }
-
-    @FXML
-    private void handleAddPatient(ActionEvent event) {
-        // TODO: implemented
-    }
-
-    @FXML
-    private void handleUploadFile(ActionEvent event) {
-        // TODO: implemented
-    }
-
-    @FXML
-    private void handleRemoveFile(ActionEvent event) {
-        // TODO: implemented
-    }
-
-    @FXML
-    private void handleReturn(ActionEvent event) {
-        // TODO: implemented
-    }
-
 }
