@@ -8,7 +8,6 @@ import MVP.Doctor.DoctorModel;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
-import java.security.MessageDigest;
 
 public class RecordDAO {
 
@@ -88,11 +87,7 @@ public class RecordDAO {
             if (rs.next()) lastHash = rs.getString("current_hash");
         }
 
-        String dataToHash =
-                r.getPatientID() +
-                        r.getPatientName() +
-                        r.getCc() +
-                        lastHash;
+        // String dataToHash = r.getPatientID() + r.getPatientName() + r.getCc() + lastHash;
 
 //        String currentHash = sha256(dataToHash);
 
@@ -242,7 +237,7 @@ public class RecordDAO {
     // Inside DAO.RecordDAO.java
     // Inside DAO.RecordDAO.java
 
-    public boolean registerDoctor(String name, String email, String password, String phone, String license, String year) {
+    public boolean registerDoctor(String name, String email, String password, String phone, String specialization, String license, String year) {
         // We target the columns that exist in your doctors table
         String sql = "INSERT INTO doctors (name, email, password, phone, specialization, biography) VALUES (?, ?, ?, ?, ?, ?)";
 
@@ -252,8 +247,8 @@ public class RecordDAO {
             ps.setString(2, email);
             ps.setString(3, password);
             ps.setString(4, phone);
-            ps.setString(5, "PRC License: " + license); // Specialization field
-            ps.setString(6, "Registered in: " + year);  // Biography field
+            ps.setString(5, specialization); // Real specialization
+            ps.setString(6, "PRC License: " + license + " | Registered in: " + year);  // Biography field
 
             return ps.executeUpdate() > 0;
         } catch (SQLException e) {
@@ -339,7 +334,7 @@ public class RecordDAO {
         }
 
         // Recalculate hash for updated record
-        String dataToHash = r.getPatientID() + r.getPatientName() + r.getCc() + previousHash;
+        // String dataToHash = r.getPatientID() + r.getPatientName() + r.getCc() + previousHash;
 //        String currentHash = sha256(dataToHash);
 
         // Update all subsequent records' hashes (blockchain integrity)
@@ -409,8 +404,7 @@ public class RecordDAO {
 
             while (rs.next() && previousHash != null) {
                 int nextID = rs.getInt("idrecords");
-                String data = rs.getInt("patientID") + rs.getString("patientName") +
-                             rs.getString("cc") + previousHash;
+                // String data = rs.getInt("patientID") + rs.getString("patientName") + rs.getString("cc") + previousHash;
 //                String newHash = sha256(data);
 
                 String updateHashSQL = "UPDATE records SET previous_hash = ?, current_hash = ? WHERE idrecords = ?";

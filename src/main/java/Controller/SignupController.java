@@ -17,11 +17,18 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 import java.io.IOException;
+import java.time.LocalDate;
+import java.util.regex.Pattern;
 
 public class SignupController {
 
-    @FXML private TextField firstNameField, lastNameField, emailField, phoneField, birthdayField, locationField;
+    @FXML private TextField firstNameField, lastNameField, emailField, phoneField, locationField;
     @FXML private PasswordField passwordField, confirmPasswordField;
+    @FXML private ComboBox<String> birthMonthCombo;
+    @FXML private ComboBox<Integer> birthDayCombo;
+    @FXML private ComboBox<Integer> birthYearCombo;
+    @FXML private RadioButton patientRadio, doctorRadio;
+    @FXML private ComboBox<String> specializationCombo;
     @FXML private CheckBox consentCheck1, consentCheck2, consentCheck3;
     @FXML private Button createAccountButton, cancelButton;
     @FXML private Hyperlink doctorSignupLink;
@@ -30,6 +37,8 @@ public class SignupController {
     @FXML private VBox consentContainer;
     @FXML private HBox logoContainer;
 
+    private final ToggleGroup accountTypeGroup = new ToggleGroup();
+    private static final Pattern EMAIL_PATTERN = Pattern.compile("^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$");
 
     @FXML
     public void handleNavigation(ActionEvent event) {
@@ -80,6 +89,15 @@ public class SignupController {
 
     @FXML
     private void initialize() {
+        if (patientRadio != null) patientRadio.setToggleGroup(accountTypeGroup);
+        if (doctorRadio != null) doctorRadio.setToggleGroup(accountTypeGroup);
+        if (patientRadio != null) patientRadio.setSelected(true);
+
+        setupBirthdayDropdowns();
+        setupSpecializationDropdown();
+        updateSpecializationVisibility();
+        accountTypeGroup.selectedToggleProperty().addListener((obs, oldV, newV) -> updateSpecializationVisibility());
+
         if (cancelButton != null) {
             cancelButton.setVisible(true);
             cancelButton.setOpacity(1.0);
@@ -100,12 +118,15 @@ public class SignupController {
      */
     @FXML
     private void handleDoctorSignupLink(ActionEvent event) {
-        if (!validateForm()) {
+        // If they use the doctor path, ensure Doctor is selected (UX-friendly)
+        if (doctorRadio != null) doctorRadio.setSelected(true);
+
+        if (!validateForm(true)) {
             showErrorAnimation();
             Alert alert = new Alert(Alert.AlertType.WARNING);
             alert.setTitle("Form Incomplete");
             alert.setHeaderText("Missing Information");
-            alert.setContentText("Please fill out all fields before signing up as a doctor.");
+            alert.setContentText("Please correct the highlighted fields before signing up as a doctor.");
             alert.showAndWait();
             return;
         }
@@ -119,7 +140,8 @@ public class SignupController {
                     firstNameField.getText() + " " + lastNameField.getText(),
                     emailField.getText(),
                     passwordField.getText(),
-                    phoneField.getText()
+                    phoneField.getText(),
+                    specializationCombo != null ? specializationCombo.getValue() : null
             );
 
             Stage stage = (Stage) ((Hyperlink) event.getSource()).getScene().getWindow();
@@ -136,12 +158,12 @@ public class SignupController {
 
     @FXML
     private void handleCreateAccount() {
-        if (!validateForm()) {
+        if (!validateForm(false)) {
             showErrorAnimation();
             Alert alert = new Alert(Alert.AlertType.WARNING);
             alert.setTitle("Form Incomplete");
             alert.setHeaderText(null);
-            alert.setContentText("Please fill in all fields and accept the terms and conditions.");
+            alert.setContentText("Please correct the highlighted fields and accept the terms and conditions.");
             alert.show();
             return;
         }
@@ -176,25 +198,68 @@ public class SignupController {
         createProcess.play();
     }
 
-    private boolean validateForm() {
+    private boolean validateForm(boolean forDoctorFlow) {
         boolean isValid = true;
-        TextField[] fields = {
-                firstNameField, lastNameField, emailField,
-                phoneField, birthdayField, locationField,
-                passwordField, confirmPasswordField
-        };
 
+        // Required text fields
+        TextField[] fields = { firstNameField, lastNameField, emailField, phoneField, locationField };
         for (TextField field : fields) {
-            if (field.getText() == null || field.getText().trim().isEmpty()) {
-                highlightField(field);
+            if (field == null || field.getText() == null || field.getText().trim().isEmpty()) {
+                if (field != null) highlightField(field);
                 isValid = false;
             }
         }
 
-        if (isValid && !passwordField.getText().equals(confirmPasswordField.getText())) {
+        // Birthday dropdown validation
+        if (!isBirthdaySelected()) {
+            if (birthMonthCombo != null) highlightField(birthMonthCombo);
+            if (birthDayCombo != null) highlightField(birthDayCombo);
+            if (birthYearCombo != null) highlightField(birthYearCombo);
+            isValid = false;
+        }
+
+        // Email format
+        if (emailField != null && emailField.getText() != null && !emailField.getText().trim().isEmpty()) {
+            if (!EMAIL_PATTERN.matcher(emailField.getText().trim()).matches()) {
+                highlightField(emailField);
+                isValid = false;
+            }
+        }
+
+        // Phone number basic validation (digits only, reasonable length)
+        if (phoneField != null && phoneField.getText() != null && !phoneField.getText().trim().isEmpty()) {
+            String digits = phoneField.getText().replaceAll("\\D", "");
+            if (digits.length() < 10) {
+                highlightField(phoneField);
+                isValid = false;
+            }
+        }
+
+        // Password validation: min 6 characters (requested "6 digit not 3")
+        if (passwordField == null || passwordField.getText() == null || passwordField.getText().trim().isEmpty()) {
+            if (passwordField != null) highlightField(passwordField);
+            isValid = false;
+        } else if (passwordField.getText().length() < 6) {
+            highlightField(passwordField);
+            isValid = false;
+        }
+
+        if (confirmPasswordField == null || confirmPasswordField.getText() == null || confirmPasswordField.getText().trim().isEmpty()) {
+            if (confirmPasswordField != null) highlightField(confirmPasswordField);
+            isValid = false;
+        } else if (passwordField != null && !passwordField.getText().equals(confirmPasswordField.getText())) {
             highlightField(passwordField);
             highlightField(confirmPasswordField);
             isValid = false;
+        }
+
+        // Doctor specialization required only for Doctor flow (or if Doctor is selected)
+        boolean doctorSelected = (doctorRadio != null && doctorRadio.isSelected());
+        if ((forDoctorFlow || doctorSelected) && specializationCombo != null) {
+            if (specializationCombo.getValue() == null || specializationCombo.getValue().trim().isEmpty()) {
+                highlightField(specializationCombo);
+                isValid = false;
+            }
         }
 
         if (!consentCheck1.isSelected() || !consentCheck2.isSelected() || !consentCheck3.isSelected()) {
@@ -203,6 +268,58 @@ public class SignupController {
         }
 
         return isValid;
+    }
+
+    private boolean isBirthdaySelected() {
+        return birthMonthCombo != null && birthDayCombo != null && birthYearCombo != null
+                && birthMonthCombo.getValue() != null
+                && birthDayCombo.getValue() != null
+                && birthYearCombo.getValue() != null;
+    }
+
+    private void setupBirthdayDropdowns() {
+        if (birthMonthCombo == null || birthDayCombo == null || birthYearCombo == null) return;
+
+        birthMonthCombo.getItems().setAll(
+                "January", "February", "March", "April", "May", "June",
+                "July", "August", "September", "October", "November", "December"
+        );
+
+        birthDayCombo.getItems().clear();
+        for (int d = 1; d <= 31; d++) birthDayCombo.getItems().add(d);
+
+        int currentYear = LocalDate.now().getYear();
+        birthYearCombo.getItems().clear();
+        for (int y = currentYear; y >= 1900; y--) birthYearCombo.getItems().add(y);
+    }
+
+    private void setupSpecializationDropdown() {
+        if (specializationCombo == null) return;
+        specializationCombo.getItems().setAll(
+                "General Practice",
+                "Internal Medicine",
+                "Pediatrics",
+                "Obstetrics & Gynecology",
+                "Surgery",
+                "Orthopedics",
+                "Dermatology",
+                "Ophthalmology",
+                "ENT",
+                "Psychiatry",
+                "Neurology",
+                "Cardiology",
+                "Radiology",
+                "Anesthesiology",
+                "Family Medicine"
+        );
+    }
+
+    private void updateSpecializationVisibility() {
+        boolean show = doctorRadio != null && doctorRadio.isSelected();
+        if (specializationCombo != null) {
+            specializationCombo.setVisible(show);
+            specializationCombo.setManaged(show);
+        }
     }
 
     private void highlightField(Control field) {

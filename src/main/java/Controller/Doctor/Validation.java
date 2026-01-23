@@ -22,14 +22,15 @@ public class Validation extends Application {
     @FXML private TextField registrationYearInput;
 
     // Fields to hold data passed from SignupController
-    private String name, email, password, phone;
+    private String name, email, password, phone, specialization;
 
     // Setter to receive data from SignupController
-    public void setDoctorData(String name, String email, String password, String phone) {
+    public void setDoctorData(String name, String email, String password, String phone, String specialization) {
         this.name = name;
         this.email = email;
         this.password = password;
         this.phone = phone;
+        this.specialization = specialization;
     }
 
     @Override
@@ -59,12 +60,17 @@ public class Validation extends Application {
             return;
         }
 
+        if (this.specialization == null || this.specialization.trim().isEmpty()) {
+            showError("Missing specialization. Please go back and select your specialization.");
+            return;
+        }
+
         if (license.matches("\\d{7}")) {
             try (Connection conn = DatabaseConnection.getConnection()) {
                 RecordDAO dao = new RecordDAO(conn);
 
                 // Call the registerDoctor method in RecordDAO
-                boolean success = dao.registerDoctor(this.name, this.email, this.password, this.phone, license, year);
+                boolean success = dao.registerDoctor(this.name, this.email, this.password, this.phone, this.specialization, license, year);
 
                 if (success) {
                     showSuccess("Account created successfully! Redirecting to Login...");

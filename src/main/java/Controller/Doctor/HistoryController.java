@@ -2,6 +2,7 @@ package Controller.Doctor;
 
 import CommonModel.Attachment;
 import CommonModel.DoctorCase;
+import CommonModel.SessionManager;
 import CommonModel.UserRow;
 import MVP.Login;
 import javafx.collections.FXCollections;
@@ -14,13 +15,13 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
 import java.awt.Desktop;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.sql.*;
 
 public class HistoryController {
@@ -37,6 +38,7 @@ public class HistoryController {
 
     @FXML private TextField searchField;
     @FXML private Button uploadButton;
+    @FXML private Button removeFileButton;
     @FXML private Button returnButton;
 
     private UserRow selectedPatient;
@@ -181,7 +183,7 @@ public class HistoryController {
     @FXML
     private void handleUploadFile() {
         if (selectedPatient == null) {
-            System.out.println("Please select a patient first!");
+            showAlert(Alert.AlertType.WARNING, "No Patient Selected", "Please add/select a patient first.");
             return;
         }
 
@@ -200,6 +202,167 @@ public class HistoryController {
                 e.printStackTrace();
                 System.err.println("Failed to upload file.");
             }
+        }
+    }
+
+    @FXML
+    private void handleRemoveFile() {
+        if (selectedPatient == null) {
+            showAlert(Alert.AlertType.WARNING, "No Patient Selected", "Please add/select a patient first.");
+            return;
+        }
+
+        Attachment selected = filesTable.getSelectionModel().getSelectedItem();
+        if (selected == null) {
+            showAlert(Alert.AlertType.WARNING, "No File Selected", "Please select a file to remove.");
+            return;
+        }
+
+        Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
+        confirm.setTitle("Confirm Remove");
+        confirm.setHeaderText("Remove selected file?");
+        confirm.setContentText(selected.getFileName());
+
+        if (confirm.showAndWait().orElse(ButtonType.CANCEL) != ButtonType.OK) return;
+
+        try (Connection conn = DriverManager.getConnection(URL, USER, PASS)) {
+            String sql = "DELETE FROM patient_attachments WHERE patient_id = ? AND file_name = ? LIMIT 1";
+            try (PreparedStatement ps = conn.prepareStatement(sql)) {
+                ps.setInt(1, selectedPatient.getId());
+                ps.setString(2, selected.getFileName());
+                int rows = ps.executeUpdate();
+                if (rows > 0) {
+                    attachmentsList.remove(selected);
+                } else {
+                    showAlert(Alert.AlertType.INFORMATION, "Not Found", "File was not found in the database.");
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            showAlert(Alert.AlertType.ERROR, "Database Error", "Failed to remove file: " + e.getMessage());
+        }
+    }
+
+    @FXML
+    private void handleAddPatient() {
+        Dialog<UserRow> dialog = new Dialog<>();
+        dialog.setTitle("Add Patient");
+        dialog.setHeaderText("Create a patient account");
+        dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
+
+        TextField nameField = new TextField();
+        nameField.setPromptText("Patient name");
+        PasswordField passField = new PasswordField();
+        passField.setPromptText("Temporary password");
+
+        VBox content = new VBox(10, new Label("Name"), nameField, new Label("Password"), passField);
+        dialog.getDialogPane().setContent(content);
+
+        dialog.setResultConverter(btn -> {
+            if (btn != ButtonType.OK) return null;
+            String name = nameField.getText() == null ? "" : nameField.getText().trim();
+            String pass = passField.getText() == null ? "" : passField.getText().trim();
+            if (name.isEmpty() || pass.length() < 6) {
+                showAlert(Alert.AlertType.WARNING, "Validation", "Name is required and password must be at least 6 characters.");
+                return null;
+            }
+
+            try (Connection conn = DriverManager.getConnection(URL, USER, PASS)) {
+                String sql = "INSERT INTO users (name, password) VALUES (?, ?)";
+                try (PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+                    ps.setString(1, name);
+                    ps.setString(2, pass);
+                    int rows = ps.executeUpdate();
+                    if (rows > 0) {
+                        ResultSet keys = ps.getGeneratedKeys();
+                        if (keys.next()) {
+                            int id = keys.getInt(1);
+                            return new UserRow(id, name);
+                        }
+                    }
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+                showAlert(Alert.AlertType.ERROR, "Database Error", "Failed to create patient: " + e.getMessage());
+            }
+            return null;
+        });
+
+        dialog.showAndWait().ifPresent(patient -> {
+            this.selectedPatient = patient;
+            loadCasesForPatient(patient.getId());
+            loadAttachmentsForPatient(patient.getId());
+            showAlert(Alert.AlertType.INFORMATION, "Patient Added", "Patient created and selected: " + patient.getName());
+        });
+    }
+
+    @FXML
+    private void handleAddRecord() {
+        if (selectedPatient == null) {
+            showAlert(Alert.AlertType.WARNING, "No Patient Selected", "Please add/select a patient first.");
+            return;
+        }
+
+        Dialog<ButtonType> dialog = new Dialog<>();
+        dialog.setTitle("Add Record");
+        dialog.setHeaderText("Add a case record for: " + selectedPatient.getName());
+        dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
+
+        TextField diagnosisField = new TextField();
+        diagnosisField.setPromptText("Diagnosis");
+        TextField treatmentField = new TextField();
+        treatmentField.setPromptText("Treatment");
+        TextField dateCompletedField = new TextField();
+        dateCompletedField.setPromptText("Date Completed (YYYY-MM-DD) - optional");
+
+        VBox content = new VBox(10,
+                new Label("Diagnosis"), diagnosisField,
+                new Label("Treatment"), treatmentField,
+                new Label("Date Completed"), dateCompletedField
+        );
+        dialog.getDialogPane().setContent(content);
+
+        ButtonType result = dialog.showAndWait().orElse(ButtonType.CANCEL);
+        if (result != ButtonType.OK) return;
+
+        String diagnosis = diagnosisField.getText() == null ? "" : diagnosisField.getText().trim();
+        String treatment = treatmentField.getText() == null ? "" : treatmentField.getText().trim();
+        String dateCompleted = dateCompletedField.getText() == null ? "" : dateCompletedField.getText().trim();
+
+        if (diagnosis.isEmpty() || treatment.isEmpty()) {
+            showAlert(Alert.AlertType.WARNING, "Validation", "Diagnosis and Treatment are required.");
+            return;
+        }
+
+        int doctorId = SessionManager.getDoctorID();
+        if (doctorId <= 0) {
+            showAlert(Alert.AlertType.ERROR, "Session Error", "No doctor session found. Please log in again.");
+            return;
+        }
+
+        try (Connection conn = DriverManager.getConnection(URL, USER, PASS)) {
+            String sql = "INSERT INTO cases (patientID, doctorID, diagnosis, treatment, date_completed, case_date) VALUES (?, ?, ?, ?, ?, ?)";
+            try (PreparedStatement ps = conn.prepareStatement(sql)) {
+                ps.setInt(1, selectedPatient.getId());
+                ps.setInt(2, doctorId);
+                ps.setString(3, diagnosis);
+                ps.setString(4, treatment);
+                if (dateCompleted.isEmpty()) {
+                    ps.setNull(5, Types.DATE);
+                    ps.setNull(6, Types.DATE);
+                } else {
+                    ps.setDate(5, Date.valueOf(dateCompleted));
+                    ps.setDate(6, Date.valueOf(dateCompleted));
+                }
+
+                ps.executeUpdate();
+                loadCasesForPatient(selectedPatient.getId());
+            }
+        } catch (IllegalArgumentException iae) {
+            showAlert(Alert.AlertType.WARNING, "Date Format", "Please use YYYY-MM-DD for Date Completed.");
+        } catch (SQLException e) {
+            e.printStackTrace();
+            showAlert(Alert.AlertType.ERROR, "Database Error", "Failed to add record: " + e.getMessage());
         }
     }
 
@@ -268,13 +431,14 @@ public class HistoryController {
     @FXML
     private void handleReturn() {
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/MVP/Patient.fxml"));
+            // Patient list screen isn't present in resources; return to Doctor Account for now
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/MVP/DoctorAccount.fxml"));
             Parent root = loader.load();
 
             Stage stage = (Stage) returnButton.getScene().getWindow();
             Scene scene = new Scene(root, 1280, 768);
             stage.setScene(scene);
-            stage.setTitle("Patients");
+            stage.setTitle("Doctor Account");
             stage.show();
 
         } catch (Exception e) {
@@ -282,5 +446,13 @@ public class HistoryController {
         }
 
 
+    }
+
+    private void showAlert(Alert.AlertType type, String title, String message) {
+        Alert alert = new Alert(type);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        alert.showAndWait();
     }
 }

@@ -24,10 +24,13 @@
             <Label style="-fx-font-size: 24px; -fx-font-weight: bold;" text="Patient Histories" />
 
             <!-- Search Field -->
-            <HBox alignment="CENTER_LEFT" spacing="10" />
-            <TextField fx:id="searchField" prefHeight="24.0" prefWidth="916.0" promptText="Search treatment/diagnosis" />
-         <Button mnemonicParsing="false" prefHeight="25.0" prefWidth="100.0" snapToPixel="false" text="Add Record" VBox.vgrow="NEVER" />
-         <Button mnemonicParsing="false" prefHeight="24.0" prefWidth="98.0" text="Add Patients" />
+            <HBox alignment="CENTER_LEFT" spacing="10">
+                <children>
+                    <TextField fx:id="searchField" prefHeight="24.0" prefWidth="700.0" promptText="Search treatment/diagnosis" />
+                    <Button fx:id="addRecordButton" mnemonicParsing="false" onAction="#handleAddRecord" prefHeight="25.0" prefWidth="110.0" snapToPixel="false" text="Add Record" VBox.vgrow="NEVER" />
+                    <Button fx:id="addPatientButton" mnemonicParsing="false" onAction="#handleAddPatient" prefHeight="24.0" prefWidth="120.0" text="Add Patient" />
+                </children>
+            </HBox>
 
             <!-- Cases Table -->
             <TableView fx:id="casesTable" prefHeight="300.0" prefWidth="1304.0">
@@ -45,11 +48,13 @@
                 </columns>
             </TableView>
 
-            <!-- Upload Button -->
-            <Button fx:id="uploadButton" onAction="#handleUploadFile" text="Upload File" />
-
-            <!-- Return Button -->
-            <Button fx:id="returnButton" onAction="#handleReturn" prefHeight="25.0" prefWidth="77.0" text="RemoveFile" />
+            <HBox alignment="CENTER_LEFT" spacing="10">
+                <children>
+                    <Button fx:id="uploadButton" onAction="#handleUploadFile" text="Upload File" />
+                    <Button fx:id="removeFileButton" onAction="#handleRemoveFile" text="Remove File" />
+                    <Button fx:id="returnButton" onAction="#handleReturn" prefHeight="25.0" prefWidth="90.0" text="Back" />
+                </children>
+            </HBox>
         </VBox>
     </center>
    <left>
