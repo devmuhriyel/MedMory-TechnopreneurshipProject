@@ -455,4 +455,30 @@ public class HistoryController {
         alert.setContentText(message);
         alert.showAndWait();
     }
+
+    @FXML
+    private void handleAddRecord(ActionEvent event) {
+        // TODO: implemented
+    }
+
+    @FXML
+    private void handleAddPatient(ActionEvent event) {
+        // TODO: implemented
+    }
+
+    @FXML
+    private void handleUploadFile(ActionEvent event) {
+        // TODO: implemented
+    }
+
+    @FXML
+    private void handleRemoveFile(ActionEvent event) {
+        // TODO: implemented
+    }
+
+    @FXML
+    private void handleReturn(ActionEvent event) {
+        // TODO: implemented
+    }
+
 }

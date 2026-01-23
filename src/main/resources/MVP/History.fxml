@@ -15,7 +15,7 @@
 <BorderPane fx:id="mainContainer" prefHeight="768.0" prefWidth="1366.0" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="Controller.Doctor.HistoryController">
 
     <center>
-        <VBox alignment="TOP_LEFT" spacing="15.0" style="-fx-background-color: #e6f0e6;" BorderPane.alignment="TOP_LEFT">
+        <VBox spacing="15.0" style="-fx-background-color: #e6f0e6;" BorderPane.alignment="TOP_LEFT">
             <padding>
                 <Insets bottom="20" left="20" right="20" top="20" />
             </padding>
@@ -25,11 +25,12 @@
 
             <!-- Search Field -->
             <HBox alignment="CENTER_LEFT" spacing="10">
-                <children>
-                    <TextField fx:id="searchField" prefHeight="24.0" prefWidth="700.0" promptText="Search treatment/diagnosis" />
-                    <Button fx:id="addRecordButton" mnemonicParsing="false" onAction="#handleAddRecord" prefHeight="25.0" prefWidth="110.0" snapToPixel="false" text="Add Record" VBox.vgrow="NEVER" />
-                    <Button fx:id="addPatientButton" mnemonicParsing="false" onAction="#handleAddPatient" prefHeight="24.0" prefWidth="120.0" text="Add Patient" />
-                </children>
+                <TextField fx:id="searchField" prefHeight="24.0" prefWidth="700.0"
+                           promptText="Search treatment/diagnosis"/>
+                <Button fx:id="addRecordButton" mnemonicParsing="false" onAction="#handleAddRecord" prefHeight="25.0"
+                        prefWidth="110.0" snapToPixel="false" text="Add Record" VBox.vgrow="NEVER"/>
+                <Button fx:id="addPatientButton" mnemonicParsing="false" onAction="#handleAddPatient" prefHeight="24.0"
+                        prefWidth="120.0" text="Add Patient"/>
             </HBox>
 
             <!-- Cases Table -->
@@ -49,11 +50,9 @@
             </TableView>
 
             <HBox alignment="CENTER_LEFT" spacing="10">
-                <children>
-                    <Button fx:id="uploadButton" onAction="#handleUploadFile" text="Upload File" />
-                    <Button fx:id="removeFileButton" onAction="#handleRemoveFile" text="Remove File" />
-                    <Button fx:id="returnButton" onAction="#handleReturn" prefHeight="25.0" prefWidth="90.0" text="Back" />
-                </children>
+                <Button fx:id="uploadButton" onAction="#handleUploadFile" text="Upload File"/>
+                <Button fx:id="removeFileButton" onAction="#handleRemoveFile" text="Remove File"/>
+                <Button fx:id="returnButton" onAction="#handleReturn" prefHeight="25.0" prefWidth="90.0" text="Back"/>
             </HBox>
         </VBox>
     </center>
@@ -69,22 +68,22 @@
            </ImageView>
 
            <VBox alignment="CENTER" spacing="10.0">
-               <Button fx:id="accountButton" contentDisplay="LEFT" onAction="#handleNavigation" prefWidth="150.0" style="-fx-background-color: #008060; -fx-text-fill: WHITE; -fx-font-weight: bold; -fx-background-radius: 5; -fx-cursor: hand;" text="Account">
+               <Button fx:id="accountButton" onAction="#handleNavigation" prefWidth="150.0" style="-fx-background-color: #008060; -fx-text-fill: WHITE; -fx-font-weight: bold; -fx-background-radius: 5; -fx-cursor: hand;" text="Account">
                    <graphic>
                        <Label style="-fx-font-size: 20px;" text="👤" textFill="WHITE" />
                    </graphic>
                </Button>
-               <Button fx:id="casesButton" contentDisplay="LEFT" onAction="#handleNavigation" prefWidth="150.0" style="-fx-background-color: #b0e0ff; -fx-background-radius: 5; -fx-font-weight: bold; -fx-border-color: #2090ff; -fx-text-fill: #0050c0; -fx-cursor: hand;" text="Patients">
+               <Button fx:id="casesButton" onAction="#handleNavigation" prefWidth="150.0" style="-fx-background-color: #b0e0ff; -fx-background-radius: 5; -fx-font-weight: bold; -fx-border-color: #2090ff; -fx-text-fill: #0050c0; -fx-cursor: hand;" text="Patients">
                    <graphic>
                        <Label style="-fx-font-size: 20px;" text="👤" textFill="#0050c0" />
                    </graphic>
                </Button>
-               <Button fx:id="calendarButton" contentDisplay="LEFT" onAction="#handleNavigation" prefWidth="150.0" style="-fx-background-color: #008060; -fx-text-fill: WHITE; -fx-font-weight: bold; -fx-background-radius: 5; -fx-cursor: hand;" text="Calendar">
+               <Button fx:id="calendarButton" onAction="#handleNavigation" prefWidth="150.0" style="-fx-background-color: #008060; -fx-text-fill: WHITE; -fx-font-weight: bold; -fx-background-radius: 5; -fx-cursor: hand;" text="Calendar">
                    <graphic>
                        <Label style="-fx-font-size: 20px;" text="📅" textFill="WHITE" />
                    </graphic>
                </Button>
-               <Button fx:id="notificationsButton" contentDisplay="LEFT" onAction="#handleNavigation" prefWidth="150.0" style="-fx-background-color: #008060; -fx-text-fill: WHITE; -fx-font-weight: bold; -fx-background-radius: 5; -fx-cursor: hand;" text="Chat">
+               <Button fx:id="notificationsButton" onAction="#handleNavigation" prefWidth="150.0" style="-fx-background-color: #008060; -fx-text-fill: WHITE; -fx-font-weight: bold; -fx-background-radius: 5; -fx-cursor: hand;" text="Chat">
                    <graphic>
                        <Label style="-fx-font-size: 20px;" text="💬" textFill="WHITE" />
                    </graphic>
@@ -92,7 +91,7 @@
            </VBox>
 
            <VBox VBox.vgrow="ALWAYS" />
-           <Button fx:id="settingsButton" contentDisplay="LEFT" onAction="#handleNavigation" prefWidth="150.0" style="-fx-background-color: #008060; -fx-text-fill: WHITE; -fx-font-weight: bold; -fx-background-radius: 5; -fx-cursor: hand;" text="Settings">
+           <Button fx:id="settingsButton" onAction="#handleNavigation" prefWidth="150.0" style="-fx-background-color: #008060; -fx-text-fill: WHITE; -fx-font-weight: bold; -fx-background-radius: 5; -fx-cursor: hand;" text="Settings">
                <graphic>
                    <Label style="-fx-font-size: 20px;" text="⚙" textFill="WHITE" />
                </graphic>
