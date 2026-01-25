@@ -23,6 +23,8 @@ import java.awt.Desktop;
 import java.io.File;
 import java.io.IOException;
 import java.sql.*;
+import java.util.HashMap;
+import java.util.Map;
 
 public class HistoryController {
 
@@ -45,6 +47,8 @@ public class HistoryController {
 
     private final ObservableList<DoctorCase> casesList = FXCollections.observableArrayList();
     private final ObservableList<Attachment> attachmentsList = FXCollections.observableArrayList();
+    // Map to track original file names for temp files
+    private final Map<Attachment, String> attachmentOriginalNames = new HashMap<>();
 
     private final String URL = "jdbc:mysql://localhost:3306/medical";
     private final String USER = "root";
@@ -107,6 +111,17 @@ public class HistoryController {
         fileNameCol.setCellValueFactory(new PropertyValueFactory<>("fileName"));
         filesTable.setItems(attachmentsList);
 
+        // Add click handler to select patient when clicking on a case row
+        casesTable.setOnMouseClicked(event -> {
+            if (event.getClickCount() == 1) {
+                DoctorCase selectedCase = casesTable.getSelectionModel().getSelectedItem();
+                if (selectedCase != null) {
+                    UserRow patient = new UserRow(selectedCase.getPatientID(), selectedCase.getPatientName());
+                    setPatient(patient);
+                }
+            }
+        });
+
         int doctorId = SessionManager.getDoctorID();
         if (doctorId > 0) {
             loadAllCasesForDoctor(doctorId); // ✅ THIS FIXES IT
@@ -122,6 +137,8 @@ public class HistoryController {
         this.selectedPatient = patient;
         loadCasesForPatient(patient.getId());
         loadAttachmentsForPatient(patient.getId()); // only load files here
+        // Clear search field when patient is selected
+        searchField.clear();
     }
 
     private void loadAllCasesForDoctor(int doctorId) {
@@ -163,12 +180,14 @@ public class HistoryController {
 
     private void loadCasesForPatient(int patientID) {
         casesList.clear();
+        int doctorId = SessionManager.getDoctorID();
         try (Connection conn = DriverManager.getConnection(URL, USER, PASS)) {
             String sql = "SELECT c.case_id, c.patientID, u.name AS patientName, c.diagnosis, c.treatment, c.date_completed " +
                     "FROM cases c JOIN users u ON c.patientID = u.idusers " +
-                    "WHERE c.patientID = ? ORDER BY c.date_completed DESC";
+                    "WHERE c.patientID = ? AND c.doctorID = ? ORDER BY c.date_completed DESC";
             PreparedStatement stmt = conn.prepareStatement(sql);
             stmt.setInt(1, patientID);
+            stmt.setInt(2, doctorId);
 
             ResultSet rs = stmt.executeQuery();
             while (rs.next()) {
@@ -184,6 +203,7 @@ public class HistoryController {
 
         } catch (SQLException e) {
             e.printStackTrace();
+            showAlert(Alert.AlertType.ERROR, "Database Error", "Failed to load cases: " + e.getMessage());
         }
     }
 
@@ -194,9 +214,11 @@ public class HistoryController {
         }
 
         ObservableList<DoctorCase> filtered = FXCollections.observableArrayList();
+        String lowerKeyword = keyword.toLowerCase();
         for (DoctorCase dc : casesList) {
-            if (dc.getDiagnosis().toLowerCase().contains(keyword.toLowerCase()) ||
-                    dc.getTreatment().toLowerCase().contains(keyword.toLowerCase())) {
+            String diagnosis = dc.getDiagnosis() != null ? dc.getDiagnosis().toLowerCase() : "";
+            String treatment = dc.getTreatment() != null ? dc.getTreatment().toLowerCase() : "";
+            if (diagnosis.contains(lowerKeyword) || treatment.contains(lowerKeyword)) {
                 filtered.add(dc);
             }
         }
@@ -220,10 +242,11 @@ public class HistoryController {
         if (file != null) {
             try {
                 saveFileToDB(file); // save file to database
-                attachmentsList.add(new Attachment(file)); // add to table immediately
+                loadAttachmentsForPatient(selectedPatient.getId()); // reload attachments from DB
+                showAlert(Alert.AlertType.INFORMATION, "Success", "File uploaded successfully.");
             } catch (Exception e) {
                 e.printStackTrace();
-                System.err.println("Failed to upload file.");
+                showAlert(Alert.AlertType.ERROR, "Upload Failed", "Failed to upload file: " + e.getMessage());
             }
         }
     }
@@ -249,15 +272,33 @@ public class HistoryController {
         if (confirm.showAndWait().orElse(ButtonType.CANCEL) != ButtonType.OK) return;
 
         try (Connection conn = DriverManager.getConnection(URL, USER, PASS)) {
+            // Get the original file name from the map
+            String originalFileName = attachmentOriginalNames.get(selected);
+            if (originalFileName == null) {
+                // Fallback: try to extract from temp file name
+                String tempFileName = selected.getFileName();
+                if (tempFileName.startsWith("patient_")) {
+                    String[] parts = tempFileName.split("_", 4);
+                    if (parts.length >= 4) {
+                        originalFileName = parts[3];
+                    }
+                } else {
+                    originalFileName = tempFileName;
+                }
+            }
+            
+            // Use patient_id AND file_name to ensure we delete the correct file for this specific patient
             String sql = "DELETE FROM patient_attachments WHERE patient_id = ? AND file_name = ? LIMIT 1";
             try (PreparedStatement ps = conn.prepareStatement(sql)) {
-                ps.setInt(1, selectedPatient.getId());
-                ps.setString(2, selected.getFileName());
+                int patientId = selectedPatient.getId(); // Use patient ID, not name - ensures correct patient
+                ps.setInt(1, patientId);
+                ps.setString(2, originalFileName);
                 int rows = ps.executeUpdate();
                 if (rows > 0) {
-                    attachmentsList.remove(selected);
+                    loadAttachmentsForPatient(patientId); // reload from DB using patient ID
+                    showAlert(Alert.AlertType.INFORMATION, "Success", "File removed successfully.");
                 } else {
-                    showAlert(Alert.AlertType.INFORMATION, "Not Found", "File was not found in the database.");
+                    showAlert(Alert.AlertType.INFORMATION, "Not Found", "File was not found in the database for this patient.");
                 }
             }
         } catch (SQLException e) {
@@ -380,6 +421,7 @@ public class HistoryController {
 
                 ps.executeUpdate();
                 loadCasesForPatient(selectedPatient.getId());
+                showAlert(Alert.AlertType.INFORMATION, "Success", "Record added successfully.");
             }
         } catch (IllegalArgumentException iae) {
             showAlert(Alert.AlertType.WARNING, "Date Format", "Please use YYYY-MM-DD for Date Completed.");
@@ -392,46 +434,58 @@ public class HistoryController {
 
 
     private void saveFileToDB(File file) throws Exception {
+        if (selectedPatient == null) {
+            throw new IllegalStateException("No patient selected. Cannot upload file without a selected patient.");
+        }
+        
         String URL = "jdbc:mysql://localhost:3306/medical";
         String USER = "root";
         String PASS = "";
 
         try (Connection conn = DriverManager.getConnection(URL, USER, PASS)) {
+            // Use patient_id (not name) to ensure file is linked to correct patient
             String sql = "INSERT INTO patient_attachments (patient_id, file_name, file_data) VALUES (?, ?, ?)";
             PreparedStatement ps = conn.prepareStatement(sql);
 
-            ps.setInt(1, selectedPatient.getId()); // assign to selected patient
+            int patientId = selectedPatient.getId(); // Use ID, not name
+            ps.setInt(1, patientId);
             ps.setString(2, file.getName());
             ps.setBytes(3, java.nio.file.Files.readAllBytes(file.toPath()));
 
             ps.executeUpdate();
-            System.out.println("File saved to DB for patient: " + selectedPatient.getName());
+            System.out.println("File saved to DB for patient ID: " + patientId + " (Name: " + selectedPatient.getName() + ")");
         }
     }
 
     private void loadAttachmentsForPatient(int patientID) {
         attachmentsList.clear();
+        attachmentOriginalNames.clear(); // Clear the map when loading new attachments
 
         String URL = "jdbc:mysql://localhost:3306/medical";
         String USER = "root";
         String PASS = "";
 
+        // Use patient_id to ensure we only get files for this specific patient
         String sql = "SELECT file_name, file_data FROM patient_attachments WHERE patient_id = ?";
 
         try (Connection conn = DriverManager.getConnection(URL, USER, PASS);
              PreparedStatement ps = conn.prepareStatement(sql)) {
 
-            ps.setInt(1, patientID);
+            ps.setInt(1, patientID); // Use patient ID, not name
             ResultSet rs = ps.executeQuery();
 
             while (rs.next()) {
                 // Create a temporary File object for display
-                String fileName = rs.getString("file_name");
-                // Save the file to a temp folder so it can be opened later
-                File tempFile = new File(System.getProperty("java.io.tmpdir"), fileName);
+                String originalFileName = rs.getString("file_name");
+                // Create unique temp file name to avoid conflicts between patients with same file names
+                String uniqueTempFileName = "patient_" + patientID + "_" + System.currentTimeMillis() + "_" + originalFileName;
+                File tempFile = new File(System.getProperty("java.io.tmpdir"), uniqueTempFileName);
                 java.nio.file.Files.write(tempFile.toPath(), rs.getBytes("file_data"));
 
-                attachmentsList.add(new Attachment(tempFile));
+                Attachment attachment = new Attachment(tempFile);
+                attachmentsList.add(attachment);
+                // Store the original file name for deletion
+                attachmentOriginalNames.put(attachment, originalFileName);
             }
 
         } catch (Exception e) {
