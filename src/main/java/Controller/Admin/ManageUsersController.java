@@ -1,7 +1,6 @@
 package Controller.Admin;
 
 import DAO.DatabaseConnection;
-import DAO.*;
 import DAO.RecordDAO;
 import CommonModel.AdminModel;
 import CommonModel.SessionManager;
@@ -32,7 +31,6 @@ import javafx.stage.Stage;
 import java.io.IOException;
 import java.net.URL;
 import java.sql.Connection;
-import java.sql.PreparedStatement;
 import java.util.ResourceBundle;
 
 public class ManageUsersController implements Initializable {
@@ -50,7 +48,6 @@ public class ManageUsersController implements Initializable {
 
 
     private RecordDAO recordDAO;
-    private Connection conn;
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
@@ -80,7 +77,12 @@ public class ManageUsersController implements Initializable {
                     p.getId(),
                     p.getName(),
                     "PATIENT",
-                    "Active"
+                    "Active",
+                    p.getEmail(),
+                    p.getPhone(),
+                    p.getAddress(),
+                    p.getPassword(),
+                    p.getBirthday()
             ));
         }
 
@@ -90,12 +92,19 @@ public class ManageUsersController implements Initializable {
                     d.id,
                     d.name,
                     "DOCTOR",
-                    "Active"
+                    "Active",
+                    d.email,
+                    d.phone,
+                    d.address,
+                    d.password,
+                    d.birthday
             ));
         }
 
+
         setupSearchFilter();
     }
+
 
 
     private void setupSearchFilter() {

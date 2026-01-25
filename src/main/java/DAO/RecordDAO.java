@@ -128,12 +128,14 @@ public class RecordDAO {
         return stmt.executeUpdate() > 0;
     }
 
-    public boolean createPatient(String name, String password) {
-        String sql = "INSERT INTO users (name,password) VALUES (?,?)";
+    public boolean createPatient(String name, String password, String email, String phoneNumber) {
+        String sql = "INSERT INTO users (name,password,email,phoneNumber) VALUES (?,?,?,?)";
 
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, name);
             ps.setString(2,password);
+            ps.setString(3,email);
+            ps.setString(4,phoneNumber);
             return ps.executeUpdate() > 0;
         } catch (Exception e) {
             e.printStackTrace();
@@ -141,12 +143,14 @@ public class RecordDAO {
         }
     }
 
-    public boolean createDoctor(String name, String password) {
-        String sql = "INSERT INTO doctors (name, password) VALUES (?, ?)";
+    public boolean createDoctor(String name, String password, String email, String phoneNumber) {
+        String sql = "INSERT INTO doctors (name,password,email,phoneNumber) VALUES (?,?,?,?)";
 
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, name);
             ps.setString(2, password);
+            ps.setString(3,email);
+            ps.setString(4,phoneNumber);
             return ps.executeUpdate() > 0;
         } catch (Exception e) {
             e.printStackTrace();
@@ -503,7 +507,11 @@ public class RecordDAO {
 
         List<AdminModel> patients = new ArrayList<>();
 
-        String sql = "SELECT idusers, name FROM users ORDER BY idusers ASC";
+        String sql = """
+        SELECT idusers, name, password, email, phoneNumber, birthday, address
+        FROM users
+        ORDER BY idusers ASC
+        """;
 
         try (PreparedStatement ps = conn.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
@@ -512,6 +520,11 @@ public class RecordDAO {
                 AdminModel patient = new AdminModel();
                 patient.setId(rs.getInt("idusers"));
                 patient.setName(rs.getString("name"));
+                patient.setEmail(rs.getString("email"));
+                patient.setPhone(rs.getString("phoneNumber"));
+                patient.setBirthday(rs.getString("birthday")); // or Date → String
+                patient.setAddress(rs.getString("address"));
+                patient.setPassword(rs.getString("password"));
                 patients.add(patient);
             }
 
@@ -521,6 +534,7 @@ public class RecordDAO {
 
         return patients;
     }
+
 
 
     public List<DoctorModel> getAllDoctors() {
@@ -534,11 +548,15 @@ public class RecordDAO {
 
             while (rs.next()) {
                 DoctorModel d = new DoctorModel();
+
                 d.id = rs.getInt("iddoctors");
                 d.name = rs.getString("name");
                 d.specialization = rs.getString("specialization");
                 d.email = rs.getString("email");
-                d.phone = rs.getString("phone");
+                d.phone = rs.getString("phoneNumber");
+                d.password = rs.getString("password");
+                d.birthday = rs.getString("birthday");
+                d.address = rs.getString("address");
                 d.biography = rs.getString("biography");
 
                 doctors.add(d);
@@ -581,35 +599,34 @@ public class RecordDAO {
 
     public boolean updatePatient(int id, String name) {
 
-        System.out.println("=== DAO.updatePatient DEBUG ===");
-        System.out.println("ID   : " + id);
-        System.out.println("Name : '" + name + "'");
+        String updateUser = "UPDATE users SET name = ? WHERE idusers = ?";
+        String updateRecords = "UPDATE records SET patientName = ? WHERE patientID = ?";
 
-        String sql = "UPDATE users SET name = ? WHERE idusers = ?";
+        try {
+            conn.setAutoCommit(false); // 🔐 transaction
 
-        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            try (PreparedStatement ps1 = conn.prepareStatement(updateUser);
+                 PreparedStatement ps2 = conn.prepareStatement(updateRecords);
+                 PreparedStatement ps3 = conn.prepareStatement(updateRecords)) {
 
-            ps.setString(1, name);
-            ps.setInt(2, id);
+                ps1.setString(1, name);
+                ps1.setInt(2, id);
+                ps1.executeUpdate();
 
-            int rows = ps.executeUpdate();
+                ps2.setString(1, name);
+                ps2.setInt(2, id);
+                ps2.executeUpdate();
 
-            System.out.println("Rows affected: " + rows);
-
-            if (rows == 0) {
-                System.out.println("⚠ No rows updated. Possible causes:");
-                System.out.println(" - ID does not exist");
-                System.out.println(" - Name is same as existing value");
+                conn.commit();
+                return true;
             }
 
-            return rows > 0;
-
         } catch (Exception e) {
-            System.out.println("❌ Exception in updatePatient()");
+            try { conn.rollback(); } catch (Exception ignored) {}
             e.printStackTrace();
             return false;
         } finally {
-            System.out.println("=== END updatePatient DEBUG ===");
+            try { conn.setAutoCommit(true); } catch (Exception ignored) {}
         }
     }
 

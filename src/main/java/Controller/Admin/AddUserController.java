@@ -17,6 +17,8 @@ public class AddUserController {
 
     @FXML private TextField nameField;
     @FXML private TextField passwordField;
+    @FXML private TextField emailField;
+    @FXML private TextField phoneNumberField;
     @FXML private ComboBox<String> roleBox;
 
     private RecordDAO recordDAO;
@@ -36,6 +38,9 @@ public class AddUserController {
 
         String name = nameField.getText();
         String password = passwordField.getText();
+        String email = emailField.getText();
+        String phoneNumber = phoneNumberField.getText();
+
         String role = roleBox.getValue();
 
         System.out.println("=== CREATE USER DEBUG ===");
@@ -50,18 +55,18 @@ public class AddUserController {
         boolean success;
 
         if ("PATIENT".equals(role)) {
-            success = recordDAO.createPatient(name,password);
+            success = recordDAO.createPatient(name,password,email,phoneNumber);
         } else {
             if (password == null || password.trim().isEmpty()) {
                 showAlert("Validation Error", "Password is required for doctors.");
                 return;
             }
-            success = recordDAO.createDoctor(name, password);
+            success = recordDAO.createDoctor(name, password,email,phoneNumber);
         }
 
         if (success) {
             System.out.println("✅ User created successfully");
-            //closeWindow();
+
         } else {
             showAlert("Error", "Failed to create user.");
         }
@@ -93,13 +98,6 @@ public class AddUserController {
         } catch (IOException e) {
             e.printStackTrace();
         }
-    }
-
-    // ---------------- HELPERS ----------------
-
-    private void closeWindow() {
-        Stage stage = (Stage) nameField.getScene().getWindow();
-        stage.close();
     }
 
     private void showAlert(String title, String message) {

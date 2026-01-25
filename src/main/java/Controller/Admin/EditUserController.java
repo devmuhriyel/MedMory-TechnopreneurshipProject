@@ -25,6 +25,11 @@ public class EditUserController implements Initializable {
     @FXML private TextField userNameField;
     @FXML private TextField iDField;
     @FXML private TextField userPasswordField;
+    @FXML private TextField emailField;
+    @FXML private TextField numberField;
+    @FXML private TextField bDayField;
+    @FXML private TextField locField;
+
 
     private UserRow user;
     private RecordDAO recordDAO;
@@ -40,8 +45,21 @@ public class EditUserController implements Initializable {
         userNameField.setText(user.getName());
         iDField.setText(String.valueOf(user.getId()));
         iDField.setDisable(true);
-    }
 
+        userPasswordField.setText(user.getPassword());
+
+        emailField.setText(user.getEmail());
+        emailField.setDisable(true);
+
+        numberField.setText(user.getPhone());
+        numberField.setDisable(true);
+
+        locField.setText(user.getAddress());
+        locField.setDisable(true);
+
+        bDayField.setText(user.getBday());
+        bDayField.setDisable(true);
+    }
 
     @FXML
     private void handleSave() {
