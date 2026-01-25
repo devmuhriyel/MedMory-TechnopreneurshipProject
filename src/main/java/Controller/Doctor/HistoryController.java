@@ -111,12 +111,20 @@ public class HistoryController {
         fileNameCol.setCellValueFactory(new PropertyValueFactory<>("fileName"));
         filesTable.setItems(attachmentsList);
 
-        // Add click handler to select patient when clicking on a case row
+        // ✅ FIX: Clear files when clicking on a case row
         casesTable.setOnMouseClicked(event -> {
             if (event.getClickCount() == 1) {
                 DoctorCase selectedCase = casesTable.getSelectionModel().getSelectedItem();
                 if (selectedCase != null) {
-                    UserRow patient = new UserRow(selectedCase.getPatientID(), selectedCase.getPatientName());
+                    // IMPORTANT: Clear previous patient's files first
+                    attachmentsList.clear();
+                    attachmentOriginalNames.clear();
+
+                    // Create patient using ID (not name!)
+                    UserRow patient = new UserRow(
+                            selectedCase.getPatientID(),
+                            selectedCase.getPatientName()
+                    );
                     setPatient(patient);
                 }
             }
@@ -124,22 +132,45 @@ public class HistoryController {
 
         int doctorId = SessionManager.getDoctorID();
         if (doctorId > 0) {
-            loadAllCasesForDoctor(doctorId); // ✅ THIS FIXES IT
+            loadAllCasesForDoctor(doctorId);
         }
 
         searchField.textProperty().addListener(
                 (obs, oldVal, newVal) -> filterCases(newVal)
         );
+
+        // ✅ FIX: Add double-click to open files
+        filesTable.setOnMouseClicked(event -> {
+            if (event.getClickCount() == 2) {
+                Attachment selected = filesTable.getSelectionModel().getSelectedItem();
+                if (selected != null) {
+                    openFileFromDB(selected);
+                }
+            }
+        });
     }
 
 
     public void setPatient(UserRow patient) {
         this.selectedPatient = patient;
+
+        // ✅ Clear everything first to prevent mixing data
+        casesList.clear();
+        attachmentsList.clear();
+        attachmentOriginalNames.clear();
+
+        // ✅ Load data ONLY for this specific patient ID
         loadCasesForPatient(patient.getId());
-        loadAttachmentsForPatient(patient.getId()); // only load files here
+        loadAttachmentsForPatient(patient.getId());
+
         // Clear search field when patient is selected
         searchField.clear();
+
+        // ✅ Debug: Print to verify correct patient
+        System.out.println("Selected Patient - ID: " + patient.getId() + ", Name: " + patient.getName());
     }
+
+
 
     private void loadAllCasesForDoctor(int doctorId) {
         casesList.clear();
@@ -437,56 +468,63 @@ public class HistoryController {
         if (selectedPatient == null) {
             throw new IllegalStateException("No patient selected. Cannot upload file without a selected patient.");
         }
-        
+
         String URL = "jdbc:mysql://localhost:3306/medical";
         String USER = "root";
         String PASS = "";
 
         try (Connection conn = DriverManager.getConnection(URL, USER, PASS)) {
-            // Use patient_id (not name) to ensure file is linked to correct patient
+            // ✅ Use patient_id to link file to specific patient
             String sql = "INSERT INTO patient_attachments (patient_id, file_name, file_data) VALUES (?, ?, ?)";
             PreparedStatement ps = conn.prepareStatement(sql);
 
-            int patientId = selectedPatient.getId(); // Use ID, not name
+            int patientId = selectedPatient.getId();
             ps.setInt(1, patientId);
             ps.setString(2, file.getName());
             ps.setBytes(3, java.nio.file.Files.readAllBytes(file.toPath()));
 
             ps.executeUpdate();
-            System.out.println("File saved to DB for patient ID: " + patientId + " (Name: " + selectedPatient.getName() + ")");
+
+            // ✅ Debug: Confirm file was saved
+            System.out.println("File '" + file.getName() + "' saved for patient ID: " + patientId +
+                    " (Name: " + selectedPatient.getName() + ")");
         }
     }
 
     private void loadAttachmentsForPatient(int patientID) {
         attachmentsList.clear();
-        attachmentOriginalNames.clear(); // Clear the map when loading new attachments
+        attachmentOriginalNames.clear();
 
         String URL = "jdbc:mysql://localhost:3306/medical";
         String USER = "root";
         String PASS = "";
 
-        // Use patient_id to ensure we only get files for this specific patient
+        // ✅ Use patient_id to ensure we only get files for THIS specific patient
         String sql = "SELECT file_name, file_data FROM patient_attachments WHERE patient_id = ?";
 
         try (Connection conn = DriverManager.getConnection(URL, USER, PASS);
              PreparedStatement ps = conn.prepareStatement(sql)) {
 
-            ps.setInt(1, patientID); // Use patient ID, not name
+            ps.setInt(1, patientID);
             ResultSet rs = ps.executeQuery();
 
+            // ✅ Debug: Check how many files are loaded
+            int fileCount = 0;
+
             while (rs.next()) {
-                // Create a temporary File object for display
                 String originalFileName = rs.getString("file_name");
-                // Create unique temp file name to avoid conflicts between patients with same file names
                 String uniqueTempFileName = "patient_" + patientID + "_" + System.currentTimeMillis() + "_" + originalFileName;
                 File tempFile = new File(System.getProperty("java.io.tmpdir"), uniqueTempFileName);
                 java.nio.file.Files.write(tempFile.toPath(), rs.getBytes("file_data"));
 
                 Attachment attachment = new Attachment(tempFile);
                 attachmentsList.add(attachment);
-                // Store the original file name for deletion
                 attachmentOriginalNames.put(attachment, originalFileName);
+                fileCount++;
             }
+
+            // ✅ Debug: Print loaded files
+            System.out.println("Loaded " + fileCount + " file(s) for patient ID: " + patientID);
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -508,21 +546,20 @@ public class HistoryController {
     @FXML
     private void handleReturn() {
         try {
-            // Patient list screen isn't present in resources; return to Doctor Account for now
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/MVP/DoctorAccount.fxml"));
-            Parent root = loader.load();
+            // ✅ FIX: Go back to DoctorAccount (patient list), not settings
+            FXMLLoader loader = new FXMLLoader(Login.class.getResource("History.fxml"));
+            Scene scene = new Scene(loader.load(), 1280, 768);
 
             Stage stage = (Stage) returnButton.getScene().getWindow();
-            Scene scene = new Scene(root, 1280, 768);
             stage.setScene(scene);
             stage.setTitle("Doctor Account");
             stage.show();
 
         } catch (Exception e) {
             e.printStackTrace();
+            showAlert(Alert.AlertType.ERROR, "Navigation Error",
+                    "Failed to return to patient list: " + e.getMessage());
         }
-
-
     }
 
     private void showAlert(Alert.AlertType type, String title, String message) {
