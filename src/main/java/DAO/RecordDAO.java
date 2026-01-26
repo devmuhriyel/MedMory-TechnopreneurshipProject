@@ -245,7 +245,7 @@ public class RecordDAO {
         // We target the columns that exist in your doctors table
         String sql = "INSERT INTO doctors (name, email, password, phone, specialization, biography) VALUES (?, ?, ?, ?, ?, ?)";
 
-        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+        try (PreparedStatement ps = conn.prepareStatement(sql, PreparedStatement.RETURN_GENERATED_KEYS)) {
             // We set values, ensuring 'name' is the first parameter
             ps.setString(1, name);
             ps.setString(2, email);
@@ -254,7 +254,25 @@ public class RecordDAO {
             ps.setString(5, specialization); // Real specialization
             ps.setString(6, "PRC License: " + license + " | Registered in: " + year);  // Biography field
 
-            return ps.executeUpdate() > 0;
+            int rowsAffected = ps.executeUpdate();
+            
+            if (rowsAffected > 0) {
+                // Get the generated iddoctors
+                try (ResultSet generatedKeys = ps.getGeneratedKeys()) {
+                    if (generatedKeys.next()) {
+                        int doctorId = generatedKeys.getInt(1);
+                        // Update userid to match iddoctors
+                        String updateSql = "UPDATE doctors SET userid = ? WHERE iddoctors = ?";
+                        try (PreparedStatement updatePs = conn.prepareStatement(updateSql)) {
+                            updatePs.setInt(1, doctorId);
+                            updatePs.setInt(2, doctorId);
+                            updatePs.executeUpdate();
+                        }
+                    }
+                }
+                return true;
+            }
+            return false;
         } catch (SQLException e) {
             // This catch block will now capture specific database errors
             System.err.println("SQL Error in registerDoctor: " + e.getMessage());

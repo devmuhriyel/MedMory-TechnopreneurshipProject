@@ -168,14 +168,76 @@ public class AccountController {
         String newPassword = passwordField1.getText().trim();
         String retypePassword = passwordField.getText().trim();
 
-        // Validate required fields
+        // Validate Full Name
         if (name.isEmpty()) {
-            showAlert(Alert.AlertType.WARNING, "Validation Error", "Name cannot be empty.");
+            showAlert(Alert.AlertType.WARNING, "Validation Error", "Full Name cannot be empty.");
+            fullNameField.requestFocus();
+            return;
+        }
+        if (name.length() < 2) {
+            showAlert(Alert.AlertType.WARNING, "Validation Error", "Full Name must be at least 2 characters long.");
+            fullNameField.requestFocus();
+            return;
+        }
+        if (!name.matches("^[a-zA-Z\\s\\-']+$")) {
+            showAlert(Alert.AlertType.WARNING, "Validation Error", "Full Name can only contain letters, spaces, hyphens, and apostrophes.");
+            fullNameField.requestFocus();
+            return;
+        }
+        if (name.split("\\s+").length < 2) {
+            showAlert(Alert.AlertType.WARNING, "Validation Error", "Please enter your full name (first and last name).");
+            fullNameField.requestFocus();
             return;
         }
 
+        // Validate Email
         if (email.isEmpty()) {
             showAlert(Alert.AlertType.WARNING, "Validation Error", "Email cannot be empty.");
+            emailField.requestFocus();
+            return;
+        }
+        String emailPattern = "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$";
+        if (!email.matches(emailPattern)) {
+            showAlert(Alert.AlertType.WARNING, "Validation Error", "Please enter a valid email address (e.g., example@email.com).");
+            emailField.requestFocus();
+            return;
+        }
+
+        // Validate Phone Number
+        if (phone.isEmpty()) {
+            showAlert(Alert.AlertType.WARNING, "Validation Error", "Phone Number cannot be empty.");
+            phoneField.requestFocus();
+            return;
+        }
+        // Remove common formatting characters and check if it's a valid phone number
+        String phoneDigits = phone.replaceAll("[\\s\\-\\(\\)\\+]", "");
+        if (!phoneDigits.matches("^\\d{10,15}$")) {
+            showAlert(Alert.AlertType.WARNING, "Validation Error", "Please enter a valid phone number (10-15 digits).");
+            phoneField.requestFocus();
+            return;
+        }
+
+        // Validate Specialization
+        if (specialization.isEmpty()) {
+            showAlert(Alert.AlertType.WARNING, "Validation Error", "Specialization cannot be empty.");
+            specializationField.requestFocus();
+            return;
+        }
+        if (specialization.length() < 3) {
+            showAlert(Alert.AlertType.WARNING, "Validation Error", "Specialization must be at least 3 characters long.");
+            specializationField.requestFocus();
+            return;
+        }
+        if (!specialization.matches("^[a-zA-Z\\s\\-&]+$")) {
+            showAlert(Alert.AlertType.WARNING, "Validation Error", "Specialization can only contain letters, spaces, hyphens, and ampersands.");
+            specializationField.requestFocus();
+            return;
+        }
+
+        // Validate Biography (optional but validate if provided)
+        if (!biography.isEmpty() && biography.length() > 1000) {
+            showAlert(Alert.AlertType.WARNING, "Validation Error", "Biography cannot exceed 1000 characters.");
+            bioArea.requestFocus();
             return;
         }
 

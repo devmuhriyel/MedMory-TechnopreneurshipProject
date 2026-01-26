@@ -28,7 +28,6 @@ public class SignupController {
     @FXML private ComboBox<Integer> birthDayCombo;
     @FXML private ComboBox<Integer> birthYearCombo;
     @FXML private RadioButton patientRadio, doctorRadio;
-    @FXML private ComboBox<String> specializationCombo;
     @FXML private CheckBox consentCheck1, consentCheck2, consentCheck3;
     @FXML private Button createAccountButton, cancelButton;
     @FXML private Hyperlink doctorSignupLink;
@@ -94,9 +93,6 @@ public class SignupController {
         if (patientRadio != null) patientRadio.setSelected(true);
 
         setupBirthdayDropdowns();
-        setupSpecializationDropdown();
-        updateSpecializationVisibility();
-        accountTypeGroup.selectedToggleProperty().addListener((obs, oldV, newV) -> updateSpecializationVisibility());
 
         if (cancelButton != null) {
             cancelButton.setVisible(true);
@@ -140,8 +136,7 @@ public class SignupController {
                     firstNameField.getText() + " " + lastNameField.getText(),
                     emailField.getText(),
                     passwordField.getText(),
-                    phoneField.getText(),
-                    specializationCombo != null ? specializationCombo.getValue() : null
+                    phoneField.getText()
             );
 
             Stage stage = (Stage) ((Hyperlink) event.getSource()).getScene().getWindow();
@@ -253,14 +248,7 @@ public class SignupController {
             isValid = false;
         }
 
-        // Doctor specialization required only for Doctor flow (or if Doctor is selected)
-        boolean doctorSelected = (doctorRadio != null && doctorRadio.isSelected());
-        if ((forDoctorFlow || doctorSelected) && specializationCombo != null) {
-            if (specializationCombo.getValue() == null || specializationCombo.getValue().trim().isEmpty()) {
-                highlightField(specializationCombo);
-                isValid = false;
-            }
-        }
+        // Specialization is now handled in the Validation screen, not required here
 
         if (!consentCheck1.isSelected() || !consentCheck2.isSelected() || !consentCheck3.isSelected()) {
             animateConsentCheckboxes();
@@ -293,34 +281,7 @@ public class SignupController {
         for (int y = currentYear; y >= 1900; y--) birthYearCombo.getItems().add(y);
     }
 
-    private void setupSpecializationDropdown() {
-        if (specializationCombo == null) return;
-        specializationCombo.getItems().setAll(
-                "General Practice",
-                "Internal Medicine",
-                "Pediatrics",
-                "Obstetrics & Gynecology",
-                "Surgery",
-                "Orthopedics",
-                "Dermatology",
-                "Ophthalmology",
-                "ENT",
-                "Psychiatry",
-                "Neurology",
-                "Cardiology",
-                "Radiology",
-                "Anesthesiology",
-                "Family Medicine"
-        );
-    }
 
-    private void updateSpecializationVisibility() {
-        boolean show = doctorRadio != null && doctorRadio.isSelected();
-        if (specializationCombo != null) {
-            specializationCombo.setVisible(show);
-            specializationCombo.setManaged(show);
-        }
-    }
 
     private void highlightField(Control field) {
         field.setStyle("-fx-border-color: #f44336; -fx-border-width: 2px; -fx-border-radius: 5px;");

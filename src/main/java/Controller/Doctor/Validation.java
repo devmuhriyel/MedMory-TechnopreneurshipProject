@@ -10,6 +10,7 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.Node;
 import javafx.scene.control.Alert;
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
 import java.io.IOException;
@@ -20,17 +21,44 @@ public class Validation extends Application {
 
     @FXML private TextField licenseNumberInput;
     @FXML private TextField registrationYearInput;
+    @FXML private ComboBox<String> specializationCombo;
 
     // Fields to hold data passed from SignupController
-    private String name, email, password, phone, specialization;
+    private String name, email, password, phone;
 
     // Setter to receive data from SignupController
-    public void setDoctorData(String name, String email, String password, String phone, String specialization) {
+    public void setDoctorData(String name, String email, String password, String phone) {
         this.name = name;
         this.email = email;
         this.password = password;
         this.phone = phone;
-        this.specialization = specialization;
+    }
+
+    @FXML
+    private void initialize() {
+        setupSpecializationDropdown();
+    }
+
+    private void setupSpecializationDropdown() {
+        if (specializationCombo != null) {
+            specializationCombo.getItems().setAll(
+                    "General Practice",
+                    "Internal Medicine",
+                    "Pediatrics",
+                    "Obstetrics & Gynecology",
+                    "Surgery",
+                    "Orthopedics",
+                    "Dermatology",
+                    "Ophthalmology",
+                    "ENT",
+                    "Psychiatry",
+                    "Neurology",
+                    "Cardiology",
+                    "Radiology",
+                    "Anesthesiology",
+                    "Family Medicine"
+            );
+        }
     }
 
     @Override
@@ -47,10 +75,17 @@ public class Validation extends Application {
     private void handleVerification(ActionEvent event) {
         String license = licenseNumberInput.getText().trim();
         String year = registrationYearInput.getText().trim();
+        String specialization = specializationCombo != null && specializationCombo.getValue() != null 
+                ? specializationCombo.getValue().trim() : "";
 
         // 1. Validate UI Fields
         if (license.isEmpty() || year.isEmpty()) {
             showError("Please enter your license number and registration year.");
+            return;
+        }
+
+        if (specialization.isEmpty()) {
+            showError("Please select your specialization.");
             return;
         }
 
@@ -60,17 +95,12 @@ public class Validation extends Application {
             return;
         }
 
-        if (this.specialization == null || this.specialization.trim().isEmpty()) {
-            showError("Missing specialization. Please go back and select your specialization.");
-            return;
-        }
-
         if (license.matches("\\d{7}")) {
             try (Connection conn = DatabaseConnection.getConnection()) {
                 RecordDAO dao = new RecordDAO(conn);
 
                 // Call the registerDoctor method in RecordDAO
-                boolean success = dao.registerDoctor(this.name, this.email, this.password, this.phone, this.specialization, license, year);
+                boolean success = dao.registerDoctor(this.name, this.email, this.password, this.phone, specialization, license, year);
 
                 if (success) {
                     showSuccess("Account created successfully! Redirecting to Login...");
