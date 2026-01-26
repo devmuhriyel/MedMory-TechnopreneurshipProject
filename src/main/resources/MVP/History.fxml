@@ -19,7 +19,7 @@
 
             <!-- Search Field -->
             <HBox alignment="CENTER_LEFT" spacing="10">
-                <TextField fx:id="searchField" prefHeight="24.0" prefWidth="700.0" promptText="Search treatment/diagnosis" />
+                <TextField fx:id="searchField" prefHeight="24.0" prefWidth="700.0" promptText="Search by patient name, treatment, diagnosis, or date" />
                 <Button fx:id="addRecordButton" mnemonicParsing="false" onAction="#handleAddRecord" prefHeight="25.0" prefWidth="110.0" snapToPixel="false" text="Add Record" VBox.vgrow="NEVER" />
                 <Button fx:id="addPatientButton" mnemonicParsing="false" onAction="#handleAddPatient" prefHeight="24.0" prefWidth="120.0" text="Add Patient" />
             </HBox>

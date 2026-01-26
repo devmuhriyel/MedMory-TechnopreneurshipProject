@@ -122,7 +122,9 @@ public class HistoryController {
                 dc.setCaseID(rs.getInt("case_id"));
                 dc.setPatientID(rs.getInt("patientID"));
                 dc.setPatientName(rs.getString("patientName"));
-                dc.setCaseDate(rs.getString("date_completed"));
+                String dateCompleted = rs.getString("date_completed");
+                dc.setCaseDate(dateCompleted);
+                dc.setDateCompleted(dateCompleted);
                 dc.setDiagnosis(rs.getString("diagnosis"));
                 dc.setTreatment(rs.getString("treatment"));
                 casesList.add(dc);
@@ -145,7 +147,18 @@ public class HistoryController {
         for (DoctorCase dc : casesList) {
             String diagnosis = dc.getDiagnosis() != null ? dc.getDiagnosis().toLowerCase() : "";
             String treatment = dc.getTreatment() != null ? dc.getTreatment().toLowerCase() : "";
-            if (diagnosis.contains(lowerKeyword) || treatment.contains(lowerKeyword)) filtered.add(dc);
+            String patientName = dc.getPatientName() != null ? dc.getPatientName().toLowerCase() : "";
+            String caseDate = dc.getCaseDate() != null ? dc.getCaseDate().toLowerCase() : "";
+            String dateCompleted = dc.getDateCompleted() != null ? dc.getDateCompleted().toLowerCase() : "";
+            
+            // Search across all relevant fields
+            if (diagnosis.contains(lowerKeyword) || 
+                treatment.contains(lowerKeyword) || 
+                patientName.contains(lowerKeyword) ||
+                caseDate.contains(lowerKeyword) ||
+                dateCompleted.contains(lowerKeyword)) {
+                filtered.add(dc);
+            }
         }
         casesTable.setItems(filtered);
     }
@@ -387,7 +400,16 @@ public class HistoryController {
 
     @FXML
     private void handleReturn() {
-        // Can implement return to main doctor dashboard if needed
+        try {
+            FXMLLoader loader = new FXMLLoader(Login.class.getResource("DoctorAccount.fxml"));
+            Scene scene = new Scene(loader.load(), 1280, 768);
+            Stage stage = (Stage) returnButton.getScene().getWindow();
+            stage.setScene(scene);
+            stage.show();
+        } catch (Exception e) {
+            e.printStackTrace();
+            showAlert(Alert.AlertType.ERROR, "Navigation Error", "Failed to load Doctor Account page.");
+        }
     }
 
     private void showAlert(Alert.AlertType type, String title, String message) {
