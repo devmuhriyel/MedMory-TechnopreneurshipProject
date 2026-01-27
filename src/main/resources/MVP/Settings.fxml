@@ -9,139 +9,160 @@
 <?import javafx.scene.text.Font?>
 
 <AnchorPane prefHeight="768.0" prefWidth="1366.0" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="Controller.Admin.SettingsController">
+
    <children>
-      <Rectangle arcHeight="20.0" arcWidth="20.0" fill="#f6fffa" height="66.0" layoutX="246.0" layoutY="630.0" stroke="#c4c0c0" strokeType="INSIDE" strokeWidth="0.0" width="993.0">
+
+      <!-- ===================== -->
+      <!-- Sidebar -->
+      <!-- ===================== -->
+
+      <Rectangle fill="#00A86B" height="768.0" width="220.0">
          <effect>
-            <DropShadow>
-               <color>
-                  <Color opacity="0.20060795545578003" />
-               </color>
-            </DropShadow>
+            <DropShadow color="#00000033" offsetX="2" radius="10" />
          </effect>
       </Rectangle>
-      <Rectangle arcHeight="20.0" arcWidth="20.0" fill="#f6fffa" height="66.0" layoutX="246.0" layoutY="553.0" stroke="#c4c0c0" strokeType="INSIDE" strokeWidth="0.0" width="993.0">
-         <effect>
-            <DropShadow>
-               <color>
-                  <Color opacity="0.20060795545578003" />
-               </color>
-            </DropShadow>
-         </effect>
-      </Rectangle>
-      <Rectangle arcHeight="20.0" arcWidth="20.0" fill="#f6fffa" height="66.0" layoutX="244.0" layoutY="476.0" stroke="#c4c0c0" strokeType="INSIDE" strokeWidth="0.0" width="993.0">
-         <effect>
-            <DropShadow>
-               <color>
-                  <Color opacity="0.20060795545578003" />
-               </color>
-            </DropShadow>
-         </effect>
-      </Rectangle>
-      <Rectangle arcHeight="20.0" arcWidth="20.0" fill="#f6fffa" height="66.0" layoutX="242.0" layoutY="399.0" stroke="#c4c0c0" strokeType="INSIDE" strokeWidth="0.0" width="993.0">
-         <effect>
-            <DropShadow>
-               <color>
-                  <Color opacity="0.20060795545578003" />
-               </color>
-            </DropShadow>
-         </effect>
-      </Rectangle>
-      <Rectangle arcHeight="20.0" arcWidth="20.0" fill="#f6fffa" height="99.0" layoutX="242.0" layoutY="287.0" stroke="#c4c0c0" strokeType="INSIDE" strokeWidth="0.0" width="993.0">
-         <effect>
-            <DropShadow>
-               <color>
-                  <Color opacity="0.20060795545578003" />
-               </color>
-            </DropShadow>
-         </effect>
-      </Rectangle>
-      <Rectangle arcHeight="20.0" arcWidth="20.0" fill="#f6fffa" height="66.0" layoutX="242.0" layoutY="209.0" stroke="#c4c0c0" strokeType="INSIDE" strokeWidth="0.0" width="993.0">
-         <effect>
-            <DropShadow>
-               <color>
-                  <Color opacity="0.20060795545578003" />
-               </color>
-            </DropShadow>
-         </effect>
-      </Rectangle>
-      <Rectangle arcHeight="30.0" arcWidth="30.0" fill="#f6fffa" height="66.0" layoutX="240.0" layoutY="135.0" stroke="#c4c0c0" strokeType="INSIDE" strokeWidth="0.0" width="993.0">
-         <effect>
-            <DropShadow>
-               <color>
-                  <Color opacity="0.20060795545578003" />
-               </color>
-            </DropShadow>
-         </effect>
-      </Rectangle>
-      <Rectangle arcHeight="5.0" arcWidth="5.0" fill="#00bf63" height="768.0" stroke="BLACK" strokeType="INSIDE" strokeWidth="0.0" width="201.0">
-         <effect>
-            <DropShadow />
-         </effect>
-      </Rectangle>
-      <Label layoutX="43.0" layoutY="36.0" prefHeight="54.0" prefWidth="116.0" text="Admin" textFill="#fffbfb">
+
+      <Label layoutX="48.0" layoutY="56.0" text="Admin" textFill="WHITE">
+         <font>
+            <Font name="System Bold" size="36" />
+         </font>
+      </Label>
+
+      <!-- Home -->
+      <Button layoutX="14.0" layoutY="129.0" prefWidth="180" style="-fx-background-color: #008060; -fx-text-fill: white; -fx-font-size: 18px; -fx-font-weight: bold; -fx-background-radius: 10;" text="Home" />
+
+      <!-- Accounts -->
+      <Button fx:id="usersButton" layoutX="14.0" layoutY="184.0" onAction="#handleNavigation" prefWidth="180" style="                     -fx-background-color: #008060;                     -fx-text-fill: white;                     -fx-font-size: 18px;                     -fx-font-weight: bold;                     -fx-background-radius: 10;                 " text="👤   Accounts" />
+
+      <!-- Settings (active) -->
+      <Button fx:id="settingsButton" layoutX="14.0" layoutY="238.0" onAction="#handleNavigation" prefWidth="180" style="-fx-background-color: #E6FFF4; -fx-text-fill: #006B4F; -fx-font-size: 18px; -fx-font-weight: bold; -fx-background-radius: 10;" text="⚙  Settings" />
+
+      <!-- Log Out -->
+      <Button fx:id="logOutButton" layoutX="20.0" layoutY="690.0" onAction="#handleLogOut" prefWidth="180" style="                     -fx-background-color: #E63946;                     -fx-text-fill: white;                     -fx-font-size: 18px;                     -fx-font-weight: bold;                     -fx-background-radius: 10;                 " text="Log Out" />
+
+      <!-- ===================== -->
+      <!-- Main Content -->
+      <!-- ===================== -->
+
+      <Label layoutX="253.0" layoutY="63.0" prefHeight="54.0" prefWidth="236.0" text="Settings" textFill="#00BF63">
          <font>
             <Font name="System Bold" size="36.0" />
          </font>
       </Label>
-      <Button fx:id="usersButton" layoutX="19.0" layoutY="117.0" mnemonicParsing="false" onAction="#handleNavigation" prefHeight="51.0" prefWidth="164.0" style="-fx-background-color: #008060; -fx-font-weight: bold; -fx-background-radius: 5;" text="👤 Users" textFill="WHITE">
+
+      <!-- Cards -->
+
+      <Rectangle arcHeight="30.0" arcWidth="30.0" fill="#F6FFFA" height="66.0" layoutX="242.0" layoutY="135.0" width="993.0">
+         <effect>
+            <DropShadow>
+               <color>
+                  <Color opacity="0.2" />
+               </color>
+            </DropShadow>
+         </effect>
+      </Rectangle>
+
+      <Label layoutX="293.0" layoutY="153.0" text="Language" textFill="#6E6C6C">
          <font>
-            <Font name="System Bold" size="24.0" />
-         </font>
-      </Button>
-      <Button layoutX="19.0" layoutY="190.0" mnemonicParsing="false" style="-fx-background-color: #b0e0ff; -fx-font-weight: bold; -fx-background-radius: 5;" text="⚙ Settings  " textFill="#0050c0">
-         <font>
-            <Font name="System Bold" size="24.0" />
-         </font>
-      </Button>
-      <Label layoutX="274.0" layoutY="52.0">
-         <font>
-            <Font size="36.0" />
-         </font>
-      </Label>
-      <Label layoutX="274.0" layoutY="63.0" />
-      <Label layoutX="253.0" layoutY="63.0" prefHeight="54.0" prefWidth="236.0" text="Settings" textFill="#00bf63">
-         <font>
-            <Font name="System Bold" size="36.0" />
+            <Font size="20" />
          </font>
       </Label>
-      <Label layoutX="293.0" layoutY="153.0" style="-fx-font-weight: bold;" text="Language" textFill="#6e6c6c">
+
+      <Rectangle arcHeight="20.0" arcWidth="20.0" fill="#F6FFFA" height="66.0" layoutX="242.0" layoutY="209.0" width="993.0">
+         <effect>
+            <DropShadow>
+               <color>
+                  <Color opacity="0.2" />
+               </color>
+            </DropShadow>
+         </effect>
+      </Rectangle>
+
+      <Label layoutX="292.0" layoutY="231.0" text="Date and Time Format" textFill="#6E6C6C">
          <font>
-            <Font size="20.0" />
+            <Font size="20" />
          </font>
       </Label>
-      <Label layoutX="292.0" layoutY="231.0" style="-fx-font-weight: bold;" text="Date and Time Format" textFill="#6e6c6c">
+
+      <Rectangle arcHeight="20.0" arcWidth="20.0" fill="#F6FFFA" height="99.0" layoutX="242.0" layoutY="287.0" width="993.0">
+         <effect>
+            <DropShadow>
+               <color>
+                  <Color opacity="0.2" />
+               </color>
+            </DropShadow>
+         </effect>
+      </Rectangle>
+
+      <Label layoutX="293.0" layoutY="308.0" text="Notification" textFill="#6E6C6C">
          <font>
-            <Font size="20.0" />
+            <Font size="20" />
          </font>
       </Label>
-      <Label layoutX="293.0" layoutY="308.0" style="-fx-font-weight: bold;" text="Notification" textFill="#6e6c6c">
+
+      <Rectangle arcHeight="20.0" arcWidth="20.0" fill="#F6FFFA" height="66.0" layoutX="242.0" layoutY="399.0" width="993.0">
+         <effect>
+            <DropShadow>
+               <color>
+                  <Color opacity="0.2" />
+               </color>
+            </DropShadow>
+         </effect>
+      </Rectangle>
+
+      <Label layoutX="293.0" layoutY="420.0" text="Session Timeout" textFill="#6E6C6C">
          <font>
-            <Font size="20.0" />
+            <Font size="20" />
          </font>
       </Label>
-      <Label layoutX="293.0" layoutY="420.0" style="-fx-font-weight: bold;" text="Session Timeout" textFill="#6e6c6c">
+
+      <Rectangle arcHeight="20.0" arcWidth="20.0" fill="#F6FFFA" height="66.0" layoutX="244.0" layoutY="476.0" width="993.0">
+         <effect>
+            <DropShadow>
+               <color>
+                  <Color opacity="0.2" />
+               </color>
+            </DropShadow>
+         </effect>
+      </Rectangle>
+
+      <Label layoutX="294.0" layoutY="492.0" text="Back-up and Restore" textFill="#6E6C6C">
          <font>
-            <Font size="20.0" />
-         </font></Label>
-      <Label layoutX="294.0" layoutY="492.0" style="-fx-font-weight: bold;" text="Back-up and Restore" textFill="#6e6c6c">
-         <font>
-            <Font size="20.0" />
-         </font></Label>
-      <Label layoutX="294.0" layoutY="575.0" style="-fx-font-weight: bold;" text="Data Export" textFill="#6e6c6c">
-         <font>
-            <Font size="20.0" />
-         </font></Label>
-      <Label layoutX="294.0" layoutY="655.0" style="-fx-font-weight: bold;" text="Clear Cache" textFill="#6e6c6c">
-         <font>
-            <Font size="20.0" />
-         </font></Label>
-      <Label layoutX="920.0" layoutY="655.0" text="version" />
-      <Label layoutX="921.0" layoutY="579.0" text="PDF" />
-      <Label layoutX="919.0" layoutY="498.0" text="Back-up and Restore" />
-      <Button fx:id="logOutButton" layoutX="18.0" layoutY="656.0" mnemonicParsing="false" onAction="#handleLogOut" prefHeight="51.0" prefWidth="164.0" style="-fx-background-color: ff1a1a; -fx-font-weight: bold; -fx-background-radius: 5;" text="Log out" textFill="WHITE">
-         <font>
-            <Font name="System Bold" size="24.0" />
+            <Font size="20" />
          </font>
-      </Button>
+      </Label>
+
+      <Rectangle arcHeight="20.0" arcWidth="20.0" fill="#F6FFFA" height="66.0" layoutX="246.0" layoutY="553.0" width="993.0">
+         <effect>
+            <DropShadow>
+               <color>
+                  <Color opacity="0.2" />
+               </color>
+            </DropShadow>
+         </effect>
+      </Rectangle>
+
+      <Label layoutX="294.0" layoutY="575.0" text="Data Export" textFill="#6E6C6C">
+         <font>
+            <Font size="20" />
+         </font>
+      </Label>
+
+      <Rectangle arcHeight="20.0" arcWidth="20.0" fill="#F6FFFA" height="66.0" layoutX="246.0" layoutY="630.0" width="993.0">
+         <effect>
+            <DropShadow>
+               <color>
+                  <Color opacity="0.2" />
+               </color>
+            </DropShadow>
+         </effect>
+      </Rectangle>
+
+      <Label layoutX="294.0" layoutY="655.0" text="Clear Cache" textFill="#6E6C6C">
+         <font>
+            <Font size="20" />
+         </font>
+      </Label>
+
    </children>
 </AnchorPane>
