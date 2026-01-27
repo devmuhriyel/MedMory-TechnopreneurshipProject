@@ -1,9 +1,6 @@
 package DAO;
 
-import CommonModel.AdminModel;
-import CommonModel.MedicalRecord;
-import CommonModel.MedicalRecordSummary;
-import MVP.Doctor.DoctorModel;
+import CommonModel.*;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -17,672 +14,1136 @@ public class RecordDAO {
         this.conn = conn;
     }
 
-    // =========================================================
-    // BLOCKCHAIN HASH UTILITY (DETERMINISTIC)
-    // =========================================================
-//    private String sha256(String input) {
-//        try {
-//            MessageDigest md = MessageDigest.getInstance("SHA-256");
-//            byte[] hash = md.digest(input.getBytes("UTF-8"));
-//            StringBuilder hex = new StringBuilder();
-//            for (byte b : hash) {
-//                hex.append(String.format("%02x", b));
-//            }
-//            return hex.toString();
-//        } catch (Exception e) {
-//            throw new RuntimeException("Hashing error", e);
-//        }
-//    }
+    // ========================================
+    // MEDICAL RECORDS CRUD
+    // ========================================
 
-    // =========================================================
-    // BLOCKCHAIN VALIDATION
-    // =========================================================
-//    public boolean validateBlockchain() {
-//        String sql = "SELECT * FROM records ORDER BY idrecords ASC";
-//        String previousHash = "0";
-//
-//        try (PreparedStatement ps = conn.prepareStatement(sql);
-//             ResultSet rs = ps.executeQuery()) {
-//
-//            while (rs.next()) {
-//                String data =
-//                        rs.getInt("patientID") +
-//                                rs.getString("patientName") +
-//                                rs.getString("cc") +
-//                                rs.getString("previous_hash");
-//
-//                String recalculatedHash = sha256(data);
-//
-//                if (!recalculatedHash.equals(rs.getString("current_hash"))) {
-//                    System.err.println("TAMPERING DETECTED at record ID " + rs.getInt("idrecords"));
-//                    return false;
-//                }
-//
-//                if (!previousHash.equals(rs.getString("previous_hash"))) {
-//                    System.err.println("CHAIN BROKEN at record ID " + rs.getInt("idrecords"));
-//                    return false;
-//                }
-//
-//                previousHash = recalculatedHash;
-//            }
-//
-//            return true;
-//
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//            return false;
-//        }
-//    }
+    /**
+     * Create a new medical record
+     */
+    public boolean createMedicalRecord(int patientId, int doctorId, String recordType, String notes) {
+        String sql = "INSERT INTO medical_records (patient_id, doctor_id, record_type, notes) VALUES (?, ?, ?, ?)";
 
-    // =========================================================
-    // INSERT RECORD (WITH BLOCKCHAIN LINKING)
-    // =========================================================
-    public boolean insertRecord(MedicalRecord r) throws SQLException {
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, patientId);
+            ps.setInt(2, doctorId);
+            ps.setString(3, recordType);
+            ps.setString(4, notes);
+            return ps.executeUpdate() > 0;
 
-        String lastHash = "0";
-        String lastHashSQL = "SELECT current_hash FROM records ORDER BY idrecords DESC LIMIT 1";
-
-        try (Statement st = conn.createStatement();
-             ResultSet rs = st.executeQuery(lastHashSQL)) {
-            if (rs.next()) lastHash = rs.getString("current_hash");
+        } catch (SQLException e) {
+            System.err.println("SQL Error in createMedicalRecord: " + e.getMessage());
+            e.printStackTrace();
+            return false;
         }
+    }
 
-        // String dataToHash = r.getPatientID() + r.getPatientName() + r.getCc() + lastHash;
-
-//        String currentHash = sha256(dataToHash);
+    /**
+     * Get all medical records for a patient
+     */
+    public List<MedicalRecordModel> getMedicalRecordsByPatient(int patientId) {
+        List<MedicalRecordModel> records = new ArrayList<>();
 
         String sql = """
-            INSERT INTO records
-            (patientID, patientName, age, subj, cc, hpi, onset, location,
-             duration, charac, factors, radiation, severity,
-             pmi, med, allergies, fh, sh, ros,
-             doctorID, previous_hash, current_hash)
-            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+            SELECT mr.record_id, mr.patient_id, mr.doctor_id, mr.record_type, mr.notes, mr.created_at,
+                   p_user.name as patient_name, d_user.name as doctor_name
+            FROM medical_records mr
+            INNER JOIN patients p ON mr.patient_id = p.patient_id
+            INNER JOIN users p_user ON p.patient_id = p_user.user_id
+            INNER JOIN doctors d ON mr.doctor_id = d.doctor_id
+            INNER JOIN users d_user ON d.doctor_id = d_user.user_id
+            WHERE mr.patient_id = ?
+            ORDER BY mr.created_at DESC
         """;
 
-        PreparedStatement stmt = conn.prepareStatement(sql);
-
-        stmt.setInt(1, r.getPatientID());
-        stmt.setString(2, r.getPatientName());
-        stmt.setInt(3, r.getAge());
-        stmt.setString(4, r.getSubj());
-        stmt.setString(5, r.getCc());
-        stmt.setString(6, r.getHpi());
-        stmt.setString(7, r.getOnset());
-        stmt.setString(8, r.getLocation());
-        stmt.setString(9, r.getDuration());
-        stmt.setString(10, r.getCharacter());
-        stmt.setString(11, r.getFactors());
-        stmt.setString(12, r.getRadiation());
-        stmt.setString(13, r.getSeverity());
-        stmt.setString(14, r.getPmi());
-        stmt.setString(15, r.getMed());
-        stmt.setString(16, r.getAllergies());
-        stmt.setString(17, r.getFh());
-        stmt.setString(18, r.getSh());
-        stmt.setString(19, r.getRos());
-        stmt.setInt(20, r.getDoctorID());
-        stmt.setString(21, lastHash);
-//        stmt.setString(22, currentHash);
-
-        return stmt.executeUpdate() > 0;
-    }
-
-    public boolean createPatient(String name, String password, String email, String phoneNumber) {
-        String sql = "INSERT INTO users (name,password,email,phoneNumber) VALUES (?,?,?,?)";
-
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setString(1, name);
-            ps.setString(2,password);
-            ps.setString(3,email);
-            ps.setString(4,phoneNumber);
-            return ps.executeUpdate() > 0;
-        } catch (Exception e) {
-            e.printStackTrace();
-            return false;
-        }
-    }
+            ps.setInt(1, patientId);
 
-    public boolean createDoctor(String name, String password, String email, String phoneNumber) {
-        String sql = "INSERT INTO doctors (name,password,email,phoneNumber) VALUES (?,?,?,?)";
-
-        try (PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setString(1, name);
-            ps.setString(2, password);
-            ps.setString(3,email);
-            ps.setString(4,phoneNumber);
-            return ps.executeUpdate() > 0;
-        } catch (Exception e) {
-            e.printStackTrace();
-            return false;
-        }
-    }
-
-
-    // =========================================================
-    // FETCH RECORD BY ID (FULL)
-    // =========================================================
-    public MedicalRecord getRecordByID(int recordID) throws SQLException {
-        String query = "SELECT * FROM records WHERE idrecords = ?";
-
-        try (PreparedStatement ps = conn.prepareStatement(query)) {
-            ps.setInt(1, recordID);
-            ResultSet rs = ps.executeQuery();
-
-            if (rs.next()) {
-                MedicalRecord r = new MedicalRecord();
-                r.idrecords = rs.getInt("idrecords");
-                r.patientID = rs.getInt("patientID");
-                r.patientName = rs.getString("patientName");
-                r.age = rs.getInt("age");
-                r.subj = rs.getString("subj");
-                r.cc = rs.getString("cc");
-                r.hpi = rs.getString("hpi");
-                r.onset = rs.getString("onset");
-                r.location = rs.getString("location");
-                r.duration = rs.getString("duration");
-                r.charac = rs.getString("charac");
-                r.factors = rs.getString("factors");
-                r.radiation = rs.getString("radiation");
-                r.severity = rs.getString("severity");
-                r.pmi = rs.getString("pmi");
-                r.med = rs.getString("med");
-                r.allergies = rs.getString("allergies");
-                r.fh = rs.getString("fh");
-                r.sh = rs.getString("sh");
-                r.ros = rs.getString("ros");
-                r.doctorID = rs.getInt("doctorID");
-                return r;
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    MedicalRecordModel record = new MedicalRecordModel();
+                    record.setRecordId(rs.getInt("record_id"));
+                    record.setPatientId(rs.getInt("patient_id"));
+                    record.setDoctorId(rs.getInt("doctor_id"));
+                    record.setRecordType(rs.getString("record_type"));
+                    record.setNotes(rs.getString("notes"));
+                    record.setCreatedAt(rs.getString("created_at"));
+                    record.setPatientName(rs.getString("patient_name"));
+                    record.setDoctorName(rs.getString("doctor_name"));
+                    records.add(record);
+                }
             }
+        } catch (SQLException e) {
+            System.err.println("SQL Error in getMedicalRecordsByPatient: " + e.getMessage());
+            e.printStackTrace();
         }
+
+        return records;
+    }
+
+    /**
+     * Get a specific medical record by ID
+     */
+    public MedicalRecordModel getMedicalRecordById(int recordId) {
+        String sql = """
+            SELECT mr.record_id, mr.patient_id, mr.doctor_id, mr.record_type, mr.notes, mr.created_at,
+                   p_user.name as patient_name, d_user.name as doctor_name
+            FROM medical_records mr
+            INNER JOIN patients p ON mr.patient_id = p.patient_id
+            INNER JOIN users p_user ON p.patient_id = p_user.user_id
+            INNER JOIN doctors d ON mr.doctor_id = d.doctor_id
+            INNER JOIN users d_user ON d.doctor_id = d_user.user_id
+            WHERE mr.record_id = ?
+        """;
+
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, recordId);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    MedicalRecordModel record = new MedicalRecordModel();
+                    record.setRecordId(rs.getInt("record_id"));
+                    record.setPatientId(rs.getInt("patient_id"));
+                    record.setDoctorId(rs.getInt("doctor_id"));
+                    record.setRecordType(rs.getString("record_type"));
+                    record.setNotes(rs.getString("notes"));
+                    record.setCreatedAt(rs.getString("created_at"));
+                    record.setPatientName(rs.getString("patient_name"));
+                    record.setDoctorName(rs.getString("doctor_name"));
+                    return record;
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("SQL Error in getMedicalRecordById: " + e.getMessage());
+            e.printStackTrace();
+        }
+
         return null;
     }
 
-    // =========================================================
-    // FETCH RECORD BY PATIENT ID
-    // =========================================================
-    public MedicalRecord getRecordByPatientID(int patientID) throws SQLException {
-        String sql = "SELECT * FROM records WHERE patientID = ? LIMIT 1";
-        PreparedStatement stmt = conn.prepareStatement(sql);
-        stmt.setInt(1, patientID);
-        ResultSet rs = stmt.executeQuery();
+    /**
+     * Update a medical record (creates a version entry)
+     */
+    public boolean updateMedicalRecord(int recordId, String notes, int updatedByDoctorId) {
+        String updateRecord = "UPDATE medical_records SET notes = ? WHERE record_id = ?";
+        String insertVersion = "INSERT INTO medical_record_versions (record_id, content, updated_by) VALUES (?, ?, ?)";
 
-        if (rs.next()) {
-            MedicalRecord r = new MedicalRecord();
-            r.setIdrecords(rs.getInt("idrecords"));
-            r.setPatientID(rs.getInt("patientID"));
-            r.setPatientName(rs.getString("patientName"));
-            r.setAge(rs.getInt("age"));
-            r.setSubj(rs.getString("subj"));
-            r.setCc(rs.getString("cc"));
-            r.setHpi(rs.getString("hpi"));
-            r.setOnset(rs.getString("onset"));
-            r.setLocation(rs.getString("location"));
-            r.setDuration(rs.getString("duration"));
-            r.setCharacter(rs.getString("charac"));
-            r.setFactors(rs.getString("factors"));
-            r.setRadiation(rs.getString("radiation"));
-            r.setSeverity(rs.getString("severity"));
-            r.setPmi(rs.getString("pmi"));
-            r.setMed(rs.getString("med"));
-            r.setAllergies(rs.getString("allergies"));
-            r.setFh(rs.getString("fh"));
-            r.setSh(rs.getString("sh"));
-            r.setRos(rs.getString("ros"));
-            r.setDoctorID(rs.getInt("doctorID"));
-            return r;
-        }
-        return null;
-    }
+        try {
+            conn.setAutoCommit(false);
 
-    // =========================================================
-// REGISTER DOCTOR
-// =========================================================
-    // Inside DAO.RecordDAO.java
-    // Inside DAO.RecordDAO.java
-
-    public boolean registerDoctor(String name, String email, String password, String phone, String specialization, String license, String year) {
-        // We target the columns that exist in your doctors table
-        String sql = "INSERT INTO doctors (name, email, password, phone, specialization, biography) VALUES (?, ?, ?, ?, ?, ?)";
-
-        try (PreparedStatement ps = conn.prepareStatement(sql, PreparedStatement.RETURN_GENERATED_KEYS)) {
-            // We set values, ensuring 'name' is the first parameter
-            ps.setString(1, name);
-            ps.setString(2, email);
-            ps.setString(3, password);
-            ps.setString(4, phone);
-            ps.setString(5, specialization); // Real specialization
-            ps.setString(6, "PRC License: " + license + " | Registered in: " + year);  // Biography field
-
-            int rowsAffected = ps.executeUpdate();
-            
-            if (rowsAffected > 0) {
-                // Get the generated iddoctors
-                try (ResultSet generatedKeys = ps.getGeneratedKeys()) {
-                    if (generatedKeys.next()) {
-                        int doctorId = generatedKeys.getInt(1);
-                        // Update userid to match iddoctors
-                        String updateSql = "UPDATE doctors SET userid = ? WHERE iddoctors = ?";
-                        try (PreparedStatement updatePs = conn.prepareStatement(updateSql)) {
-                            updatePs.setInt(1, doctorId);
-                            updatePs.setInt(2, doctorId);
-                            updatePs.executeUpdate();
-                        }
+            // Get old content for versioning
+            String oldContent = null;
+            String getOldContent = "SELECT notes FROM medical_records WHERE record_id = ?";
+            try (PreparedStatement ps = conn.prepareStatement(getOldContent)) {
+                ps.setInt(1, recordId);
+                try (ResultSet rs = ps.executeQuery()) {
+                    if (rs.next()) {
+                        oldContent = rs.getString("notes");
                     }
                 }
-                return true;
             }
-            return false;
+
+            // Save version
+            if (oldContent != null) {
+                try (PreparedStatement ps = conn.prepareStatement(insertVersion)) {
+                    ps.setInt(1, recordId);
+                    ps.setString(2, oldContent);
+                    ps.setInt(3, updatedByDoctorId);
+                    ps.executeUpdate();
+                }
+            }
+
+            // Update record
+            try (PreparedStatement ps = conn.prepareStatement(updateRecord)) {
+                ps.setString(1, notes);
+                ps.setInt(2, recordId);
+
+                int rows = ps.executeUpdate();
+                if (rows == 0) {
+                    conn.rollback();
+                    return false;
+                }
+            }
+
+            conn.commit();
+            return true;
+
         } catch (SQLException e) {
-            // This catch block will now capture specific database errors
-            System.err.println("SQL Error in registerDoctor: " + e.getMessage());
+            try { conn.rollback(); } catch (SQLException ignored) {}
+            System.err.println("SQL Error in updateMedicalRecord: " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        } finally {
+            try { conn.setAutoCommit(true); } catch (SQLException ignored) {}
+        }
+    }
+
+    /**
+     * Delete a medical record
+     */
+    public boolean deleteMedicalRecord(int recordId) {
+        String sql = "DELETE FROM medical_records WHERE record_id = ?";
+
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, recordId);
+            return ps.executeUpdate() > 0;
+
+        } catch (SQLException e) {
+            System.err.println("SQL Error in deleteMedicalRecord: " + e.getMessage());
             e.printStackTrace();
             return false;
         }
     }
-    // =========================================================
-    // DOCTOR INFO
-    // =========================================================
-    public DoctorModel getDoctorInfo(int doctorID) {
-        try (Connection conn = DatabaseConnection.getConnection()) {
-            String query = "SELECT * FROM doctors WHERE iddoctors = ?";
-            PreparedStatement stmt = conn.prepareStatement(query);
-            stmt.setInt(1, doctorID);
-            ResultSet rs = stmt.executeQuery();
 
-            if (rs.next()) {
-                DoctorModel d = new DoctorModel();
-                d.id = rs.getInt("iddoctors");
-                d.name = rs.getString("name");
-                d.specialization = rs.getString("specialization");
-                d.email = rs.getString("email");
-                d.phone = rs.getString("phone");
-                d.biography = rs.getString("biography");
-                return d;
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
+    /**
+     * Get version history for a medical record
+     */
+    public List<MedicalRecordVersionModel> getRecordVersions(int recordId) {
+        List<MedicalRecordVersionModel> versions = new ArrayList<>();
 
-    // =========================================================
-    // DOCTOR RECORD LIST
-    // =========================================================
-    public static List<MedicalRecordSummary> getDoctorMedicalRecords(int doctorID) {
-        List<MedicalRecordSummary> records = new ArrayList<>();
-
-        String sql =
-                "SELECT idrecords, patientID, patientName, cc AS diagnosis, duration AS recordDate " +
-                        "FROM records WHERE doctorID = ? ORDER BY idrecords DESC";
-
-        try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-
-            ps.setInt(1, doctorID);
-            ResultSet rs = ps.executeQuery();
-
-            while (rs.next()) {
-                records.add(new MedicalRecordSummary(
-                        rs.getInt("idrecords"),
-                        rs.getInt("patientID"),
-                        rs.getString("patientName"),
-                        rs.getString("diagnosis"),
-                        rs.getString("recordDate")
-                ));
-            }
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return records;
-    }
-
-    // =========================================================
-    // UPDATE RECORD (WITH BLOCKCHAIN RE-HASHING)
-    // =========================================================
-    public boolean updateRecord(MedicalRecord r) throws SQLException {
-        // Get previous hash from the record before this one
-        String previousHash = "0";
-        String prevHashSQL = "SELECT current_hash FROM records WHERE idrecords < ? ORDER BY idrecords DESC LIMIT 1";
-
-        try (PreparedStatement ps = conn.prepareStatement(prevHashSQL)) {
-            ps.setInt(1, r.getIdrecords());
-            ResultSet rs = ps.executeQuery();
-            if (rs.next()) {
-                previousHash = rs.getString("current_hash");
-            }
-        }
-
-        // Recalculate hash for updated record
-        // String dataToHash = r.getPatientID() + r.getPatientName() + r.getCc() + previousHash;
-//        String currentHash = sha256(dataToHash);
-
-        // Update all subsequent records' hashes (blockchain integrity)
         String sql = """
-            UPDATE records 
-            SET patientID = ?, patientName = ?, age = ?, subj = ?, cc = ?, hpi = ?,
-                onset = ?, location = ?, duration = ?, charac = ?, factors = ?,
-                radiation = ?, severity = ?, pmi = ?, med = ?, allergies = ?,
-                fh = ?, sh = ?, ros = ?, previous_hash = ?, current_hash = ?
-            WHERE idrecords = ?
+            SELECT mrv.version_id, mrv.record_id, mrv.content, mrv.updated_by, mrv.updated_at,
+                   u.name as doctor_name
+            FROM medical_record_versions mrv
+            INNER JOIN doctors d ON mrv.updated_by = d.doctor_id
+            INNER JOIN users u ON d.doctor_id = u.user_id
+            WHERE mrv.record_id = ?
+            ORDER BY mrv.updated_at DESC
         """;
 
-        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setInt(1, r.getPatientID());
-            stmt.setString(2, r.getPatientName());
-            stmt.setInt(3, r.getAge());
-            stmt.setString(4, r.getSubj());
-            stmt.setString(5, r.getCc());
-            stmt.setString(6, r.getHpi());
-            stmt.setString(7, r.getOnset());
-            stmt.setString(8, r.getLocation());
-            stmt.setString(9, r.getDuration());
-            stmt.setString(10, r.getCharacter());
-            stmt.setString(11, r.getFactors());
-            stmt.setString(12, r.getRadiation());
-            stmt.setString(13, r.getSeverity());
-            stmt.setString(14, r.getPmi());
-            stmt.setString(15, r.getMed());
-            stmt.setString(16, r.getAllergies());
-            stmt.setString(17, r.getFh());
-            stmt.setString(18, r.getSh());
-            stmt.setString(19, r.getRos());
-            stmt.setString(20, previousHash);
-//            stmt.setString(21, currentHash);
-            stmt.setInt(22, r.getIdrecords());
-
-            boolean updated = stmt.executeUpdate() > 0;
-
-            // Recalculate hashes for all subsequent records
-            if (updated) {
-                recalculateSubsequentHashes(r.getIdrecords());
-            }
-
-            return updated;
-        }
-    }
-
-    // =========================================================
-    // RECALCULATE SUBSEQUENT HASHES (for blockchain integrity)
-    // =========================================================
-    private void recalculateSubsequentHashes(int recordID) throws SQLException {
-        String sql = "SELECT * FROM records WHERE idrecords > ? ORDER BY idrecords ASC";
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setInt(1, recordID);
-            ResultSet rs = ps.executeQuery();
+            ps.setInt(1, recordId);
 
-            String previousHash = null;
-            // Get the hash of the updated record
-            String getHashSQL = "SELECT current_hash FROM records WHERE idrecords = ?";
-            try (PreparedStatement hashPs = conn.prepareStatement(getHashSQL)) {
-                hashPs.setInt(1, recordID);
-                ResultSet hashRs = hashPs.executeQuery();
-                if (hashRs.next()) {
-                    previousHash = hashRs.getString("current_hash");
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    MedicalRecordVersionModel version = new MedicalRecordVersionModel();
+                    version.setVersionId(rs.getInt("version_id"));
+                    version.setRecordId(rs.getInt("record_id"));
+                    version.setContent(rs.getString("content"));
+                    version.setUpdatedBy(rs.getInt("updated_by"));
+                    version.setUpdatedAt(rs.getString("updated_at"));
+                    version.setDoctorName(rs.getString("doctor_name"));
+                    versions.add(version);
                 }
             }
-
-            while (rs.next() && previousHash != null) {
-                int nextID = rs.getInt("idrecords");
-                // String data = rs.getInt("patientID") + rs.getString("patientName") + rs.getString("cc") + previousHash;
-//                String newHash = sha256(data);
-
-                String updateHashSQL = "UPDATE records SET previous_hash = ?, current_hash = ? WHERE idrecords = ?";
-                try (PreparedStatement updatePs = conn.prepareStatement(updateHashSQL)) {
-                    updatePs.setString(1, previousHash);
-//                    updatePs.setString(2, newHash);
-                    updatePs.setInt(3, nextID);
-                    updatePs.executeUpdate();
-                }
-
-//                previousHash = newHash;
-            }
-        }
-    }
-
-    // =========================================================
-    // DELETE RECORD
-    // =========================================================
-    public boolean deleteRecord(int recordID) throws SQLException {
-        String sql = "DELETE FROM records WHERE idrecords = ?";
-        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setInt(1, recordID);
-            return stmt.executeUpdate() > 0;
-        }
-    }
-
-    // =========================================================
-    // SEARCH RECORDS BY DOCTOR ID WITH FILTER
-    // =========================================================
-    public static List<MedicalRecordSummary> searchDoctorMedicalRecords(int doctorID, String searchTerm) {
-        List<MedicalRecordSummary> records = new ArrayList<>();
-
-        String sql = """
-            SELECT idrecords, patientID, patientName, cc AS diagnosis, duration AS recordDate 
-            FROM records 
-            WHERE doctorID = ? 
-            AND (patientName LIKE ? OR cc LIKE ? OR duration LIKE ?)
-            ORDER BY idrecords DESC
-        """;
-
-        String searchPattern = "%" + searchTerm + "%";
-
-        try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-
-            ps.setInt(1, doctorID);
-            ps.setString(2, searchPattern);
-            ps.setString(3, searchPattern);
-            ps.setString(4, searchPattern);
-
-            ResultSet rs = ps.executeQuery();
-
-            while (rs.next()) {
-                records.add(new MedicalRecordSummary(
-                    rs.getInt("idrecords"),
-                    rs.getInt("patientID"),
-                    rs.getString("patientName"),
-                    rs.getString("diagnosis"),
-                    rs.getString("recordDate")
-                ));
-            }
-
-        } catch (Exception e) {
+        } catch (SQLException e) {
+            System.err.println("SQL Error in getRecordVersions: " + e.getMessage());
             e.printStackTrace();
         }
 
-        return records;
+        return versions;
     }
 
-    // =========================================================
-// FETCH ALL USERS (NAME + EMAIL)
-// =========================================================
-    public List<AdminModel> getAllUsers() {
+    // ========================================
+    // MEDICAL CASES CRUD
+    // ========================================
 
-        List<AdminModel> users = new ArrayList<>();
+    /**
+     * Create a new medical case
+     */
+    public boolean createMedicalCase(int patientId, int doctorId, String diagnosis, String treatment, String status) {
+        String sql = "INSERT INTO medical_cases (patient_id, doctor_id, diagnosis, treatment, status) VALUES (?, ?, ?, ?, ?)";
 
-        String sql = "SELECT name, email FROM users ORDER BY idusers ASC";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, patientId);
+            ps.setInt(2, doctorId);
+            ps.setString(3, diagnosis);
+            ps.setString(4, treatment);
+            ps.setString(5, status);
+            return ps.executeUpdate() > 0;
+
+        } catch (SQLException e) {
+            System.err.println("SQL Error in createMedicalCase: " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    /**
+     * Get all medical cases for a patient
+     */
+    public List<MedicalCaseModel> getMedicalCasesByPatient(int patientId) {
+        List<MedicalCaseModel> cases = new ArrayList<>();
+
+        String sql = """
+            SELECT mc.case_id, mc.patient_id, mc.doctor_id, mc.diagnosis, mc.treatment, mc.status, mc.created_at,
+                   p_user.name as patient_name, d_user.name as doctor_name
+            FROM medical_cases mc
+            INNER JOIN patients p ON mc.patient_id = p.patient_id
+            INNER JOIN users p_user ON p.patient_id = p_user.user_id
+            INNER JOIN doctors d ON mc.doctor_id = d.doctor_id
+            INNER JOIN users d_user ON d.doctor_id = d_user.user_id
+            WHERE mc.patient_id = ?
+            ORDER BY mc.created_at DESC
+        """;
+
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, patientId);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    MedicalCaseModel medCase = new MedicalCaseModel();
+                    medCase.setCaseId(rs.getInt("case_id"));
+                    medCase.setPatientId(rs.getInt("patient_id"));
+                    medCase.setDoctorId(rs.getInt("doctor_id"));
+                    medCase.setDiagnosis(rs.getString("diagnosis"));
+                    medCase.setTreatment(rs.getString("treatment"));
+                    medCase.setStatus(rs.getString("status"));
+                    medCase.setCreatedAt(rs.getString("created_at"));
+                    medCase.setPatientName(rs.getString("patient_name"));
+                    medCase.setDoctorName(rs.getString("doctor_name"));
+                    cases.add(medCase);
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("SQL Error in getMedicalCasesByPatient: " + e.getMessage());
+            e.printStackTrace();
+        }
+
+        return cases;
+    }
+
+    /**
+     * Get all medical cases for a doctor
+     */
+    public List<MedicalCaseModel> getMedicalCasesByDoctor(int doctorId) {
+        List<MedicalCaseModel> cases = new ArrayList<>();
+
+        String sql = """
+            SELECT mc.case_id, mc.patient_id, mc.doctor_id, mc.diagnosis, mc.treatment, mc.status, mc.created_at,
+                   p_user.name as patient_name, d_user.name as doctor_name
+            FROM medical_cases mc
+            INNER JOIN patients p ON mc.patient_id = p.patient_id
+            INNER JOIN users p_user ON p.patient_id = p_user.user_id
+            INNER JOIN doctors d ON mc.doctor_id = d.doctor_id
+            INNER JOIN users d_user ON d.doctor_id = d_user.user_id
+            WHERE mc.doctor_id = ?
+            ORDER BY mc.created_at DESC
+        """;
+
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, doctorId);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    MedicalCaseModel medCase = new MedicalCaseModel();
+                    medCase.setCaseId(rs.getInt("case_id"));
+                    medCase.setPatientId(rs.getInt("patient_id"));
+                    medCase.setDoctorId(rs.getInt("doctor_id"));
+                    medCase.setDiagnosis(rs.getString("diagnosis"));
+                    medCase.setTreatment(rs.getString("treatment"));
+                    medCase.setStatus(rs.getString("status"));
+                    medCase.setCreatedAt(rs.getString("created_at"));
+                    medCase.setPatientName(rs.getString("patient_name"));
+                    medCase.setDoctorName(rs.getString("doctor_name"));
+                    cases.add(medCase);
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("SQL Error in getMedicalCasesByDoctor: " + e.getMessage());
+            e.printStackTrace();
+        }
+
+        return cases;
+    }
+
+    /**
+     * Update a medical case
+     */
+    public boolean updateMedicalCase(int caseId, String diagnosis, String treatment, String status) {
+        String sql = "UPDATE medical_cases SET diagnosis = ?, treatment = ?, status = ? WHERE case_id = ?";
+
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, diagnosis);
+            ps.setString(2, treatment);
+            ps.setString(3, status);
+            ps.setInt(4, caseId);
+            return ps.executeUpdate() > 0;
+
+        } catch (SQLException e) {
+            System.err.println("SQL Error in updateMedicalCase: " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    /**
+     * Close a medical case
+     */
+    public boolean closeMedicalCase(int caseId) {
+        String sql = "UPDATE medical_cases SET status = 'CLOSED' WHERE case_id = ?";
+
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, caseId);
+            return ps.executeUpdate() > 0;
+
+        } catch (SQLException e) {
+            System.err.println("SQL Error in closeMedicalCase: " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    /**
+     * Delete a medical case
+     */
+    public boolean deleteMedicalCase(int caseId) {
+        String sql = "DELETE FROM medical_cases WHERE case_id = ?";
+
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, caseId);
+            return ps.executeUpdate() > 0;
+
+        } catch (SQLException e) {
+            System.err.println("SQL Error in deleteMedicalCase: " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    // ========================================
+    // PATIENT CRUD
+    // ========================================
+
+    /**
+     * Create a new patient
+     */
+    public boolean createPatient(String name, String email, String password, String phoneNumber, String birthday) {
+        String insertUser = "INSERT INTO users (name, email, phoneNumber, birthday, password_hash, role) VALUES (?, ?, ?, ?, ?, 'PATIENT')";
+        String insertPatient = "INSERT INTO patients (patient_id) VALUES (?)";
+
+        try {
+            conn.setAutoCommit(false);
+
+            int userId;
+
+            // Insert into users table
+            try (PreparedStatement ps = conn.prepareStatement(insertUser, PreparedStatement.RETURN_GENERATED_KEYS)) {
+                ps.setString(1, name);
+                ps.setString(2, email);
+                ps.setString(3, phoneNumber);
+                ps.setString(4, birthday);
+                ps.setString(5, password);
+
+                int rowsAffected = ps.executeUpdate();
+
+                if (rowsAffected == 0) {
+                    conn.rollback();
+                    return false;
+                }
+
+                try (ResultSet generatedKeys = ps.getGeneratedKeys()) {
+                    if (generatedKeys.next()) {
+                        userId = generatedKeys.getInt(1);
+                    } else {
+                        conn.rollback();
+                        return false;
+                    }
+                }
+            }
+
+            // Insert into patients table
+            try (PreparedStatement ps = conn.prepareStatement(insertPatient)) {
+                ps.setInt(1, userId);
+
+                int rowsAffected = ps.executeUpdate();
+
+                if (rowsAffected == 0) {
+                    conn.rollback();
+                    return false;
+                }
+            }
+
+            conn.commit();
+            return true;
+
+        } catch (SQLException e) {
+            try { conn.rollback(); } catch (SQLException ignored) {}
+            System.err.println("SQL Error in createPatient: " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        } finally {
+            try { conn.setAutoCommit(true); } catch (SQLException ignored) {}
+        }
+    }
+
+    /**
+     * Get all patients
+     */
+    public List<PatientModel> getAllPatients() {
+        List<PatientModel> patients = new ArrayList<>();
+
+        String sql = """
+            SELECT u.user_id, u.name, u.email, u.phoneNumber, u.birthday, u.created_at
+            FROM users u
+            INNER JOIN patients p ON u.user_id = p.patient_id
+            WHERE u.role = 'PATIENT'
+            ORDER BY u.user_id ASC
+        """;
 
         try (PreparedStatement ps = conn.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
 
             while (rs.next()) {
-                users.add(new AdminModel(
-                        rs.getString("name")
-                ));
-            }
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return users;
-    }
-
-    public List<AdminModel> getAllPatients() {
-
-        List<AdminModel> patients = new ArrayList<>();
-
-        String sql = """
-        SELECT idusers, name, password, email, phoneNumber, birthday, address
-        FROM users
-        ORDER BY idusers ASC
-        """;
-
-        try (PreparedStatement ps = conn.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
-
-            while (rs.next()) {
-                AdminModel patient = new AdminModel();
-                patient.setId(rs.getInt("idusers"));
+                PatientModel patient = new PatientModel();
+                patient.setPatientId(rs.getInt("user_id"));
                 patient.setName(rs.getString("name"));
                 patient.setEmail(rs.getString("email"));
-                patient.setPhone(rs.getString("phoneNumber"));
-                patient.setBirthday(rs.getString("birthday")); // or Date → String
-                patient.setAddress(rs.getString("address"));
-                patient.setPassword(rs.getString("password"));
+                patient.setPhoneNumber(rs.getString("phoneNumber"));
+                patient.setBirthday(rs.getString("birthday"));
+                patient.setCreatedAt(rs.getString("created_at"));
                 patients.add(patient);
             }
 
-        } catch (Exception e) {
+        } catch (SQLException e) {
+            System.err.println("SQL Error in getAllPatients: " + e.getMessage());
             e.printStackTrace();
         }
 
         return patients;
     }
 
+    /**
+     * Get patient by ID
+     */
+    public PatientModel getPatientById(int patientId) {
+        String sql = """
+            SELECT u.user_id, u.name, u.email, u.phoneNumber, u.birthday, u.created_at
+            FROM users u
+            INNER JOIN patients p ON u.user_id = p.patient_id
+            WHERE u.user_id = ? AND u.role = 'PATIENT'
+        """;
 
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, patientId);
 
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    PatientModel patient = new PatientModel();
+                    patient.setPatientId(rs.getInt("user_id"));
+                    patient.setName(rs.getString("name"));
+                    patient.setEmail(rs.getString("email"));
+                    patient.setPhoneNumber(rs.getString("phoneNumber"));
+                    patient.setBirthday(rs.getString("birthday"));
+                    patient.setCreatedAt(rs.getString("created_at"));
+                    return patient;
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("SQL Error in getPatientById: " + e.getMessage());
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+
+    /**
+     * Update patient information
+     */
+    public boolean updatePatient(int patientId, String name, String email, String phoneNumber, String birthday) {
+        String sql = "UPDATE users SET name = ?, email = ?, phoneNumber = ?, birthday = ? WHERE user_id = ? AND role = 'PATIENT'";
+
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, name);
+            ps.setString(2, email);
+            ps.setString(3, phoneNumber);
+            ps.setString(4, birthday);
+            ps.setInt(5, patientId);
+            return ps.executeUpdate() > 0;
+
+        } catch (SQLException e) {
+            System.err.println("SQL Error in updatePatient: " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    /**
+     * Delete patient (CASCADE will handle patients table)
+     */
+    public boolean deletePatientById(int patientId) {
+        String sql = "DELETE FROM users WHERE user_id = ? AND role = 'PATIENT'";
+
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, patientId);
+            return ps.executeUpdate() > 0;
+
+        } catch (SQLException e) {
+            System.err.println("SQL Error in deletePatientById: " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    // ========================================
+    // DOCTOR CRUD (from your existing code)
+    // ========================================
+
+    /**
+     * Register a new doctor
+     */
+    public boolean registerDoctor(String name, String email, String password, String phoneNumber,
+                                  String birthday, String specialization, String biography, String address) {
+        String insertUser = "INSERT INTO users (name, email, phoneNumber, birthday, password_hash, role) VALUES (?, ?, ?, ?, ?, 'DOCTOR')";
+        String insertDoctor = "INSERT INTO doctors (doctor_id, specialization, biography, address) VALUES (?, ?, ?, ?)";
+
+        try {
+            conn.setAutoCommit(false);
+
+            int userId;
+
+            // Insert into users table
+            try (PreparedStatement ps = conn.prepareStatement(insertUser, PreparedStatement.RETURN_GENERATED_KEYS)) {
+                ps.setString(1, name);
+                ps.setString(2, email);
+                ps.setString(3, phoneNumber);
+                ps.setString(4, birthday);
+                ps.setString(5, password);
+
+                int rowsAffected = ps.executeUpdate();
+
+                if (rowsAffected == 0) {
+                    conn.rollback();
+                    return false;
+                }
+
+                try (ResultSet generatedKeys = ps.getGeneratedKeys()) {
+                    if (generatedKeys.next()) {
+                        userId = generatedKeys.getInt(1);
+                    } else {
+                        conn.rollback();
+                        return false;
+                    }
+                }
+            }
+
+            // Insert into doctors table
+            try (PreparedStatement ps = conn.prepareStatement(insertDoctor)) {
+                ps.setInt(1, userId);
+                ps.setString(2, specialization);
+                ps.setString(3, biography);
+                ps.setString(4, address);
+
+                int rowsAffected = ps.executeUpdate();
+
+                if (rowsAffected == 0) {
+                    conn.rollback();
+                    return false;
+                }
+            }
+
+            conn.commit();
+            return true;
+
+        } catch (SQLException e) {
+            try { conn.rollback(); } catch (SQLException ignored) {}
+            System.err.println("SQL Error in registerDoctor: " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        } finally {
+            try { conn.setAutoCommit(true); } catch (SQLException ignored) {}
+        }
+    }
+
+    /**
+     * Get all doctors
+     */
     public List<DoctorModel> getAllDoctors() {
-
         List<DoctorModel> doctors = new ArrayList<>();
 
-        String sql = "SELECT * FROM doctors ORDER BY iddoctors ASC";
+        String sql = """
+            SELECT u.user_id, u.name, u.email, u.phoneNumber, u.birthday,
+                   d.specialization, d.biography, d.address
+            FROM users u
+            INNER JOIN doctors d ON u.user_id = d.doctor_id
+            WHERE u.role = 'DOCTOR'
+            ORDER BY u.user_id ASC
+        """;
 
         try (PreparedStatement ps = conn.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
 
             while (rs.next()) {
-                DoctorModel d = new DoctorModel();
-
-                d.id = rs.getInt("iddoctors");
-                d.name = rs.getString("name");
-                d.specialization = rs.getString("specialization");
-                d.email = rs.getString("email");
-                d.phone = rs.getString("phoneNumber");
-                d.password = rs.getString("password");
-                d.birthday = rs.getString("birthday");
-                d.address = rs.getString("address");
-                d.biography = rs.getString("biography");
-
-                doctors.add(d);
+                DoctorModel doctor = new DoctorModel();
+                doctor.id = rs.getInt("user_id");
+                doctor.name = rs.getString("name");
+                doctor.email = rs.getString("email");
+                doctor.phone = rs.getString("phoneNumber");
+                doctor.birthday = rs.getString("birthday");
+                doctor.specialization = rs.getString("specialization");
+                doctor.biography = rs.getString("biography");
+                doctor.address = rs.getString("address");
+                doctors.add(doctor);
             }
 
-        } catch (Exception e) {
+        } catch (SQLException e) {
+            System.err.println("SQL Error in getAllDoctors: " + e.getMessage());
             e.printStackTrace();
         }
 
         return doctors;
     }
 
-    // =========================
-// DELETE PATIENT
-// =========================
-    public boolean deletePatientById(int id) {
-        String sql = "DELETE FROM users WHERE idusers = ?";
+    /**
+     * Get doctor by ID
+     */
+    public DoctorModel getDoctorById(int doctorId) {
+        String sql = """
+            SELECT u.user_id, u.name, u.email, u.phoneNumber, u.birthday,
+                   d.specialization, d.biography, d.address
+            FROM users u
+            INNER JOIN doctors d ON u.user_id = d.doctor_id
+            WHERE u.user_id = ? AND u.role = 'DOCTOR'
+        """;
+
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setInt(1, id);
-            return ps.executeUpdate() > 0;
-        } catch (Exception e) {
+            ps.setInt(1, doctorId);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    DoctorModel doctor = new DoctorModel();
+                    doctor.id = rs.getInt("user_id");
+                    doctor.name = rs.getString("name");
+                    doctor.email = rs.getString("email");
+                    doctor.phone = rs.getString("phoneNumber");
+                    doctor.birthday = rs.getString("birthday");
+                    doctor.specialization = rs.getString("specialization");
+                    doctor.biography = rs.getString("biography");
+                    doctor.address = rs.getString("address");
+                    return doctor;
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("SQL Error in getDoctorById: " + e.getMessage());
             e.printStackTrace();
-            return false;
         }
+
+        return null;
     }
 
-    // =========================
-// DELETE DOCTOR
-// =========================
-    public boolean deleteDoctorById(int id) {
-        String sql = "DELETE FROM doctors WHERE iddoctors = ?";
-        try (PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setInt(1, id);
-            return ps.executeUpdate() > 0;
-        } catch (Exception e) {
-            e.printStackTrace();
-            return false;
-        }
-    }
-
-    public boolean updatePatient(int id, String name) {
-
-        String updateUser = "UPDATE users SET name = ? WHERE idusers = ?";
-        String updateRecords = "UPDATE records SET patientName = ? WHERE patientID = ?";
+    /**
+     * Update doctor information
+     */
+    public boolean updateDoctor(int doctorId, String name, String email, String phoneNumber,
+                                String specialization, String biography, String address) {
+        String updateUser = "UPDATE users SET name = ?, email = ?, phoneNumber = ? WHERE user_id = ? AND role = 'DOCTOR'";
+        String updateDoctor = "UPDATE doctors SET specialization = ?, biography = ?, address = ? WHERE doctor_id = ?";
 
         try {
-            conn.setAutoCommit(false); // 🔐 transaction
+            conn.setAutoCommit(false);
 
-            try (PreparedStatement ps1 = conn.prepareStatement(updateUser);
-                 PreparedStatement ps2 = conn.prepareStatement(updateRecords);
-                 PreparedStatement ps3 = conn.prepareStatement(updateRecords)) {
+            // Update users table
+            try (PreparedStatement ps = conn.prepareStatement(updateUser)) {
+                ps.setString(1, name);
+                ps.setString(2, email);
+                ps.setString(3, phoneNumber);
+                ps.setInt(4, doctorId);
 
-                ps1.setString(1, name);
-                ps1.setInt(2, id);
-                ps1.executeUpdate();
-
-                ps2.setString(1, name);
-                ps2.setInt(2, id);
-                ps2.executeUpdate();
-
-                conn.commit();
-                return true;
+                int rows = ps.executeUpdate();
+                if (rows == 0) {
+                    conn.rollback();
+                    return false;
+                }
             }
 
-        } catch (Exception e) {
-            try { conn.rollback(); } catch (Exception ignored) {}
+            // Update doctors table
+            try (PreparedStatement ps = conn.prepareStatement(updateDoctor)) {
+                ps.setString(1, specialization);
+                ps.setString(2, biography);
+                ps.setString(3, address);
+                ps.setInt(4, doctorId);
+                ps.executeUpdate();
+            }
+
+            conn.commit();
+            return true;
+
+        } catch (SQLException e) {
+            try { conn.rollback(); } catch (SQLException ignored) {}
+            System.err.println("SQL Error in updateDoctor: " + e.getMessage());
             e.printStackTrace();
             return false;
         } finally {
-            try { conn.setAutoCommit(true); } catch (Exception ignored) {}
+            try { conn.setAutoCommit(true); } catch (SQLException ignored) {}
         }
     }
 
-
-    public boolean updateDoctor(int id, String name) {
-
-        System.out.println("=== DAO.updateDoctor DEBUG ===");
-        System.out.println("ID     : " + id);
-        System.out.println("Name   : '" + name + "'");
-
-        String sql = "UPDATE doctors SET name = ? WHERE iddoctors = ?";
+    /**
+     * Delete doctor
+     */
+    public boolean deleteDoctorById(int doctorId) {
+        String sql = "DELETE FROM users WHERE user_id = ? AND role = 'DOCTOR'";
 
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, doctorId);
+            return ps.executeUpdate() > 0;
 
-            ps.setString(1, name);
-            ps.setInt(2, id);
-
-            int rows = ps.executeUpdate();
-
-            System.out.println("Rows affected: " + rows);
-
-            if (rows == 0) {
-                System.out.println("⚠ No rows updated. Possible causes:");
-                System.out.println(" - Doctor ID does not exist");
-                System.out.println(" - Data is unchanged");
-            }
-
-            return rows > 0;
-
-        } catch (Exception e) {
-            System.out.println("❌ Exception in updateDoctor()");
+        } catch (SQLException e) {
+            System.err.println("SQL Error in deleteDoctorById: " + e.getMessage());
             e.printStackTrace();
             return false;
-        } finally {
-            System.out.println("=== END updateDoctor DEBUG ===");
         }
     }
 
+    /**
+     * Get doctors by specialization
+     */
+    public List<DoctorModel> getDoctorsBySpecialization(String specialization) {
+        List<DoctorModel> doctors = new ArrayList<>();
 
+        String sql = """
+            SELECT u.user_id, u.name, u.email, u.phoneNumber, u.birthday,
+                   d.specialization, d.biography, d.address
+            FROM users u
+            INNER JOIN doctors d ON u.user_id = d.doctor_id
+            WHERE u.role = 'DOCTOR' AND d.specialization = ?
+            ORDER BY u.name ASC
+        """;
 
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, specialization);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    DoctorModel doctor = new DoctorModel();
+                    doctor.id = rs.getInt("user_id");
+                    doctor.name = rs.getString("name");
+                    doctor.email = rs.getString("email");
+                    doctor.phone = rs.getString("phoneNumber");
+                    doctor.birthday = rs.getString("birthday");
+                    doctor.specialization = rs.getString("specialization");
+                    doctor.biography = rs.getString("biography");
+                    doctor.address = rs.getString("address");
+                    doctors.add(doctor);
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("SQL Error in getDoctorsBySpecialization: " + e.getMessage());
+            e.printStackTrace();
+        }
+
+        return doctors;
+    }
+
+    // ========================================
+    // DOCTOR-PATIENT ASSIGNMENT
+    // ========================================
+
+    /**
+     * Assign a patient to a doctor
+     */
+    public boolean assignPatientToDoctor(int doctorId, int patientId) {
+        String sql = "INSERT INTO doctor_patient_assignment (doctor_id, patient_id) VALUES (?, ?)";
+
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, doctorId);
+            ps.setInt(2, patientId);
+            return ps.executeUpdate() > 0;
+
+        } catch (SQLException e) {
+            System.err.println("SQL Error in assignPatientToDoctor: " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    /**
+     * Remove patient assignment from doctor
+     */
+    public boolean removePatientAssignment(int doctorId, int patientId) {
+        String sql = "DELETE FROM doctor_patient_assignment WHERE doctor_id = ? AND patient_id = ?";
+
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, doctorId);
+            ps.setInt(2, patientId);
+            return ps.executeUpdate() > 0;
+
+        } catch (SQLException e) {
+            System.err.println("SQL Error in removePatientAssignment: " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    /**
+     * Get all patients assigned to a doctor
+     */
+    public List<PatientModel> getDoctorPatients(int doctorId) {
+        List<PatientModel> patients = new ArrayList<>();
+
+        String sql = """
+            SELECT u.user_id, u.name, u.email, u.phoneNumber, u.birthday, u.created_at
+            FROM users u
+            INNER JOIN patients p ON u.user_id = p.patient_id
+            INNER JOIN doctor_patient_assignment dpa ON p.patient_id = dpa.patient_id
+            WHERE dpa.doctor_id = ? AND u.role = 'PATIENT'
+            ORDER BY u.name ASC
+        """;
+
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, doctorId);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    PatientModel patient = new PatientModel();
+                    patient.setPatientId(rs.getInt("user_id"));
+                    patient.setName(rs.getString("name"));
+                    patient.setEmail(rs.getString("email"));
+                    patient.setPhoneNumber(rs.getString("phoneNumber"));
+                    patient.setBirthday(rs.getString("birthday"));
+                    patient.setCreatedAt(rs.getString("created_at"));
+                    patients.add(patient);
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("SQL Error in getDoctorPatients: " + e.getMessage());
+            e.printStackTrace();
+        }
+
+        return patients;
+    }
+
+    /**
+     * Get all doctors assigned to a patient
+     */
+    public List<DoctorModel> getPatientDoctors(int patientId) {
+        List<DoctorModel> doctors = new ArrayList<>();
+
+        String sql = """
+            SELECT u.user_id, u.name, u.email, u.phoneNumber, u.birthday,
+                   d.specialization, d.biography, d.address
+            FROM users u
+            INNER JOIN doctors d ON u.user_id = d.doctor_id
+            INNER JOIN doctor_patient_assignment dpa ON d.doctor_id = dpa.doctor_id
+            WHERE dpa.patient_id = ? AND u.role = 'DOCTOR'
+            ORDER BY u.name ASC
+        """;
+
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, patientId);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    DoctorModel doctor = new DoctorModel();
+                    doctor.id = rs.getInt("user_id");
+                    doctor.name = rs.getString("name");
+                    doctor.email = rs.getString("email");
+                    doctor.phone = rs.getString("phoneNumber");
+                    doctor.birthday = rs.getString("birthday");
+                    doctor.specialization = rs.getString("specialization");
+                    doctor.biography = rs.getString("biography");
+                    doctor.address = rs.getString("address");
+                    doctors.add(doctor);
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("SQL Error in getPatientDoctors: " + e.getMessage());
+            e.printStackTrace();
+        }
+
+        return doctors;
+    }
+
+    // ========================================
+    // PATIENT ATTACHMENTS
+    // ========================================
+
+    /**
+     * Upload a patient attachment
+     */
+    public boolean uploadPatientAttachment(int patientId, int uploadedByDoctorId, String filePath) {
+        String sql = "INSERT INTO patient_attachments (patient_id, uploaded_by, file_path) VALUES (?, ?, ?)";
+
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, patientId);
+            ps.setInt(2, uploadedByDoctorId);
+            ps.setString(3, filePath);
+            return ps.executeUpdate() > 0;
+
+        } catch (SQLException e) {
+            System.err.println("SQL Error in uploadPatientAttachment: " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    /**
+     * Get all attachments for a patient
+     */
+    public List<PatientAttachmentModel> getPatientAttachments(int patientId) {
+        List<PatientAttachmentModel> attachments = new ArrayList<>();
+
+        String sql = """
+            SELECT pa.attachment_id, pa.patient_id, pa.uploaded_by, pa.file_path, pa.uploaded_at,
+                   p_user.name as patient_name, d_user.name as doctor_name
+            FROM patient_attachments pa
+            INNER JOIN patients p ON pa.patient_id = p.patient_id
+            INNER JOIN users p_user ON p.patient_id = p_user.user_id
+            INNER JOIN doctors d ON pa.uploaded_by = d.doctor_id
+            INNER JOIN users d_user ON d.doctor_id = d_user.user_id
+            WHERE pa.patient_id = ?
+            ORDER BY pa.uploaded_at DESC
+        """;
+
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, patientId);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    PatientAttachmentModel attachment = new PatientAttachmentModel();
+                    attachment.setAttachmentId(rs.getInt("attachment_id"));
+                    attachment.setPatientId(rs.getInt("patient_id"));
+                    attachment.setUploadedBy(rs.getInt("uploaded_by"));
+                    attachment.setFilePath(rs.getString("file_path"));
+                    attachment.setUploadedAt(rs.getString("uploaded_at"));
+                    attachment.setPatientName(rs.getString("patient_name"));
+                    attachment.setDoctorName(rs.getString("doctor_name"));
+                    attachments.add(attachment);
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("SQL Error in getPatientAttachments: " + e.getMessage());
+            e.printStackTrace();
+        }
+
+        return attachments;
+    }
+
+    /**
+     * Delete a patient attachment
+     */
+    public boolean deletePatientAttachment(int attachmentId) {
+        String sql = "DELETE FROM patient_attachments WHERE attachment_id = ?";
+
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, attachmentId);
+            return ps.executeUpdate() > 0;
+
+        } catch (SQLException e) {
+            System.err.println("SQL Error in deletePatientAttachment: " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    // ========================================
+    // AUDIT LOGS
+    // ========================================
+
+    /**
+     * Create an audit log entry
+     */
+    public boolean createAuditLog(int userId, String action, int patientId, String recordType, int recordId) {
+        String sql = "INSERT INTO audit_logs (user_id, action, patient_id, record_type, record_id) VALUES (?, ?, ?, ?, ?)";
+
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, userId);
+            ps.setString(2, action);
+
+            if (patientId > 0) {
+                ps.setInt(3, patientId);
+            } else {
+                ps.setNull(3, Types.INTEGER);
+            }
+
+            ps.setString(4, recordType);
+
+            if (recordId > 0) {
+                ps.setInt(5, recordId);
+            } else {
+                ps.setNull(5, Types.INTEGER);
+            }
+
+            return ps.executeUpdate() > 0;
+
+        } catch (SQLException e) {
+            System.err.println("SQL Error in createAuditLog: " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    /**
+     * Get audit logs for a specific patient
+     */
+    public List<AuditLogModel> getAuditLogsByPatient(int patientId) {
+        List<AuditLogModel> logs = new ArrayList<>();
+
+        String sql = """
+            SELECT al.log_id, al.user_id, al.action, al.patient_id, al.record_type, al.record_id, al.timestamp,
+                   u.name as user_name, p_user.name as patient_name
+            FROM audit_logs al
+            INNER JOIN users u ON al.user_id = u.user_id
+            LEFT JOIN patients p ON al.patient_id = p.patient_id
+            LEFT JOIN users p_user ON p.patient_id = p_user.user_id
+            WHERE al.patient_id = ?
+            ORDER BY al.timestamp DESC
+        """;
+
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, patientId);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    AuditLogModel log = new AuditLogModel();
+                    log.setLogId(rs.getInt("log_id"));
+                    log.setUserId(rs.getInt("user_id"));
+                    log.setAction(rs.getString("action"));
+                    log.setPatientId(rs.getInt("patient_id"));
+                    log.setRecordType(rs.getString("record_type"));
+                    log.setRecordId(rs.getInt("record_id"));
+                    log.setTimestamp(rs.getString("timestamp"));
+                    log.setUserName(rs.getString("user_name"));
+                    log.setPatientName(rs.getString("patient_name"));
+                    logs.add(log);
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("SQL Error in getAuditLogsByPatient: " + e.getMessage());
+            e.printStackTrace();
+        }
+
+        return logs;
+    }
+
+    /**
+     * Get all audit logs (admin view)
+     */
+    public List<AuditLogModel> getAllAuditLogs() {
+        List<AuditLogModel> logs = new ArrayList<>();
+
+        String sql = """
+            SELECT al.log_id, al.user_id, al.action, al.patient_id, al.record_type, al.record_id, al.timestamp,
+                   u.name as user_name, p_user.name as patient_name
+            FROM audit_logs al
+            INNER JOIN users u ON al.user_id = u.user_id
+            LEFT JOIN patients p ON al.patient_id = p.patient_id
+            LEFT JOIN users p_user ON p.patient_id = p_user.user_id
+            ORDER BY al.timestamp DESC
+        """;
+
+        try (PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+
+            while (rs.next()) {
+                AuditLogModel log = new AuditLogModel();
+                log.setLogId(rs.getInt("log_id"));
+                log.setUserId(rs.getInt("user_id"));
+                log.setAction(rs.getString("action"));
+                log.setPatientId(rs.getInt("patient_id"));
+                log.setRecordType(rs.getString("record_type"));
+                log.setRecordId(rs.getInt("record_id"));
+                log.setTimestamp(rs.getString("timestamp"));
+                log.setUserName(rs.getString("user_name"));
+                log.setPatientName(rs.getString("patient_name"));
+                logs.add(log);
+            }
+
+        } catch (SQLException e) {
+            System.err.println("SQL Error in getAllAuditLogs: " + e.getMessage());
+            e.printStackTrace();
+        }
+
+        return logs;
+    }
 }

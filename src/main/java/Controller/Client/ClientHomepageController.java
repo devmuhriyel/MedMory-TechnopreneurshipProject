@@ -4,6 +4,7 @@ import MVP.Login;
 import MVP.SessionManager;
 import MVP.Client.ClientService;
 import MVP.Client.ClientModel;
+import CommonModel.*;
 import MVP.Client.ClientMedicalRecord;
 
 import javafx.event.ActionEvent;
@@ -31,17 +32,18 @@ public class ClientHomepageController {
 
     @FXML
     public void initialize() {
-        int userID = SessionManager.getUserID();
+        int userId = SessionManager.getCurrentPatientId();
 
-        if (userID <= 0) {
+        if (userId <= 0) {
             System.out.println("⚠ No client logged in.");
             return;
         }
 
         // Load client info
-        ClientModel client = ClientService.getClientInfo(userID);
-        if (client != null) {
-            nameLabel.setText(client.name);
+        PatientModel patient = ClientService.getClientInfo(userId);
+        if (patient != null) {
+            System.out.println("Name: " + patient.getName());
+            System.out.println("Email: " + patient.getEmail());
         }
 
 

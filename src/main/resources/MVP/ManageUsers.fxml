@@ -50,7 +50,9 @@
                 <TableView fx:id="userTable" layoutX="30" layoutY="90" prefHeight="470" prefWidth="990" style="                                -fx-background-radius: 10;                                -fx-border-radius: 10;                            ">
                     <columns>
                         <TableColumn fx:id="idCol" prefWidth="67.0" text="ID" />
-                        <TableColumn fx:id="nameCol" minWidth="0.0" prefWidth="552.0" text="Name" />
+                        <TableColumn fx:id="nameCol" minWidth="0.0" prefWidth="252.0" text="Name" />
+                        <TableColumn fx:id="emailCol" minWidth="0.0" prefWidth="290.0" text="Email" />
+                        <TableColumn fx:id="phoneCol" minWidth="0.0" prefWidth="210.0" text="Phone Number" />
                         <TableColumn fx:id="roleCol" minWidth="0.0" prefWidth="207.0" text="Role" />
                         <TableColumn fx:id="statusCol" prefWidth="182.0" text="Status" />
                     </columns>

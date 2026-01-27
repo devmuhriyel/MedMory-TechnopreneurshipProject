@@ -1,17 +1,13 @@
 package Controller.Admin;
 
 import MVP.Login;
-import CommonModel.SessionManager;
-import MVP.Admin.ManageUsers;
-import MVP.Admin.Settings;
 
+import MVP.SessionManager;
 import javafx.event.ActionEvent;
-import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
-import javafx.scene.control.TextField;
 import javafx.stage.Stage;
 
 import java.io.IOException;

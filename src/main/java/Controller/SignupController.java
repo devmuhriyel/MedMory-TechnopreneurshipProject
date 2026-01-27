@@ -84,8 +84,6 @@ public class SignupController {
         }
     }
 
-
-
     @FXML
     private void initialize() {
         if (patientRadio != null) patientRadio.setToggleGroup(accountTypeGroup);
@@ -133,10 +131,12 @@ public class SignupController {
 
             Controller.Doctor.Validation validationController = loader.getController();
             validationController.setDoctorData(
-                    firstNameField.getText() + " " + lastNameField.getText(),
-                    emailField.getText(),
+                    firstNameField.getText().trim() + " " + lastNameField.getText().trim(),
+                    emailField.getText().trim(),
                     passwordField.getText(),
-                    phoneField.getText()
+                    phoneField.getText().trim(),
+                    formatBirthday(), // Pass birthday
+                    locationField.getText().trim() // Pass address/location
             );
 
             Stage stage = (Stage) ((Hyperlink) event.getSource()).getScene().getWindow();
@@ -147,8 +147,6 @@ public class SignupController {
             e.printStackTrace();
             System.err.println("Error loading Validation.fxml. Check your file paths.");
         }
-
-
     }
 
     @FXML
@@ -163,82 +161,159 @@ public class SignupController {
             return;
         }
 
+        // Check if email already exists
+        if (LoginService.emailExists(emailField.getText().trim())) {
+            Platform.runLater(() -> {
+                Alert alert = new Alert(Alert.AlertType.ERROR);
+                alert.setTitle("Registration Failed");
+                alert.setHeaderText("Email Already Exists");
+                alert.setContentText("An account with this email already exists. Please use a different email or try logging in.");
+                alert.show();
+            });
+            highlightField(emailField);
+            return;
+        }
+
         showLoadingAnimation();
 
-        // Data processing for standard Patient registration
+        // Data processing for Patient registration
         String fullName = firstNameField.getText().trim() + " " + lastNameField.getText().trim();
-        String pass = passwordField.getText();
-
-        // Placeholder for Patient DAO registration logic
-        boolean isSaved = LoginService.registerUser(fullName, pass);
+        String email = emailField.getText().trim();
+        String password = passwordField.getText();
+        String phone = phoneField.getText().trim();
+        String birthday = formatBirthday(); // YYYY-MM-DD format
 
         Timeline createProcess = new Timeline(new KeyFrame(Duration.millis(2000), event -> {
             createAccountButton.getStyleClass().remove("loading");
+
+            // Register patient using new LoginService method
+            boolean isSaved = LoginService.registerPatient(fullName, email, password, phone, birthday);
 
             if (isSaved) {
                 showSuccessMessage("Account created successfully!");
                 PauseTransition delay = new PauseTransition(Duration.millis(1500));
                 delay.setOnFinished(e -> {
-                    try { navigateToLogin(); } catch (Exception ex) { ex.printStackTrace(); }
+                    try {
+                        navigateToLogin();
+                    } catch (Exception ex) {
+                        ex.printStackTrace();
+                    }
                 });
                 delay.play();
             } else {
                 Platform.runLater(() -> {
-                    Alert a = new Alert(Alert.AlertType.ERROR);
-                    a.setContentText("Database error. Account registration failed.");
-                    a.show();
+                    Alert alert = new Alert(Alert.AlertType.ERROR);
+                    alert.setTitle("Registration Failed");
+                    alert.setHeaderText("Database Error");
+                    alert.setContentText("Failed to create account. Please try again or contact support.");
+                    alert.show();
                 });
+                // Reset button
+                createAccountButton.setText("Create Account");
+                createAccountButton.setStyle("");
             }
         }));
         createProcess.play();
     }
 
+    /**
+     * Format birthday from ComboBoxes to YYYY-MM-DD format
+     */
+    private String formatBirthday() {
+        if (!isBirthdaySelected()) {
+            return null;
+        }
+
+        String month = String.format("%02d", birthMonthCombo.getItems().indexOf(birthMonthCombo.getValue()) + 1);
+        String day = String.format("%02d", birthDayCombo.getValue());
+        String year = String.valueOf(birthYearCombo.getValue());
+
+        return year + "-" + month + "-" + day; // YYYY-MM-DD format
+    }
+
     private boolean validateForm(boolean forDoctorFlow) {
         boolean isValid = true;
 
-        // Required text fields
-        TextField[] fields = { firstNameField, lastNameField, emailField, phoneField, locationField };
-        for (TextField field : fields) {
-            if (field == null || field.getText() == null || field.getText().trim().isEmpty()) {
-                if (field != null) highlightField(field);
-                isValid = false;
-            }
-        }
-
-        // Birthday dropdown validation
-        if (!isBirthdaySelected()) {
-            if (birthMonthCombo != null) highlightField(birthMonthCombo);
-            if (birthDayCombo != null) highlightField(birthDayCombo);
-            if (birthYearCombo != null) highlightField(birthYearCombo);
+        // First name validation
+        if (firstNameField == null || firstNameField.getText() == null || firstNameField.getText().trim().isEmpty()) {
+            if (firstNameField != null) highlightField(firstNameField);
             isValid = false;
         }
 
-        // Email format
-        if (emailField != null && emailField.getText() != null && !emailField.getText().trim().isEmpty()) {
-            if (!EMAIL_PATTERN.matcher(emailField.getText().trim()).matches()) {
-                highlightField(emailField);
-                isValid = false;
-            }
+        // Last name validation
+        if (lastNameField == null || lastNameField.getText() == null || lastNameField.getText().trim().isEmpty()) {
+            if (lastNameField != null) highlightField(lastNameField);
+            isValid = false;
         }
 
-        // Phone number basic validation (digits only, reasonable length)
-        if (phoneField != null && phoneField.getText() != null && !phoneField.getText().trim().isEmpty()) {
+        // Email validation
+        if (emailField == null || emailField.getText() == null || emailField.getText().trim().isEmpty()) {
+            if (emailField != null) highlightField(emailField);
+            isValid = false;
+        } else if (!EMAIL_PATTERN.matcher(emailField.getText().trim()).matches()) {
+            highlightField(emailField);
+            isValid = false;
+        }
+
+        // Phone validation
+        if (phoneField == null || phoneField.getText() == null || phoneField.getText().trim().isEmpty()) {
+            if (phoneField != null) highlightField(phoneField);
+            isValid = false;
+        } else {
             String digits = phoneField.getText().replaceAll("\\D", "");
-            if (digits.length() < 10) {
+            if (digits.length() < 10 || digits.length() > 15) {
                 highlightField(phoneField);
                 isValid = false;
             }
         }
 
-        // Password validation: min 6 characters (requested "6 digit not 3")
+        // Location validation (required for address field)
+        if (locationField == null || locationField.getText() == null || locationField.getText().trim().isEmpty()) {
+            if (locationField != null) highlightField(locationField);
+            isValid = false;
+        }
+
+        // Birthday validation
+        if (!isBirthdaySelected()) {
+            if (birthMonthCombo != null) highlightField(birthMonthCombo);
+            if (birthDayCombo != null) highlightField(birthDayCombo);
+            if (birthYearCombo != null) highlightField(birthYearCombo);
+            isValid = false;
+        } else {
+            // Validate age (must be at least 13 years old for patients, 21 for doctors)
+            int minAge = forDoctorFlow ? 21 : 13;
+            if (!isValidAge(minAge)) {
+                highlightField(birthYearCombo);
+                isValid = false;
+                Platform.runLater(() -> {
+                    Alert alert = new Alert(Alert.AlertType.WARNING);
+                    alert.setTitle("Invalid Age");
+                    alert.setHeaderText("Age Requirement Not Met");
+                    alert.setContentText(forDoctorFlow ?
+                            "Doctors must be at least 21 years old." :
+                            "You must be at least 13 years old to register.");
+                    alert.show();
+                });
+            }
+        }
+
+        // Password validation: minimum 6 characters
         if (passwordField == null || passwordField.getText() == null || passwordField.getText().trim().isEmpty()) {
             if (passwordField != null) highlightField(passwordField);
             isValid = false;
         } else if (passwordField.getText().length() < 6) {
             highlightField(passwordField);
             isValid = false;
+            Platform.runLater(() -> {
+                Alert alert = new Alert(Alert.AlertType.WARNING);
+                alert.setTitle("Invalid Password");
+                alert.setHeaderText("Password Too Short");
+                alert.setContentText("Password must be at least 6 characters long.");
+                alert.show();
+            });
         }
 
+        // Confirm password validation
         if (confirmPasswordField == null || confirmPasswordField.getText() == null || confirmPasswordField.getText().trim().isEmpty()) {
             if (confirmPasswordField != null) highlightField(confirmPasswordField);
             isValid = false;
@@ -246,16 +321,41 @@ public class SignupController {
             highlightField(passwordField);
             highlightField(confirmPasswordField);
             isValid = false;
+            Platform.runLater(() -> {
+                Alert alert = new Alert(Alert.AlertType.WARNING);
+                alert.setTitle("Password Mismatch");
+                alert.setHeaderText("Passwords Don't Match");
+                alert.setContentText("Please ensure both password fields match.");
+                alert.show();
+            });
         }
 
-        // Specialization is now handled in the Validation screen, not required here
-
+        // Consent checkboxes validation
         if (!consentCheck1.isSelected() || !consentCheck2.isSelected() || !consentCheck3.isSelected()) {
             animateConsentCheckboxes();
             isValid = false;
         }
 
         return isValid;
+    }
+
+    /**
+     * Validate if the selected birthday meets the minimum age requirement
+     */
+    private boolean isValidAge(int minAge) {
+        if (!isBirthdaySelected()) {
+            return false;
+        }
+
+        int year = birthYearCombo.getValue();
+        int month = birthMonthCombo.getItems().indexOf(birthMonthCombo.getValue()) + 1;
+        int day = birthDayCombo.getValue();
+
+        LocalDate birthdate = LocalDate.of(year, month, day);
+        LocalDate today = LocalDate.now();
+        LocalDate minDate = today.minusYears(minAge);
+
+        return birthdate.isBefore(minDate) || birthdate.isEqual(minDate);
     }
 
     private boolean isBirthdaySelected() {
@@ -280,8 +380,6 @@ public class SignupController {
         birthYearCombo.getItems().clear();
         for (int y = currentYear; y >= 1900; y--) birthYearCombo.getItems().add(y);
     }
-
-
 
     private void highlightField(Control field) {
         field.setStyle("-fx-border-color: #f44336; -fx-border-width: 2px; -fx-border-radius: 5px;");
@@ -311,6 +409,7 @@ public class SignupController {
     private void showLoadingAnimation() {
         createAccountButton.getStyleClass().add("loading");
         createAccountButton.setText("Registering...");
+        createAccountButton.setDisable(true);
     }
 
     private void showSuccessMessage(String message) {
@@ -318,6 +417,8 @@ public class SignupController {
         createAccountButton.setStyle("-fx-background-color: #4CAF50; -fx-text-fill: white;");
         Platform.runLater(() -> {
             Alert alert = new Alert(Alert.AlertType.INFORMATION);
+            alert.setTitle("Success");
+            alert.setHeaderText("Registration Complete");
             alert.setContentText(message);
             alert.show();
         });

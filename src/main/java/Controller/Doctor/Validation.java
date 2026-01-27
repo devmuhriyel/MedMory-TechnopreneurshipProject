@@ -1,163 +1,334 @@
 package Controller.Doctor;
 
-import DAO.RecordDAO;
-import DAO.DatabaseConnection;
-import javafx.application.Application;
+import Controller.LoginService;
+import javafx.animation.*;
+import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.Node;
-import javafx.scene.control.Alert;
-import javafx.scene.control.ComboBox;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
+import javafx.scene.layout.AnchorPane;
 import javafx.stage.Stage;
+import javafx.util.Duration;
+
 import java.io.IOException;
-import java.sql.Connection;
-import java.sql.SQLException;
 
-public class Validation extends Application {
+/**
+ * Validation Controller - Handles doctor-specific signup completion
+ * This is the second step for doctor registration where they provide
+ * their specialization, license, and other professional details
+ */
+public class Validation {
 
-    @FXML private TextField licenseNumberInput;
-    @FXML private TextField registrationYearInput;
+    @FXML private TextField licenseField;
+    @FXML private TextField yearField;
     @FXML private ComboBox<String> specializationCombo;
+    @FXML private TextArea biographyArea;
+    @FXML private Button completeRegistrationButton;
+    @FXML private Button backButton;
+    @FXML private Label nameLabel;
+    @FXML private Label emailLabel;
+    @FXML private AnchorPane mainCard;
 
-    // Fields to hold data passed from SignupController
-    private String name, email, password, phone;
+    // Data passed from SignupController
+    private String doctorName;
+    private String doctorEmail;
+    private String doctorPassword;
+    private String doctorPhone;
+    private String doctorBirthday;
+    private String doctorAddress;
 
-    // Setter to receive data from SignupController
-    public void setDoctorData(String name, String email, String password, String phone) {
-        this.name = name;
-        this.email = email;
-        this.password = password;
-        this.phone = phone;
+    /**
+     * Set doctor data from the previous signup form
+     */
+    public void setDoctorData(String name, String email, String password, String phone, String birthday, String address) {
+        this.doctorName = name;
+        this.doctorEmail = email;
+        this.doctorPassword = password;
+        this.doctorPhone = phone;
+        this.doctorBirthday = birthday;
+        this.doctorAddress = address;
+
+        // Update labels to show user info
+        if (nameLabel != null) {
+            nameLabel.setText("Name: " + name);
+        }
+        if (emailLabel != null) {
+            emailLabel.setText("Email: " + email);
+        }
     }
 
     @FXML
     private void initialize() {
-        setupSpecializationDropdown();
+        setupSpecializationCombo();
+        setupBiographyPlaceholder();
+        Platform.runLater(this::startPageAnimations);
     }
 
-    private void setupSpecializationDropdown() {
-        if (specializationCombo != null) {
-            specializationCombo.getItems().setAll(
-                    "General Practice",
-                    "Internal Medicine",
-                    "Pediatrics",
-                    "Obstetrics & Gynecology",
-                    "Surgery",
-                    "Orthopedics",
-                    "Dermatology",
-                    "Ophthalmology",
-                    "ENT",
-                    "Psychiatry",
-                    "Neurology",
-                    "Cardiology",
-                    "Radiology",
-                    "Anesthesiology",
-                    "Family Medicine"
-            );
+    /**
+     * Setup the specialization dropdown with common medical specializations
+     */
+    private void setupSpecializationCombo() {
+        if (specializationCombo == null) return;
+
+        specializationCombo.getItems().addAll(
+                "General Medicine",
+                "Cardiology",
+                "Dermatology",
+                "Emergency Medicine",
+                "Endocrinology",
+                "Family Medicine",
+                "Gastroenterology",
+                "Hematology",
+                "Infectious Disease",
+                "Internal Medicine",
+                "Nephrology",
+                "Neurology",
+                "Obstetrics & Gynecology",
+                "Oncology",
+                "Ophthalmology",
+                "Orthopedics",
+                "Otolaryngology (ENT)",
+                "Pediatrics",
+                "Psychiatry",
+                "Pulmonology",
+                "Radiology",
+                "Rheumatology",
+                "Surgery",
+                "Urology",
+                "Other"
+        );
+    }
+
+    /**
+     * Setup biography text area with default text
+     */
+    private void setupBiographyPlaceholder() {
+        if (biographyArea != null) {
+            biographyArea.setPromptText("Tell us about your medical background, experience, and areas of expertise...");
         }
     }
 
-    @Override
-    public void start(Stage stage) throws IOException {
-        FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/MVP/Validation.fxml"));
-        Scene scene = new Scene(fxmlLoader.load(), 812, 717);
-        stage.setTitle("MEDMORY - Doctor Verification");
-        stage.setResizable(false);
-        stage.setScene(scene);
-        stage.show();
-    }
-
+    /**
+     * Handle the complete registration button
+     */
     @FXML
-    private void handleVerification(ActionEvent event) {
-        String license = licenseNumberInput.getText().trim();
-        String year = registrationYearInput.getText().trim();
-        String specialization = specializationCombo != null && specializationCombo.getValue() != null 
-                ? specializationCombo.getValue().trim() : "";
-
-        // 1. Validate UI Fields
-        if (license.isEmpty() || year.isEmpty()) {
-            showError("Please enter your license number and registration year.");
+    private void handleCompleteRegistration(ActionEvent event) {
+        if (!validateDoctorForm()) {
+            showErrorAnimation();
+            Alert alert = new Alert(Alert.AlertType.WARNING);
+            alert.setTitle("Form Incomplete");
+            alert.setHeaderText("Missing Professional Information");
+            alert.setContentText("Please fill in all required fields.");
+            alert.show();
             return;
         }
 
-        if (specialization.isEmpty()) {
-            showError("Please select your specialization.");
-            return;
+        showLoadingAnimation();
+
+        // Prepare doctor data
+        String specialization = specializationCombo.getValue();
+        String license = licenseField.getText().trim();
+        String year = yearField.getText().trim();
+        String biography = biographyArea.getText().trim();
+
+        // Create biography text with license info
+        String fullBiography = biography;
+        if (!license.isEmpty() && !year.isEmpty()) {
+            fullBiography = "PRC License: " + license + " | Registered in: " + year + "\n\n" + biography;
         }
 
-        // 2. CRITICAL FIX: Validate that Signup data was actually passed
-        if (this.name == null || this.name.isEmpty()) {
-            showError("Missing registration data (Name/Email). Please go back and fill the first form.");
-            return;
-        }
+        String finalFullBiography = fullBiography;
+        Timeline registrationProcess = new Timeline(new KeyFrame(Duration.millis(2000), e -> {
+            completeRegistrationButton.getStyleClass().remove("loading");
 
-        if (license.matches("\\d{7}")) {
-            try (Connection conn = DatabaseConnection.getConnection()) {
-                RecordDAO dao = new RecordDAO(conn);
+            // Register doctor using LoginService
+            boolean isSaved = LoginService.registerDoctor(
+                    doctorName,
+                    doctorEmail,
+                    doctorPassword,
+                    doctorPhone,
+                    doctorBirthday,
+                    specialization,
+                    finalFullBiography,
+                    doctorAddress
+            );
 
-                // Call the registerDoctor method in RecordDAO
-                boolean success = dao.registerDoctor(this.name, this.email, this.password, this.phone, specialization, license, year);
-
-                if (success) {
-                    showSuccess("Account created successfully! Redirecting to Login...");
-                    navigateToLogin(event);
-                } else {
-                    showError("Database Error: Could not save the account.");
-                }
-            } catch (SQLException e) {
-                e.printStackTrace();
-                showError("Database Error: " + e.getMessage());
+            if (isSaved) {
+                showSuccessMessage("Doctor account created successfully!");
+                PauseTransition delay = new PauseTransition(Duration.millis(1500));
+                delay.setOnFinished(ev -> {
+                    try {
+                        navigateToLogin();
+                    } catch (Exception ex) {
+                        ex.printStackTrace();
+                    }
+                });
+                delay.play();
+            } else {
+                Platform.runLater(() -> {
+                    Alert alert = new Alert(Alert.AlertType.ERROR);
+                    alert.setTitle("Registration Failed");
+                    alert.setHeaderText("Database Error");
+                    alert.setContentText("Failed to create doctor account. Please try again or contact support.");
+                    alert.show();
+                });
+                // Reset button
+                completeRegistrationButton.setText("Complete Registration");
+                completeRegistrationButton.setStyle("");
+                completeRegistrationButton.setDisable(false);
             }
+        }));
+        registrationProcess.play();
+    }
+
+    /**
+     * Validate the doctor-specific form fields
+     */
+    private boolean validateDoctorForm() {
+        boolean isValid = true;
+
+        // License field validation
+        if (licenseField == null || licenseField.getText() == null || licenseField.getText().trim().isEmpty()) {
+            if (licenseField != null) highlightField(licenseField);
+            isValid = false;
+        }
+
+        // Year field validation
+        if (yearField == null || yearField.getText() == null || yearField.getText().trim().isEmpty()) {
+            if (yearField != null) highlightField(yearField);
+            isValid = false;
         } else {
-            showError("Invalid License Number. Please enter a valid 7-digit PRC ID.");
+            // Validate year format (should be 4 digits and reasonable)
+            String year = yearField.getText().trim();
+            if (!year.matches("\\d{4}")) {
+                highlightField(yearField);
+                isValid = false;
+            } else {
+                int yearInt = Integer.parseInt(year);
+                int currentYear = java.time.Year.now().getValue();
+                if (yearInt < 1950 || yearInt > currentYear) {
+                    highlightField(yearField);
+                    isValid = false;
+                }
+            }
         }
+
+        // Specialization validation
+        if (specializationCombo == null || specializationCombo.getValue() == null) {
+            if (specializationCombo != null) highlightField(specializationCombo);
+            isValid = false;
+        }
+
+        // Biography validation (optional but recommended)
+        if (biographyArea != null && (biographyArea.getText() == null || biographyArea.getText().trim().isEmpty())) {
+            highlightField(biographyArea);
+            // Don't fail validation, just highlight
+            Platform.runLater(() -> {
+                Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                alert.setTitle("Biography Recommended");
+                alert.setHeaderText("Add Your Biography");
+                alert.setContentText("Adding a biography helps patients learn more about you and your experience.");
+                alert.show();
+            });
+        }
+
+        return isValid;
     }
 
-    private void navigateToLogin(ActionEvent event) {
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/MVP/Login.fxml"));
-            Parent root = loader.load();
-            Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
-            stage.setScene(new Scene(root, 1280, 768));
-            stage.centerOnScreen();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+    /**
+     * Highlight invalid field with red border
+     */
+    private void highlightField(Control field) {
+        field.setStyle("-fx-border-color: #f44336; -fx-border-width: 2px; -fx-border-radius: 5px;");
+        Timeline removeError = new Timeline(new KeyFrame(Duration.millis(3000), e -> {
+            field.setStyle("-fx-background-color: #f5f5f5; -fx-border-color: #e0e0e0; -fx-border-width: 1px; -fx-border-radius: 5px;");
+        }));
+        removeError.play();
     }
 
+    /**
+     * Handle back button - return to signup form
+     */
     @FXML
     private void handleBack(ActionEvent event) {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/MVP/Signup.fxml"));
-            Parent root = loader.load();
-            Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
-            stage.setScene(new Scene(root, 812, 717));
+            Parent signupPage = loader.load();
+            Stage stage = (Stage) backButton.getScene().getWindow();
+            stage.getScene().setRoot(signupPage);
             stage.centerOnScreen();
         } catch (IOException e) {
             e.printStackTrace();
+            System.err.println("Error loading Signup.fxml");
         }
     }
 
-    private void showError(String message) {
-        Alert alert = new Alert(Alert.AlertType.ERROR);
-        alert.setTitle("Error");
-        alert.setContentText(message);
-        alert.show();
+    /**
+     * Navigate to login page after successful registration
+     */
+    private void navigateToLogin() throws Exception {
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("/MVP/Login.fxml"));
+        Parent loginPage = loader.load();
+        Stage stage = (Stage) completeRegistrationButton.getScene().getWindow();
+        stage.getScene().setRoot(loginPage);
+        stage.setWidth(800);
+        stage.setHeight(600);
+        stage.centerOnScreen();
     }
 
-    private void showSuccess(String message) {
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle("Success");
-        alert.setHeaderText("Verification Successful");
-        alert.setContentText(message);
-        alert.showAndWait();
+    /**
+     * Show loading animation on button
+     */
+    private void showLoadingAnimation() {
+        completeRegistrationButton.getStyleClass().add("loading");
+        completeRegistrationButton.setText("Registering...");
+        completeRegistrationButton.setDisable(true);
     }
 
-    public static void main(String[] args) {
-        launch(args);
+    /**
+     * Show success message
+     */
+    private void showSuccessMessage(String message) {
+        completeRegistrationButton.setText("Success!");
+        completeRegistrationButton.setStyle("-fx-background-color: #4CAF50; -fx-text-fill: white;");
+        Platform.runLater(() -> {
+            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+            alert.setTitle("Success");
+            alert.setHeaderText("Doctor Registration Complete");
+            alert.setContentText(message);
+            alert.show();
+        });
+    }
+
+    /**
+     * Shake animation for errors
+     */
+    private void showErrorAnimation() {
+        if (mainCard == null) return;
+        TranslateTransition shake = new TranslateTransition(Duration.millis(50), mainCard);
+        shake.setByX(10);
+        shake.setCycleCount(4);
+        shake.setAutoReverse(true);
+        shake.play();
+    }
+
+    /**
+     * Start page entrance animations
+     */
+    private void startPageAnimations() {
+        if (mainCard == null) return;
+
+        FadeTransition cardFade = new FadeTransition(Duration.millis(800), mainCard);
+        cardFade.setFromValue(0.0);
+        cardFade.setToValue(1.0);
+
+        TranslateTransition cardSlide = new TranslateTransition(Duration.millis(800), mainCard);
+        cardSlide.setFromY(-20);
+        cardSlide.setToY(0);
+
+        new ParallelTransition(cardFade, cardSlide).play();
     }
 }

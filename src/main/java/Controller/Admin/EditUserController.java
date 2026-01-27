@@ -1,8 +1,5 @@
 package Controller.Admin;
 
-import CommonModel.SessionManager;
-import CommonModel.UserRow;
-import DAO.DatabaseConnection;
 import DAO.RecordDAO;
 import MVP.Login;
 import javafx.event.ActionEvent;
@@ -11,136 +8,339 @@ import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.scene.Node;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
-import javafx.scene.control.ComboBox;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 import javafx.stage.Stage;
 
 import java.io.IOException;
 import java.net.URL;
+import java.time.LocalDate;
 import java.util.ResourceBundle;
+import java.util.regex.Pattern;
 
+/**
+ * EditUserController - Handles editing existing users
+ */
 public class EditUserController implements Initializable {
 
-    @FXML private TextField userNameField;
-    @FXML private TextField iDField;
-    @FXML private TextField userPasswordField;
+    @FXML private Label userIdLabel;
+    @FXML private Label roleLabel;
+    @FXML private TextField nameField;
     @FXML private TextField emailField;
-    @FXML private TextField numberField;
-    @FXML private TextField bDayField;
-    @FXML private TextField locField;
+    @FXML private TextField phoneField;
+    @FXML private DatePicker birthdayPicker;
+    @FXML private TextField addressField;
+    @FXML private ComboBox<String> specializationCombo;
+    @FXML private TextArea biographyArea;
+    @FXML private Button saveButton;
+    @FXML private Button cancelButton;
 
-
-    private UserRow user;
-    private RecordDAO recordDAO;
+    private UserRow currentUser;
+    private ManageUsersController manageUsersController;
+    private static final Pattern EMAIL_PATTERN = Pattern.compile("^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$");
 
     @Override
-    public void initialize(URL url, ResourceBundle resourceBundle) {
-        recordDAO = new RecordDAO(DatabaseConnection.getConnection());
+    public void initialize(URL location, ResourceBundle resources) {
+        System.out.println("[DEBUG] EditUserController initialize()");
+
+        setupSpecializationCombo();
+
+        // Check FXML injections
+        if (nameField == null || emailField == null || phoneField == null) {
+            System.err.println("[ERROR] One or more FXML fields are NULL (FXML mismatch?)");
+        }
     }
 
+
+    /**
+     * Set the user to edit
+     */
     public void setUser(UserRow user) {
-        this.user = user;
-
-        userNameField.setText(user.getName());
-        iDField.setText(String.valueOf(user.getId()));
-        iDField.setDisable(true);
-
-        userPasswordField.setText(user.getPassword());
-
-        emailField.setText(user.getEmail());
-        emailField.setDisable(true);
-
-        numberField.setText(user.getPhone());
-        numberField.setDisable(true);
-
-        locField.setText(user.getAddress());
-        locField.setDisable(true);
-
-        bDayField.setText(user.getBday());
-        bDayField.setDisable(true);
-    }
-
-    @FXML
-    private void handleSave() {
-
-        System.out.println("=== EDIT USER DEBUG START ===");
+        System.out.println("[DEBUG] setUser() called");
 
         if (user == null) {
-            System.out.println("❌ User object is NULL");
+            System.err.println("[ERROR] setUser() received NULL user");
             return;
         }
 
-        System.out.println("User ID   : " + user.getId());
-        System.out.println("User Role : " + user.getRole());
-        System.out.println("Name Input: '" + userNameField.getText() + "'");
+        this.currentUser = user;
+        System.out.println("[DEBUG] Editing user ID=" + user.getId() + ", role=" + user.getRole());
 
-        boolean success = false;
+        populateFields();
+    }
 
-        try {
-            if ("PATIENT".equals(user.getRole())) {
 
-                System.out.println("Calling updatePatient(...)");
+    /**
+     * Set reference to parent controller
+     */
+    public void setManageUsersController(ManageUsersController controller) {
+        System.out.println("[DEBUG] Parent ManageUsersController injected");
 
-                success = recordDAO.updatePatient(
-                        user.getId(),
-                        userNameField.getText()
-                );
-
-            } else {
-
-                System.out.println("Calling updateDoctor(...)");
-                System.out.println("Password Input: '" + userPasswordField.getText() + "'");
-
-                success = recordDAO.updateDoctor(
-                        user.getId(),
-                        userNameField.getText()
-                );
-            }
-
-            System.out.println("DAO returned: " + success);
-
-        } catch (Exception e) {
-            System.out.println("❌ Exception during update:");
-            e.printStackTrace();
+        if (controller == null) {
+            System.err.println("[WARN] manageUsersController is NULL");
         }
+
+        this.manageUsersController = controller;
+    }
+
+
+    /**
+     * Setup specialization dropdown
+     */
+    private void setupSpecializationCombo() {
+        System.out.println("[DEBUG] Setting up specialization combo");
+
+        if (specializationCombo == null) {
+            System.err.println("[WARN] specializationCombo is NULL (probably patient edit)");
+            return;
+        }
+
+        specializationCombo.getItems().addAll(
+                "General Medicine", "Cardiology", "Dermatology", "Emergency Medicine",
+                "Endocrinology", "Family Medicine", "Gastroenterology", "Hematology",
+                "Internal Medicine", "Neurology", "Obstetrics & Gynecology", "Oncology",
+                "Ophthalmology", "Orthopedics", "Pediatrics", "Psychiatry", "Surgery", "Other"
+        );
+
+        System.out.println("[DEBUG] specializationCombo populated");
+    }
+    /**
+     * Populate form fields with user data
+     */
+    private void populateFields() {
+        System.out.println("[DEBUG] Populating form fields");
+
+        if (currentUser == null) {
+            System.err.println("[ERROR] currentUser is NULL");
+            return;
+        }
+
+        if (userIdLabel != null) {
+            userIdLabel.setText(String.valueOf(currentUser.getId()));
+        } else {
+            System.err.println("[WARN] userIdLabel is NULL (FXML mismatch?)");
+        }
+
+        if (roleLabel != null) {
+            roleLabel.setText("Role: " + currentUser.getRole());
+        }
+
+        if (nameField != null) {
+            nameField.setText(currentUser.getName());
+        }
+
+        if (emailField != null) {
+            emailField.setText(currentUser.getEmail());
+        }
+
+        if (phoneField != null) {
+            phoneField.setText(currentUser.getPhone());
+        }
+
+        // Birthday
+        if (birthdayPicker != null &&
+                currentUser.getBirthday() != null &&
+                !currentUser.getBirthday().isEmpty()) {
+            try {
+                birthdayPicker.setValue(LocalDate.parse(currentUser.getBirthday()));
+            } catch (Exception e) {
+                System.err.println("[WARN] Invalid birthday format: " + currentUser.getBirthday());
+            }
+        }
+
+        boolean isDoctor = "DOCTOR".equals(currentUser.getRole());
+        System.out.println("[DEBUG] isDoctor = " + isDoctor);
+
+        if (addressField != null) {
+            addressField.setVisible(isDoctor);
+            addressField.setManaged(isDoctor);
+            addressField.setText(currentUser.getAddress());
+        }
+
+        if (specializationCombo != null) {
+            specializationCombo.setVisible(isDoctor);
+            specializationCombo.setManaged(isDoctor);
+        }
+
+        if (biographyArea != null) {
+            biographyArea.setVisible(isDoctor);
+            biographyArea.setManaged(isDoctor);
+        }
+
+        if (isDoctor && manageUsersController != null) {
+            loadDoctorDetails();
+        }
+    }
+
+    /**
+     * Load additional doctor details
+     */
+    private void loadDoctorDetails() {
+        System.out.println("[DEBUG] Loading doctor-specific details");
+
+        if (manageUsersController == null) {
+            System.err.println("[ERROR] manageUsersController is NULL");
+            return;
+        }
+
+        RecordDAO dao = manageUsersController.getRecordDAO();
+        CommonModel.DoctorModel doctor = dao.getDoctorById(currentUser.getId());
+
+        if (doctor == null) {
+            System.err.println("[WARN] No doctor record found for ID=" + currentUser.getId());
+            return;
+        }
+
+        System.out.println("[DEBUG] Doctor details loaded");
+
+        specializationCombo.setValue(doctor.specialization);
+        biographyArea.setText(doctor.biography);
+        addressField.setText(doctor.address);
+    }
+
+    /**
+     * Handle save button
+     */
+    @FXML
+    private void handleSave(ActionEvent event) {
+        System.out.println("[DEBUG] Save button clicked");
+
+        if (!validateForm()) {
+            System.err.println("[WARN] Form validation failed");
+            showAlert(Alert.AlertType.WARNING, "Validation Error", "Please fill in all required fields correctly.");
+            return;
+        }
+
+        boolean success;
+
+        if ("PATIENT".equals(currentUser.getRole())) {
+            System.out.println("[DEBUG] Updating PATIENT");
+            success = updatePatient();
+        } else if ("DOCTOR".equals(currentUser.getRole())) {
+            System.out.println("[DEBUG] Updating DOCTOR");
+            success = updateDoctor();
+        } else {
+            System.err.println("[ERROR] Unsupported role: " + currentUser.getRole());
+            showAlert(Alert.AlertType.ERROR, "Error", "Cannot edit admin users.");
+            return;
+        }
+
+        System.out.println("[DEBUG] Update success = " + success);
 
         if (success) {
-            System.out.println("✅ Update SUCCESS");
+            showAlert(Alert.AlertType.INFORMATION, "Success", "Edited Successfully");
+            manageUsersController.refreshTable();
+            handleCancel(event);
         } else {
-            System.out.println("❌ Update FAILED");
+            showAlert(Alert.AlertType.ERROR, "Error", "Failed to update user.");
+        }
+    }
+
+
+    /**
+     * Update patient information
+     */
+    private boolean updatePatient() {
+        System.out.println("[DEBUG] updatePatient() called");
+
+        return manageUsersController.getRecordDAO().updatePatient(
+                currentUser.getId(),
+                nameField.getText().trim(),
+                emailField.getText().trim(),
+                phoneField.getText().trim(),
+                birthdayPicker.getValue().toString()
+        );
+    }
+
+    /**
+     * Update doctor information
+     */
+    private boolean updateDoctor() {
+        System.out.println("[DEBUG] updateDoctor() called");
+
+        return manageUsersController.getRecordDAO().updateDoctor(
+                currentUser.getId(),
+                nameField.getText().trim(),
+                emailField.getText().trim(),
+                phoneField.getText().trim(),
+                specializationCombo.getValue(),
+                biographyArea.getText().trim(),
+                addressField.getText().trim()
+        );
+    }
+
+
+    /**
+     * Validate form fields
+     */
+    private boolean validateForm() {
+        System.out.println("[DEBUG] Validating form");
+
+        if (nameField.getText().isBlank()) return false;
+        if (!EMAIL_PATTERN.matcher(emailField.getText().trim()).matches()) return false;
+        if (phoneField.getText().isBlank()) return false;
+        if (birthdayPicker.getValue() == null) return false;
+
+        if ("DOCTOR".equals(currentUser.getRole())) {
+            if (specializationCombo.getValue() == null) return false;
+            if (addressField.getText().isBlank()) return false;
         }
 
-        System.out.println("=== EDIT USER DEBUG END ===");
+        return true;
     }
 
-
-
-    private void closeWindow() {
-        Stage stage = (Stage) userNameField.getScene().getWindow();
-        stage.close();
-    }
-
-    public void handleNavigation(ActionEvent event) {
-        Button clickedButton = (Button) event.getSource();
-        String id = clickedButton.getId();
-
-        String targetFxml = switch (id) {
-            case "settingsButton" -> "Settings.fxml";
-            case "backButton" -> "ManageUsers.fxml";
-            default -> null;
-        };
-
-        if (targetFxml == null) return;
+    /**
+     * Handle cancel button
+     */
+    @FXML
+    private void handleCancel(ActionEvent event) {
+        System.out.println("[DEBUG] Cancel clicked, returning to ManageUsers");
 
         try {
-            FXMLLoader loader = new FXMLLoader(Login.class.getResource(targetFxml));
+            FXMLLoader loader = new FXMLLoader(Login.class.getResource("ManageUsers.fxml"));
             Scene scene = new Scene(loader.load(), 1280, 768);
             Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
             stage.setScene(scene);
             stage.show();
         } catch (IOException e) {
+            System.err.println("[ERROR] Failed to return to ManageUsers.fxml");
             e.printStackTrace();
+        }
+    }
+
+    /**
+     * Show alert dialog
+     */
+    private void showAlert(Alert.AlertType type, String title, String content) {
+        Alert alert = new Alert(type);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(content);
+        alert.showAndWait();
+    }
+
+    @FXML
+    private void handleNavigation(ActionEvent event) {
+        System.out.println("[DEBUG] Navigation clicked inside EditUser");
+
+        Button clickedButton = (Button) event.getSource();
+        String id = clickedButton.getId();
+
+        String targetFxml = switch (id) {
+            case "backButton", "dashboardButton" -> "ManageUsers.fxml";
+            case "usersButton" -> "ManageUsers.fxml";
+            default -> null;
+        };
+
+        if (targetFxml != null) {
+            try {
+                FXMLLoader loader = new FXMLLoader(Login.class.getResource(targetFxml));
+                Scene scene = new Scene(loader.load(), 1280, 768);
+                Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
+                stage.setScene(scene);
+                stage.show();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
 
