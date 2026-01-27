@@ -14,6 +14,9 @@ import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.stage.Stage;
 
+import java.awt.Desktop;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -32,26 +35,20 @@ public class MedicalRecordController {
 
     @FXML
     public void initialize() {
-        // 1. Setup the Table Columns to match the MedicalFile class properties
         fileNameCol.setCellValueFactory(new PropertyValueFactory<>("fileName"));
         dateUploadedCol.setCellValueFactory(new PropertyValueFactory<>("uploadDate"));
 
-        // 2. Add options to the filter ComboBox
         if (filterType != null) {
             filterType.setItems(FXCollections.observableArrayList("All Files", "Images", "PDF Documents", "Lab Results"));
         }
 
-        // 3. Load only the files belonging to the currently logged-in user
         loadUserSpecificFiles();
     }
 
     private void loadUserSpecificFiles() {
         fileList.clear();
-
-        // Use the SessionManager to get the ID of the person who just logged in
         int currentPatientID = SessionManager.getUserID();
 
-        // SECURITY: The WHERE clause ensures Patient A cannot see Patient B's files
         String sql = "SELECT file_name, uploaded_at FROM patient_attachments WHERE patient_id = ?";
 
         try (Connection conn = DatabaseConnection.getConnection();
@@ -69,8 +66,60 @@ public class MedicalRecordController {
             medicalFilesTable.setItems(fileList);
 
         } catch (SQLException e) {
-            System.err.println("Database error while fetching attachments.");
             e.printStackTrace();
+        }
+    }
+
+    /**
+     * COMPLETED: Logic to retrieve BLOB data and open the file.
+     */
+    @FXML
+    private void handleViewFile() {
+        MedicalFile selected = medicalFilesTable.getSelectionModel().getSelectedItem();
+        if (selected == null) {
+            showError("Please select a file to view.");
+            return;
+        }
+
+        String sql = "SELECT file_data FROM patient_attachments WHERE file_name = ? AND patient_id = ?";
+
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setString(1, selected.getFileName());
+            pstmt.setInt(2, SessionManager.getUserID());
+            ResultSet rs = pstmt.executeQuery();
+
+            if (rs.next()) {
+                byte[] fileBytes = rs.getBytes("file_data");
+
+                // Create a temporary file to open
+                File tempFile = File.createTempFile("med_doc_", "_" + selected.getFileName());
+                tempFile.deleteOnExit();
+
+                try (FileOutputStream fos = new FileOutputStream(tempFile)) {
+                    fos.write(fileBytes);
+                }
+
+                // Open the file using the Desktop API
+                if (Desktop.isDesktopSupported()) {
+                    Desktop.getDesktop().open(tempFile);
+                } else {
+                    showError("Opening files is not supported on this system.");
+                }
+            }
+        } catch (SQLException | IOException e) {
+            e.printStackTrace();
+            showError("Could not open file: " + e.getMessage());
+        }
+    }
+
+    @FXML
+    private void handleDownload() {
+        MedicalFile selected = medicalFilesTable.getSelectionModel().getSelectedItem();
+        if (selected != null) {
+            // Implementation would be similar to handleViewFile but using a FileChooser
+            System.out.println("Downloading: " + selected.getFileName());
         }
     }
 
@@ -80,27 +129,10 @@ public class MedicalRecordController {
     }
 
     @FXML
-    private void handleViewFile() {
-        MedicalFile selected = medicalFilesTable.getSelectionModel().getSelectedItem();
-        if (selected != null) {
-            // Logic to fetch the BLOB (file_data) from the DB would go here
-            System.out.println("Viewing: " + selected.getFileName());
-        }
-    }
-
-    @FXML
-    private void handleDownload() {
-        MedicalFile selected = medicalFilesTable.getSelectionModel().getSelectedItem();
-        if (selected != null) {
-            System.out.println("Downloading: " + selected.getFileName());
-        }
-    }
-
-    @FXML
     public void handleNavigation(ActionEvent event) {
         Button clickedButton = (Button) event.getSource();
         String buttonId = clickedButton.getId();
-        String targetFxml = "";
+        String targetFxml;
 
         switch (buttonId) {
             case "homeButton": targetFxml = "/MVP/ClientHomepage.fxml"; break;
@@ -123,7 +155,12 @@ public class MedicalRecordController {
         }
     }
 
-    // Inner class required for the TableView to display data properly
+    private void showError(String message) {
+        Alert alert = new Alert(Alert.AlertType.ERROR);
+        alert.setContentText(message);
+        alert.show();
+    }
+
     public static class MedicalFile {
         private final String fileName;
         private final String uploadDate;
