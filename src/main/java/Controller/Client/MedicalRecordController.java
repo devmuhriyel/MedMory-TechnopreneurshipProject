@@ -1,173 +1,149 @@
 package Controller.Client;
 
 import DAO.DatabaseConnection;
-import DAO.RecordDAO;
-import CommonModel.MedicalRecord;
 import MVP.Login;
 import CommonModel.SessionManager;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.stage.Stage;
 
 import java.io.IOException;
 import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 
 public class MedicalRecordController {
 
-    @FXML private TextField patientNameField;
-    @FXML private TextField ageField;
-    @FXML private TextArea subjField;
-    @FXML private TextArea ccField;
-    @FXML private TextArea hpiField;
-    @FXML private TextField onsetField;
-    @FXML private TextField locationField;
-    @FXML private TextField durationField;
-    @FXML private TextField characField;
-    @FXML private TextField factorsField;
-    @FXML private TextField radiationField;
-    @FXML private TextField severityField;
-    @FXML private TextArea pmiField;
-    @FXML private TextArea medField;
-    @FXML private TextArea allergiesField;
-    @FXML private TextArea fhField;
-    @FXML private TextArea shField;
-    @FXML private TextArea rosField;
+    // FXML Injections matching your new Table-based UI
+    @FXML private TableView<MedicalFile> medicalFilesTable;
+    @FXML private TableColumn<MedicalFile, String> fileNameCol;
+    @FXML private TableColumn<MedicalFile, String> dateUploadedCol;
+    @FXML private TextField searchField;
+    @FXML private ComboBox<String> filterType;
 
-    private RecordDAO recordDAO;
-    private int patientID;
+    private ObservableList<MedicalFile> fileList = FXCollections.observableArrayList();
 
     @FXML
     public void initialize() {
-        Connection conn = DatabaseConnection.getConnection();
-        recordDAO = new RecordDAO(conn);
+        // Setup table columns to match MedicalFile properties
+        fileNameCol.setCellValueFactory(new PropertyValueFactory<>("fileName"));
+        dateUploadedCol.setCellValueFactory(new PropertyValueFactory<>("uploadDate"));
 
-        // GET LOGGED-IN CLIENT
-        int userID = SessionManager.getUserID();
+        // Initialize ComboBox options
+        if (filterType != null) {
+            filterType.setItems(FXCollections.observableArrayList("All Categories", "Reports", "Prescriptions", "Lab Results"));
+        }
 
-        if (userID > 0) {
-            loadRecord(userID);
-        } else {
-            System.out.println("⚠ No user session found!");
+        // Load data for the logged-in user
+        loadMedicalFiles();
+    }
+
+    private void loadMedicalFiles() {
+        fileList.clear();
+        int patientID = SessionManager.getUserID(); // Retrieve current session ID
+
+        String query = "SELECT file_name, uploaded_at FROM patient_attachments WHERE patient_id = ?";
+
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(query)) {
+
+            pstmt.setInt(1, patientID);
+            ResultSet rs = pstmt.executeQuery();
+
+            while (rs.next()) {
+                fileList.add(new MedicalFile(
+                        rs.getString("file_name"),
+                        rs.getString("uploaded_at")
+                ));
+            }
+            medicalFilesTable.setItems(fileList);
+
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
     }
 
-    /**
-     * Optional: Allows the patient to submit/update their record info.
-     * Note: This adds a new entry to the Blockchain.
-     */
     @FXML
-    public void handleSaveRecord() {
-        try {
-            MedicalRecord record = new MedicalRecord();
+    private void handleRefresh() {
+        loadMedicalFiles();
+    }
 
-            record.setPatientID(patientID);
-            record.setPatientName(patientNameField.getText());
-            record.setAge(Integer.parseInt(ageField.getText()));
-
-            record.setSubj(subjField.getText());
-            record.setCc(ccField.getText());
-            record.setHpi(hpiField.getText());
-            record.setOnset(onsetField.getText());
-            record.setLocation(locationField.getText());
-            record.setDuration(durationField.getText());
-            record.setCharacter(characField.getText());
-            record.setFactors(factorsField.getText());
-            record.setRadiation(radiationField.getText());
-            record.setSeverity(severityField.getText());
-
-            record.setPmi(pmiField.getText());
-            record.setMed(medField.getText());
-            record.setAllergies(allergiesField.getText());
-            record.setFh(fhField.getText());
-            record.setSh(shField.getText());
-            record.setRos(rosField.getText());
-
-            // In a patient view, doctorID might be 0 or a default value
-            record.setDoctorID(0);
-
-            boolean success = recordDAO.insertRecord(record);
-
-            if (success) {
-                Alert alert = new Alert(Alert.AlertType.INFORMATION);
-                alert.setContentText("Your information has been updated and secured.");
-                alert.show();
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
+    @FXML
+    private void handleViewFile() {
+        MedicalFile selected = medicalFilesTable.getSelectionModel().getSelectedItem();
+        if (selected != null) {
+            System.out.println("Opening file: " + selected.getFileName());
+            // Logic to open/stream blob data from database goes here
+        } else {
+            showError("Please select a file to view.");
         }
     }
 
-    public void loadRecord(int patientID) {
-        this.patientID = patientID;
-
-        try {
-            MedicalRecord r = recordDAO.getRecordByPatientID(patientID);
-
-            if (r == null) {
-                clearForm();
-                return;
-            }
-
-            patientNameField.setText(r.getPatientName());
-            ageField.setText(String.valueOf(r.getAge()));
-            subjField.setText(r.getSubj());
-            ccField.setText(r.getCc());
-            hpiField.setText(r.getHpi());
-            onsetField.setText(r.getOnset());
-            locationField.setText(r.getLocation());
-            durationField.setText(r.getDuration());
-            characField.setText(r.getCharacter());
-            factorsField.setText(r.getFactors());
-            radiationField.setText(r.getRadiation());
-            severityField.setText(r.getSeverity());
-            pmiField.setText(r.getPmi());
-            medField.setText(r.getMed());
-            allergiesField.setText(r.getAllergies());
-            fhField.setText(r.getFh());
-            shField.setText(r.getSh());
-            rosField.setText(r.getRos());
-
-        } catch (Exception e) {
-            e.printStackTrace();
+    @FXML
+    private void handleDownload() {
+        MedicalFile selected = medicalFilesTable.getSelectionModel().getSelectedItem();
+        if (selected != null) {
+            System.out.println("Downloading file: " + selected.getFileName());
         }
     }
 
+    @FXML
     public void handleNavigation(ActionEvent event) {
         Button clickedButton = (Button) event.getSource();
         String buttonId = clickedButton.getId();
         String targetFxml = "";
 
+        // Updated mapping to match your navigation requirements
         switch (buttonId) {
-            case "homeButton": targetFxml = "ClientHomepage.fxml"; break;
-            case "accountButton": targetFxml = "ClientAccount.fxml"; break;
-            case "medicalRecordButton": targetFxml = "MedicalRecord.fxml"; break;
-            case "calendarButton": targetFxml = "ClientCalendar.fxml"; break;
-            case "chatsButton": targetFxml = "ClientChat.fxml"; break;
-            case "settingsButton": targetFxml = "ClientSettings.fxml"; break;
+            case "homeButton": targetFxml = "/MVP/ClientHomepage.fxml"; break;
+            case "accountButton": targetFxml = "/MVP/ClientAccount.fxml"; break;
+            case "medicalRecordButton": targetFxml = "/MVP/MedicalRecord.fxml"; break;
+            case "calendarButton": targetFxml = "/MVP/ClientCalendar.fxml"; break;
+            case "chatsButton": targetFxml = "/MVP/ClientChat.fxml"; break;
+            case "settingsButton": targetFxml = "/MVP/ClientSettings.fxml"; break;
             default: return;
         }
 
         try {
-            FXMLLoader fxmlLoader = new FXMLLoader(Login.class.getResource(targetFxml));
-            Scene scene = new Scene(fxmlLoader.load(), 1280, 768);
+            // Using absolute resource path with leading '/'
+            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource(targetFxml));
+            Scene scene = new Scene(fxmlLoader.load(), 1366, 768);
             Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
             stage.setScene(scene);
             stage.show();
-        } catch (IOException e) { e.printStackTrace(); }
+        } catch (IOException e) {
+            System.err.println("Failed to load: " + targetFxml);
+            e.printStackTrace();
+        }
     }
 
-    public void clearForm() {
-        patientNameField.clear();
-        ageField.clear();
-        subjField.clear(); ccField.clear(); hpiField.clear();
-        onsetField.clear(); locationField.clear(); durationField.clear();
-        characField.clear(); factorsField.clear(); radiationField.clear();
-        severityField.clear(); pmiField.clear(); medField.clear();
-        allergiesField.clear(); fhField.clear(); shField.clear(); rosField.clear();
+    private void showError(String message) {
+        Alert alert = new Alert(Alert.AlertType.WARNING);
+        alert.setTitle("Selection Required");
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        alert.showAndWait();
+    }
+
+    // Inner class for TableView data binding
+    public static class MedicalFile {
+        private final String fileName;
+        private final String uploadDate;
+
+        public MedicalFile(String fileName, String uploadDate) {
+            this.fileName = fileName;
+            this.uploadDate = uploadDate;
+        }
+
+        public String getFileName() { return fileName; }
+        public String getUploadDate() { return uploadDate; }
     }
 }
