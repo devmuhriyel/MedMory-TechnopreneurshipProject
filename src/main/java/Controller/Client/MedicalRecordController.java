@@ -22,7 +22,6 @@ import java.sql.SQLException;
 
 public class MedicalRecordController {
 
-    // FXML Injections matching your new Table-based UI
     @FXML private TableView<MedicalFile> medicalFilesTable;
     @FXML private TableColumn<MedicalFile, String> fileNameCol;
     @FXML private TableColumn<MedicalFile, String> dateUploadedCol;
@@ -33,29 +32,32 @@ public class MedicalRecordController {
 
     @FXML
     public void initialize() {
-        // Setup table columns to match MedicalFile properties
+        // 1. Setup the Table Columns to match the MedicalFile class properties
         fileNameCol.setCellValueFactory(new PropertyValueFactory<>("fileName"));
         dateUploadedCol.setCellValueFactory(new PropertyValueFactory<>("uploadDate"));
 
-        // Initialize ComboBox options
+        // 2. Add options to the filter ComboBox
         if (filterType != null) {
-            filterType.setItems(FXCollections.observableArrayList("All Categories", "Reports", "Prescriptions", "Lab Results"));
+            filterType.setItems(FXCollections.observableArrayList("All Files", "Images", "PDF Documents", "Lab Results"));
         }
 
-        // Load data for the logged-in user
-        loadMedicalFiles();
+        // 3. Load only the files belonging to the currently logged-in user
+        loadUserSpecificFiles();
     }
 
-    private void loadMedicalFiles() {
+    private void loadUserSpecificFiles() {
         fileList.clear();
-        int patientID = SessionManager.getUserID(); // Retrieve current session ID
 
-        String query = "SELECT file_name, uploaded_at FROM patient_attachments WHERE patient_id = ?";
+        // Use the SessionManager to get the ID of the person who just logged in
+        int currentPatientID = SessionManager.getUserID();
+
+        // SECURITY: The WHERE clause ensures Patient A cannot see Patient B's files
+        String sql = "SELECT file_name, uploaded_at FROM patient_attachments WHERE patient_id = ?";
 
         try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(query)) {
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
-            pstmt.setInt(1, patientID);
+            pstmt.setInt(1, currentPatientID);
             ResultSet rs = pstmt.executeQuery();
 
             while (rs.next()) {
@@ -67,23 +69,22 @@ public class MedicalRecordController {
             medicalFilesTable.setItems(fileList);
 
         } catch (SQLException e) {
+            System.err.println("Database error while fetching attachments.");
             e.printStackTrace();
         }
     }
 
     @FXML
     private void handleRefresh() {
-        loadMedicalFiles();
+        loadUserSpecificFiles();
     }
 
     @FXML
     private void handleViewFile() {
         MedicalFile selected = medicalFilesTable.getSelectionModel().getSelectedItem();
         if (selected != null) {
-            System.out.println("Opening file: " + selected.getFileName());
-            // Logic to open/stream blob data from database goes here
-        } else {
-            showError("Please select a file to view.");
+            // Logic to fetch the BLOB (file_data) from the DB would go here
+            System.out.println("Viewing: " + selected.getFileName());
         }
     }
 
@@ -91,7 +92,7 @@ public class MedicalRecordController {
     private void handleDownload() {
         MedicalFile selected = medicalFilesTable.getSelectionModel().getSelectedItem();
         if (selected != null) {
-            System.out.println("Downloading file: " + selected.getFileName());
+            System.out.println("Downloading: " + selected.getFileName());
         }
     }
 
@@ -101,7 +102,6 @@ public class MedicalRecordController {
         String buttonId = clickedButton.getId();
         String targetFxml = "";
 
-        // Updated mapping to match your navigation requirements
         switch (buttonId) {
             case "homeButton": targetFxml = "/MVP/ClientHomepage.fxml"; break;
             case "accountButton": targetFxml = "/MVP/ClientAccount.fxml"; break;
@@ -113,27 +113,17 @@ public class MedicalRecordController {
         }
 
         try {
-            // Using absolute resource path with leading '/'
             FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource(targetFxml));
             Scene scene = new Scene(fxmlLoader.load(), 1366, 768);
             Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
             stage.setScene(scene);
             stage.show();
         } catch (IOException e) {
-            System.err.println("Failed to load: " + targetFxml);
             e.printStackTrace();
         }
     }
 
-    private void showError(String message) {
-        Alert alert = new Alert(Alert.AlertType.WARNING);
-        alert.setTitle("Selection Required");
-        alert.setHeaderText(null);
-        alert.setContentText(message);
-        alert.showAndWait();
-    }
-
-    // Inner class for TableView data binding
+    // Inner class required for the TableView to display data properly
     public static class MedicalFile {
         private final String fileName;
         private final String uploadDate;

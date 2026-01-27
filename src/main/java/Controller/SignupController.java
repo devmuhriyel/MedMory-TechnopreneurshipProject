@@ -1,5 +1,6 @@
 package Controller;
 
+import DAO.DatabaseConnection;
 import MVP.Login;
 import javafx.animation.*;
 import javafx.application.Platform;
@@ -17,6 +18,9 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 import java.io.IOException;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.regex.Pattern;
 
@@ -43,29 +47,16 @@ public class SignupController {
     public void handleNavigation(ActionEvent event) {
         Button clickedButton = (Button) event.getSource();
         String id = clickedButton.getId();
-
         String targetFxml;
 
         switch (id) {
-            case "accountButton":
-                targetFxml = "DoctorAccount.fxml";
-                break;
+            case "accountButton": targetFxml = "DoctorAccount.fxml"; break;
             case "records":
-            case "recordsButton":
-                targetFxml = "ViewMedicalRecordList.fxml";
-                break;
-            case "casesButton":
-                targetFxml = "Patient.fxml";
-                break;
-            case "calendarButton":
-                targetFxml = "Calendar.fxml";
-                break;
-            case "chatButton":
-                targetFxml = "Chat.fxml";
-                break;
-            case "settingsButton":
-                targetFxml = "DoctorSettings.fxml";
-                break;
+            case "recordsButton": targetFxml = "ViewMedicalRecordList.fxml"; break;
+            case "casesButton": targetFxml = "Patient.fxml"; break;
+            case "calendarButton": targetFxml = "Calendar.fxml"; break;
+            case "chatButton": targetFxml = "Chat.fxml"; break;
+            case "settingsButton": targetFxml = "DoctorSettings.fxml"; break;
             default:
                 System.out.println("Unknown navigation button: " + id);
                 return;
@@ -74,17 +65,13 @@ public class SignupController {
         try {
             FXMLLoader loader = new FXMLLoader(Login.class.getResource(targetFxml));
             Scene scene = new Scene(loader.load(), 1280, 768);
-
             Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
             stage.setScene(scene);
             stage.show();
-
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
-
-
 
     @FXML
     private void initialize() {
@@ -108,13 +95,8 @@ public class SignupController {
         Platform.runLater(this::startPageAnimations);
     }
 
-    /**
-     * Navigates to the Doctor Validation screen after validating the form
-     * and passing the user data to the next controller.
-     */
     @FXML
     private void handleDoctorSignupLink(ActionEvent event) {
-        // If they use the doctor path, ensure Doctor is selected (UX-friendly)
         if (doctorRadio != null) doctorRadio.setSelected(true);
 
         if (!validateForm(true)) {
@@ -145,10 +127,7 @@ public class SignupController {
             stage.centerOnScreen();
         } catch (IOException e) {
             e.printStackTrace();
-            System.err.println("Error loading Validation.fxml. Check your file paths.");
         }
-
-
     }
 
     @FXML
@@ -165,12 +144,21 @@ public class SignupController {
 
         showLoadingAnimation();
 
-        // Data processing for standard Patient registration
         String fullName = firstNameField.getText().trim() + " " + lastNameField.getText().trim();
         String pass = passwordField.getText();
+        String email = emailField.getText().trim();
+        String phone = phoneField.getText().trim();
+        String loc = locationField.getText().trim();
+        String type = (doctorRadio != null && doctorRadio.isSelected()) ? "Doctor" : "Patient";
 
-        // Placeholder for Patient DAO registration logic
-        boolean isSaved = LoginService.registerUser(fullName, pass);
+        // FIX: Convert ComboBox values to YYYY-MM-DD format for MySQL DATE column
+        int monthIndex = birthMonthCombo.getSelectionModel().getSelectedIndex() + 1;
+        String bday = String.format("%d-%02d-%02d",
+                birthYearCombo.getValue(),
+                monthIndex,
+                birthDayCombo.getValue());
+
+        boolean isSaved = registerUserInDatabase(fullName, pass, phone, type, email, bday, loc);
 
         Timeline createProcess = new Timeline(new KeyFrame(Duration.millis(2000), event -> {
             createAccountButton.getStyleClass().remove("loading");
@@ -193,10 +181,32 @@ public class SignupController {
         createProcess.play();
     }
 
+    private boolean registerUserInDatabase(String name, String pass, String phone, String type, String email, String bday, String loc) {
+        // Using 'contact_number' and 'user_type' to match your schema
+        String sql = "INSERT INTO users (name, password, contact_number, user_type, email, birthday, location) VALUES (?, ?, ?, ?, ?, ?, ?)";
+
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setString(1, name);
+            pstmt.setString(2, pass);
+            pstmt.setString(3, phone);
+            pstmt.setString(4, type);
+            pstmt.setString(5, email);
+            pstmt.setString(6, bday); // Correct YYYY-MM-DD string
+            pstmt.setString(7, loc);
+
+            return pstmt.executeUpdate() > 0;
+        } catch (SQLException e) {
+            System.err.println("SQL Error: " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        }
+    }
+
     private boolean validateForm(boolean forDoctorFlow) {
         boolean isValid = true;
 
-        // Required text fields
         TextField[] fields = { firstNameField, lastNameField, emailField, phoneField, locationField };
         for (TextField field : fields) {
             if (field == null || field.getText() == null || field.getText().trim().isEmpty()) {
@@ -205,7 +215,6 @@ public class SignupController {
             }
         }
 
-        // Birthday dropdown validation
         if (!isBirthdaySelected()) {
             if (birthMonthCombo != null) highlightField(birthMonthCombo);
             if (birthDayCombo != null) highlightField(birthDayCombo);
@@ -213,7 +222,6 @@ public class SignupController {
             isValid = false;
         }
 
-        // Email format
         if (emailField != null && emailField.getText() != null && !emailField.getText().trim().isEmpty()) {
             if (!EMAIL_PATTERN.matcher(emailField.getText().trim()).matches()) {
                 highlightField(emailField);
@@ -221,34 +229,10 @@ public class SignupController {
             }
         }
 
-        // Phone number basic validation (digits only, reasonable length)
-        if (phoneField != null && phoneField.getText() != null && !phoneField.getText().trim().isEmpty()) {
-            String digits = phoneField.getText().replaceAll("\\D", "");
-            if (digits.length() < 10) {
-                highlightField(phoneField);
-                isValid = false;
-            }
-        }
-
-        // Password validation: min 6 characters (requested "6 digit not 3")
-        if (passwordField == null || passwordField.getText() == null || passwordField.getText().trim().isEmpty()) {
-            if (passwordField != null) highlightField(passwordField);
-            isValid = false;
-        } else if (passwordField.getText().length() < 6) {
-            highlightField(passwordField);
-            isValid = false;
-        }
-
-        if (confirmPasswordField == null || confirmPasswordField.getText() == null || confirmPasswordField.getText().trim().isEmpty()) {
-            if (confirmPasswordField != null) highlightField(confirmPasswordField);
-            isValid = false;
-        } else if (passwordField != null && !passwordField.getText().equals(confirmPasswordField.getText())) {
-            highlightField(passwordField);
+        if (passwordField == null || passwordField.getText().length() < 6 || !passwordField.getText().equals(confirmPasswordField.getText())) {
             highlightField(confirmPasswordField);
             isValid = false;
         }
-
-        // Specialization is now handled in the Validation screen, not required here
 
         if (!consentCheck1.isSelected() || !consentCheck2.isSelected() || !consentCheck3.isSelected()) {
             animateConsentCheckboxes();
@@ -281,8 +265,6 @@ public class SignupController {
         for (int y = currentYear; y >= 1900; y--) birthYearCombo.getItems().add(y);
     }
 
-
-
     private void highlightField(Control field) {
         field.setStyle("-fx-border-color: #f44336; -fx-border-width: 2px; -fx-border-radius: 5px;");
         Timeline removeError = new Timeline(new KeyFrame(Duration.millis(3000), e -> {
@@ -290,8 +272,6 @@ public class SignupController {
         }));
         removeError.play();
     }
-
-    // --- Navigation and Animations ---
 
     private void navigateToLogin() throws Exception {
         FXMLLoader loader = new FXMLLoader(getClass().getResource("/MVP/Login.fxml"));
@@ -303,43 +283,28 @@ public class SignupController {
         stage.centerOnScreen();
     }
 
-    @FXML
-    private void handleCancel() {
-        try { navigateToLogin(); } catch (Exception e) { e.printStackTrace(); }
-    }
-
-    private void showLoadingAnimation() {
-        createAccountButton.getStyleClass().add("loading");
-        createAccountButton.setText("Registering...");
-    }
-
-    private void showSuccessMessage(String message) {
+    @FXML private void handleCancel() { try { navigateToLogin(); } catch (Exception e) { e.printStackTrace(); } }
+    private void showLoadingAnimation() { createAccountButton.getStyleClass().add("loading"); createAccountButton.setText("Registering..."); }
+    private void showSuccessMessage(String m) {
         createAccountButton.setText("Success!");
         createAccountButton.setStyle("-fx-background-color: #4CAF50; -fx-text-fill: white;");
         Platform.runLater(() -> {
             Alert alert = new Alert(Alert.AlertType.INFORMATION);
-            alert.setContentText(message);
+            alert.setContentText(m);
             alert.show();
         });
     }
 
     private void showErrorAnimation() {
         TranslateTransition shake = new TranslateTransition(Duration.millis(50), mainCard);
-        shake.setByX(10);
-        shake.setCycleCount(4);
-        shake.setAutoReverse(true);
-        shake.play();
+        shake.setByX(10); shake.setCycleCount(4); shake.setAutoReverse(true); shake.play();
     }
 
     private void animateConsentCheckboxes() {
         for (CheckBox cb : new CheckBox[]{consentCheck1, consentCheck2, consentCheck3}) {
             if (!cb.isSelected()) {
                 ScaleTransition pulse = new ScaleTransition(Duration.millis(200), cb);
-                pulse.setToX(1.2);
-                pulse.setToY(1.2);
-                pulse.setCycleCount(2);
-                pulse.setAutoReverse(true);
-                pulse.play();
+                pulse.setToX(1.2); pulse.setToY(1.2); pulse.setCycleCount(2); pulse.setAutoReverse(true); pulse.play();
             }
         }
     }
@@ -347,11 +312,9 @@ public class SignupController {
     private void startPageAnimations() {
         if (mainCard == null) return;
         FadeTransition cardFade = new FadeTransition(Duration.millis(800), mainCard);
-        cardFade.setFromValue(0.0);
-        cardFade.setToValue(1.0);
+        cardFade.setFromValue(0.0); cardFade.setToValue(1.0);
         TranslateTransition cardSlide = new TranslateTransition(Duration.millis(800), mainCard);
-        cardSlide.setFromY(-20);
-        cardSlide.setToY(0);
+        cardSlide.setFromY(-20); cardSlide.setToY(0);
         new ParallelTransition(cardFade, cardSlide).play();
 
         Timeline pageAnimation = new Timeline();
@@ -368,45 +331,29 @@ public class SignupController {
         VBox welcomeSection = (VBox) mainCard.lookup(".welcome-section");
         if (welcomeSection != null) {
             FadeTransition fade = new FadeTransition(Duration.millis(500), welcomeSection);
-            fade.setFromValue(0.0);
-            fade.setToValue(1.0);
+            fade.setFromValue(0.0); fade.setToValue(1.0);
             TranslateTransition slide = new TranslateTransition(Duration.millis(500), welcomeSection);
-            slide.setFromX(-20);
-            slide.setToX(0);
+            slide.setFromX(-20); slide.setToX(0);
             new ParallelTransition(fade, slide).play();
         }
     }
 
     private void animateLogo() {
         if (logoContainer != null) {
-            for (int i = 0; i < logoContainer.getChildren().size(); i++) {
-                var child = logoContainer.getChildren().get(i);
+            for (Node child : logoContainer.getChildren()) {
                 FadeTransition fade = new FadeTransition(Duration.millis(300), child);
-                fade.setFromValue(0.0);
-                fade.setToValue(1.0);
-                TranslateTransition slide = new TranslateTransition(Duration.millis(300), child);
-                slide.setFromY(-10);
-                slide.setToY(0);
-                ParallelTransition pt = new ParallelTransition(fade, slide);
-                pt.setDelay(Duration.millis(i * 100));
-                pt.play();
+                fade.setFromValue(0.0); fade.setToValue(1.0);
+                fade.play();
             }
         }
     }
 
     private void animateFormFields() {
         if (formGrid != null) {
-            for (int i = 0; i < formGrid.getChildren().size(); i++) {
-                var child = formGrid.getChildren().get(i);
+            for (Node child : formGrid.getChildren()) {
                 FadeTransition fade = new FadeTransition(Duration.millis(300), child);
-                fade.setFromValue(0.0);
-                fade.setToValue(1.0);
-                TranslateTransition slide = new TranslateTransition(Duration.millis(300), child);
-                slide.setFromY(20);
-                slide.setToY(0);
-                ParallelTransition fieldAnim = new ParallelTransition(fade, slide);
-                fieldAnim.setDelay(Duration.millis(i * 50));
-                fieldAnim.play();
+                fade.setFromValue(0.0); fade.setToValue(1.0);
+                fade.play();
             }
         }
     }
@@ -414,12 +361,8 @@ public class SignupController {
     private void animateConsentSection() {
         if (consentContainer != null) {
             FadeTransition fade = new FadeTransition(Duration.millis(500), consentContainer);
-            fade.setFromValue(0.0);
-            fade.setToValue(1.0);
-            TranslateTransition slide = new TranslateTransition(Duration.millis(500), consentContainer);
-            slide.setFromY(30);
-            slide.setToY(0);
-            new ParallelTransition(fade, slide).play();
+            fade.setFromValue(0.0); fade.setToValue(1.0);
+            fade.play();
         }
     }
 }
