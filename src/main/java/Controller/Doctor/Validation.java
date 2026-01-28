@@ -192,24 +192,31 @@ public class Validation {
 
         // License field validation
         if (licenseField == null || licenseField.getText() == null || licenseField.getText().trim().isEmpty()) {
+            System.out.println("DEBUG: License field is empty");
             if (licenseField != null) highlightField(licenseField);
             isValid = false;
+        } else {
+            System.out.println("DEBUG: License = " + licenseField.getText().trim());
         }
 
         // Year field validation
         if (yearField == null || yearField.getText() == null || yearField.getText().trim().isEmpty()) {
+            System.out.println("DEBUG: Year field is empty");
             if (yearField != null) highlightField(yearField);
             isValid = false;
         } else {
-            // Validate year format (should be 4 digits and reasonable)
             String year = yearField.getText().trim();
+            System.out.println("DEBUG: Year = " + year);
             if (!year.matches("\\d{4}")) {
+                System.out.println("DEBUG: Year format invalid");
                 highlightField(yearField);
                 isValid = false;
             } else {
                 int yearInt = Integer.parseInt(year);
                 int currentYear = java.time.Year.now().getValue();
+                System.out.println("DEBUG: Year parsed = " + yearInt + ", current = " + currentYear);
                 if (yearInt < 1950 || yearInt > currentYear) {
+                    System.out.println("DEBUG: Year out of range");
                     highlightField(yearField);
                     isValid = false;
                 }
@@ -218,26 +225,16 @@ public class Validation {
 
         // Specialization validation
         if (specializationCombo == null || specializationCombo.getValue() == null) {
+            System.out.println("DEBUG: Specialization not selected");
             if (specializationCombo != null) highlightField(specializationCombo);
             isValid = false;
+        } else {
+            System.out.println("DEBUG: Specialization = " + specializationCombo.getValue());
         }
 
-        // Biography validation (optional but recommended)
-        if (biographyArea != null && (biographyArea.getText() == null || biographyArea.getText().trim().isEmpty())) {
-            highlightField(biographyArea);
-            // Don't fail validation, just highlight
-            Platform.runLater(() -> {
-                Alert alert = new Alert(Alert.AlertType.INFORMATION);
-                alert.setTitle("Biography Recommended");
-                alert.setHeaderText("Add Your Biography");
-                alert.setContentText("Adding a biography helps patients learn more about you and your experience.");
-                alert.show();
-            });
-        }
-
+        System.out.println("DEBUG: Validation result = " + isValid);
         return isValid;
     }
-
     /**
      * Highlight invalid field with red border
      */
