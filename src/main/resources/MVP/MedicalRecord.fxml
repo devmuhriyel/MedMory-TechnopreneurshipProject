@@ -59,23 +59,22 @@
             </padding>
 
             <VBox spacing="5">
-                <Label text="Medical Records" textFill="#202020">
+                <Label text="Medical Files" textFill="#202020">
                     <font><Font name="System Bold" size="30" /></font>
                 </Label>
-                <Label text="View your medical records and consultation history." textFill="#555555" />
+                <Label text="Search and view your uploaded medical documents and records." textFill="#555555" />
             </VBox>
 
             <HBox alignment="CENTER_LEFT" spacing="15" style="-fx-background-color: white; -fx-padding: 15; -fx-background-radius: 10;">
-                <TextField fx:id="searchField" onAction="#handleSearch" prefHeight="35.0" prefWidth="600.0" promptText="Search by record type, doctor, or notes..." style="-fx-background-radius: 5;" />
-                <ComboBox fx:id="filterType" onAction="#handleFilter" prefHeight="35.0" prefWidth="200.0" promptText="All Types" style="-fx-background-radius: 5;" />
+                <TextField fx:id="searchField" prefHeight="35.0" prefWidth="600.0" promptText="Search by file name or date..." style="-fx-background-radius: 5;" />
+                <ComboBox fx:id="filterType" prefHeight="35.0" prefWidth="200.0" promptText="All Categories" style="-fx-background-radius: 5;" />
                 <Button fx:id="refreshButton" onAction="#handleRefresh" prefHeight="35.0" prefWidth="100.0" style="-fx-background-color: #00BF63; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand;" text="Refresh" />
             </HBox>
 
-            <TableView fx:id="medicalRecordsTable" VBox.vgrow="ALWAYS" style="-fx-background-radius: 10;">
+            <TableView fx:id="medicalFilesTable" VBox.vgrow="ALWAYS" style="-fx-background-radius: 10;">
                 <columns>
-                    <TableColumn fx:id="recordTypeCol" prefWidth="200.0" text="Record Type" />
-                    <TableColumn fx:id="doctorNameCol" prefWidth="300.0" text="Doctor" />
-                    <TableColumn fx:id="createdAtCol" prefWidth="250.0" text="Date Created" />
+                    <TableColumn fx:id="fileNameCol" prefWidth="800.0" text="Document Name" />
+                    <TableColumn fx:id="dateUploadedCol" prefWidth="300.0" text="Date Uploaded" />
                 </columns>
                 <placeholder>
                     <Label text="No medical records found." />
@@ -83,7 +82,8 @@
             </TableView>
 
             <HBox alignment="CENTER_RIGHT" spacing="15">
-                <Button fx:id="viewRecordButton" onAction="#handleViewRecord" prefHeight="40.0" prefWidth="160.0" style="-fx-background-color: #3498db; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5; -fx-cursor: hand;" text="View Details" />
+                <Button fx:id="viewFileButton" onAction="#handleViewFile" prefHeight="40.0" prefWidth="160.0" style="-fx-background-color: #3498db; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5; -fx-cursor: hand;" text="View Document" />
+                <Button fx:id="downloadButton" onAction="#handleDownload" prefHeight="40.0" prefWidth="160.0" style="-fx-background-color: #2ecc71; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5; -fx-cursor: hand;" text="Download Copy" />
             </HBox>
         </VBox>
     </center>

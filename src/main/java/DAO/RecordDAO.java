@@ -19,16 +19,89 @@ public class RecordDAO {
     // ========================================
 
     /**
-     * Create a new medical record
+     * Create a new medical record with complete data
      */
-    public boolean createMedicalRecord(int patientId, int doctorId, String recordType, String notes) {
-        String sql = "INSERT INTO medical_records (patient_id, doctor_id, record_type, notes) VALUES (?, ?, ?, ?)";
+    public boolean createMedicalRecordComplete(MedicalRecordModel record) {
+        String sql = """
+        INSERT INTO medical_records (
+            patient_id, patient_name, age,
+            subjective, chief_complaint, history_present_illness,
+            onset, location, duration, characteristics,
+            aggravating_factors, radiation, severity,
+            past_medical_illness, medications, allergies,
+            family_history, social_history, review_of_systems,
+            doctor_id
+        ) VALUES (
+            ?, ?, ?,
+            ?, ?, ?,
+            ?, ?, ?, ?,
+            ?, ?, ?,
+            ?, ?, ?,
+            ?, ?, ?,
+            ?
+        )
+    """;
+
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, record.getPatientId());
+            ps.setString(2, record.getPatientName());
+            ps.setInt(3, record.getAge());
+            ps.setString(4, record.getSubjective());
+            ps.setString(5, record.getChiefComplaint());
+            ps.setString(6, record.getHistoryPresentIllness());
+            ps.setString(7, record.getOnset());
+            ps.setString(8, record.getLocation());
+            ps.setString(9, record.getDuration());
+            ps.setString(10, record.getCharacteristics());
+            ps.setString(11, record.getAggravatingFactors());
+            ps.setString(12, record.getRadiation());
+            ps.setString(13, record.getSeverity());
+            ps.setString(14, record.getPastMedicalIllness());
+            ps.setString(15, record.getMedications());
+            ps.setString(16, record.getAllergies());
+            ps.setString(17, record.getFamilyHistory());
+            ps.setString(18, record.getSocialHistory());
+            ps.setString(19, record.getReviewOfSystems());
+            ps.setInt(20, record.getDoctorId());
+
+            return ps.executeUpdate() > 0;
+
+        } catch (SQLException e) {
+            System.err.println("SQL Error in createMedicalRecordComplete: " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    /**
+     * Create a new medical record (backward compatibility - simple version)
+     */
+    public boolean createMedicalRecord(int patientId, int doctorId, String subjective) {
+        String sql = """
+        INSERT INTO medical_records (
+            patient_id, patient_name, age,
+            subjective, chief_complaint, history_present_illness,
+            onset, location, duration, characteristics,
+            aggravating_factors, radiation, severity,
+            past_medical_illness, medications, allergies,
+            family_history, social_history, review_of_systems,
+            doctor_id
+        ) VALUES (
+            ?, '', 0,
+            ?, '', '',
+            '', '', '', '',
+            '', '', '',
+            '', '', '',
+            '', '', '',
+            ?
+        )
+    """;
 
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, patientId);
-            ps.setInt(2, doctorId);
-            ps.setString(3, recordType);
-            ps.setString(4, notes);
+            ps.setString(2, subjective);
+            ps.setInt(3, doctorId);
+
             return ps.executeUpdate() > 0;
 
         } catch (SQLException e) {
@@ -39,22 +112,26 @@ public class RecordDAO {
     }
 
     /**
-     * Get all medical records for a patient
+     * Get all medical records for a patient - WITH ALL FIELDS
      */
     public List<MedicalRecordModel> getMedicalRecordsByPatient(int patientId) {
         List<MedicalRecordModel> records = new ArrayList<>();
 
         String sql = """
-            SELECT mr.record_id, mr.patient_id, mr.doctor_id, mr.record_type, mr.notes, mr.created_at,
-                   p_user.name as patient_name, d_user.name as doctor_name
-            FROM medical_records mr
-            INNER JOIN patients p ON mr.patient_id = p.patient_id
-            INNER JOIN users p_user ON p.patient_id = p_user.user_id
-            INNER JOIN doctors d ON mr.doctor_id = d.doctor_id
-            INNER JOIN users d_user ON d.doctor_id = d_user.user_id
-            WHERE mr.patient_id = ?
-            ORDER BY mr.created_at DESC
-        """;
+        SELECT mr.record_id, mr.patient_id, mr.patient_name, mr.age,
+               mr.subjective, mr.chief_complaint, mr.history_present_illness,
+               mr.onset, mr.location, mr.duration, mr.characteristics,
+               mr.aggravating_factors, mr.radiation, mr.severity,
+               mr.past_medical_illness, mr.medications, mr.allergies,
+               mr.family_history, mr.social_history, mr.review_of_systems,
+               mr.doctor_id, mr.created_at,
+               d_user.name AS doctor_name
+        FROM medical_records mr
+        LEFT JOIN doctors d ON mr.doctor_id = d.doctor_id
+        LEFT JOIN users d_user ON d.doctor_id = d_user.user_id
+        WHERE mr.patient_id = ?
+        ORDER BY mr.created_at DESC
+    """;
 
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, patientId);
@@ -64,15 +141,37 @@ public class RecordDAO {
                     MedicalRecordModel record = new MedicalRecordModel();
                     record.setRecordId(rs.getInt("record_id"));
                     record.setPatientId(rs.getInt("patient_id"));
-                    record.setDoctorId(rs.getInt("doctor_id"));
-                    record.setRecordType(rs.getString("record_type"));
-                    record.setNotes(rs.getString("notes"));
-                    record.setCreatedAt(rs.getString("created_at"));
                     record.setPatientName(rs.getString("patient_name"));
+                    record.setAge(rs.getInt("age"));
+                    record.setSubjective(rs.getString("subjective"));
+                    record.setChiefComplaint(rs.getString("chief_complaint"));
+                    record.setHistoryPresentIllness(rs.getString("history_present_illness"));
+                    record.setOnset(rs.getString("onset"));
+                    record.setLocation(rs.getString("location"));
+                    record.setDuration(rs.getString("duration"));
+                    record.setCharacteristics(rs.getString("characteristics"));
+                    record.setAggravatingFactors(rs.getString("aggravating_factors"));
+                    record.setRadiation(rs.getString("radiation"));
+                    record.setSeverity(rs.getString("severity"));
+                    record.setPastMedicalIllness(rs.getString("past_medical_illness"));
+                    record.setMedications(rs.getString("medications"));
+                    record.setAllergies(rs.getString("allergies"));
+                    record.setFamilyHistory(rs.getString("family_history"));
+                    record.setSocialHistory(rs.getString("social_history"));
+                    record.setReviewOfSystems(rs.getString("review_of_systems"));
+                    record.setDoctorId(rs.getInt("doctor_id"));
                     record.setDoctorName(rs.getString("doctor_name"));
+
+                    // Handle timestamp
+                    java.sql.Timestamp timestamp = rs.getTimestamp("created_at");
+                    if (timestamp != null) {
+                        record.setCreatedAt(timestamp.toLocalDateTime());
+                    }
+
                     records.add(record);
                 }
             }
+
         } catch (SQLException e) {
             System.err.println("SQL Error in getMedicalRecordsByPatient: " + e.getMessage());
             e.printStackTrace();
@@ -82,19 +181,23 @@ public class RecordDAO {
     }
 
     /**
-     * Get a specific medical record by ID
+     * Get a specific medical record by ID - WITH ALL FIELDS
      */
     public MedicalRecordModel getMedicalRecordById(int recordId) {
         String sql = """
-            SELECT mr.record_id, mr.patient_id, mr.doctor_id, mr.record_type, mr.notes, mr.created_at,
-                   p_user.name as patient_name, d_user.name as doctor_name
-            FROM medical_records mr
-            INNER JOIN patients p ON mr.patient_id = p.patient_id
-            INNER JOIN users p_user ON p.patient_id = p_user.user_id
-            INNER JOIN doctors d ON mr.doctor_id = d.doctor_id
-            INNER JOIN users d_user ON d.doctor_id = d_user.user_id
-            WHERE mr.record_id = ?
-        """;
+        SELECT mr.record_id, mr.patient_id, mr.patient_name, mr.age,
+               mr.subjective, mr.chief_complaint, mr.history_present_illness,
+               mr.onset, mr.location, mr.duration, mr.characteristics,
+               mr.aggravating_factors, mr.radiation, mr.severity,
+               mr.past_medical_illness, mr.medications, mr.allergies,
+               mr.family_history, mr.social_history, mr.review_of_systems,
+               mr.doctor_id, mr.created_at,
+               d_user.name AS doctor_name
+        FROM medical_records mr
+        LEFT JOIN doctors d ON mr.doctor_id = d.doctor_id
+        LEFT JOIN users d_user ON d.doctor_id = d_user.user_id
+        WHERE mr.record_id = ?
+    """;
 
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, recordId);
@@ -104,15 +207,37 @@ public class RecordDAO {
                     MedicalRecordModel record = new MedicalRecordModel();
                     record.setRecordId(rs.getInt("record_id"));
                     record.setPatientId(rs.getInt("patient_id"));
-                    record.setDoctorId(rs.getInt("doctor_id"));
-                    record.setRecordType(rs.getString("record_type"));
-                    record.setNotes(rs.getString("notes"));
-                    record.setCreatedAt(rs.getString("created_at"));
                     record.setPatientName(rs.getString("patient_name"));
+                    record.setAge(rs.getInt("age"));
+                    record.setSubjective(rs.getString("subjective"));
+                    record.setChiefComplaint(rs.getString("chief_complaint"));
+                    record.setHistoryPresentIllness(rs.getString("history_present_illness"));
+                    record.setOnset(rs.getString("onset"));
+                    record.setLocation(rs.getString("location"));
+                    record.setDuration(rs.getString("duration"));
+                    record.setCharacteristics(rs.getString("characteristics"));
+                    record.setAggravatingFactors(rs.getString("aggravating_factors"));
+                    record.setRadiation(rs.getString("radiation"));
+                    record.setSeverity(rs.getString("severity"));
+                    record.setPastMedicalIllness(rs.getString("past_medical_illness"));
+                    record.setMedications(rs.getString("medications"));
+                    record.setAllergies(rs.getString("allergies"));
+                    record.setFamilyHistory(rs.getString("family_history"));
+                    record.setSocialHistory(rs.getString("social_history"));
+                    record.setReviewOfSystems(rs.getString("review_of_systems"));
+                    record.setDoctorId(rs.getInt("doctor_id"));
                     record.setDoctorName(rs.getString("doctor_name"));
+
+                    // Handle timestamp
+                    java.sql.Timestamp timestamp = rs.getTimestamp("created_at");
+                    if (timestamp != null) {
+                        record.setCreatedAt(timestamp.toLocalDateTime());
+                    }
+
                     return record;
                 }
             }
+
         } catch (SQLException e) {
             System.err.println("SQL Error in getMedicalRecordById: " + e.getMessage());
             e.printStackTrace();
@@ -122,44 +247,146 @@ public class RecordDAO {
     }
 
     /**
-     * Update a medical record (creates a version entry)
+     * Update a medical record with complete data (creates a version entry)
      */
-    public boolean updateMedicalRecord(int recordId, String notes, int updatedByDoctorId) {
-        String updateRecord = "UPDATE medical_records SET notes = ? WHERE record_id = ?";
-        String insertVersion = "INSERT INTO medical_record_versions (record_id, content, updated_by) VALUES (?, ?, ?)";
+    public boolean updateMedicalRecordComplete(MedicalRecordModel record) {
+        // First, save the old version
+        String getOld = """
+        SELECT patient_name, age, subjective, chief_complaint, history_present_illness,
+               onset, location, duration, characteristics, aggravating_factors,
+               radiation, severity, past_medical_illness, medications, allergies,
+               family_history, social_history, review_of_systems
+        FROM medical_records 
+        WHERE record_id = ?
+    """;
+
+        String update = """
+        UPDATE medical_records SET
+            patient_name = ?, age = ?, subjective = ?, chief_complaint = ?,
+            history_present_illness = ?, onset = ?, location = ?, duration = ?,
+            characteristics = ?, aggravating_factors = ?, radiation = ?,
+            severity = ?, past_medical_illness = ?, medications = ?,
+            allergies = ?, family_history = ?, social_history = ?,
+            review_of_systems = ?, doctor_id = ?
+        WHERE record_id = ?
+    """;
+
+        String insertVersion = """
+        INSERT INTO medical_record_versions (record_id, content, updated_by) 
+        VALUES (?, ?, ?)
+    """;
 
         try {
             conn.setAutoCommit(false);
 
             // Get old content for versioning
             String oldContent = null;
-            String getOldContent = "SELECT notes FROM medical_records WHERE record_id = ?";
-            try (PreparedStatement ps = conn.prepareStatement(getOldContent)) {
-                ps.setInt(1, recordId);
+            try (PreparedStatement ps = conn.prepareStatement(getOld)) {
+                ps.setInt(1, record.getRecordId());
                 try (ResultSet rs = ps.executeQuery()) {
                     if (rs.next()) {
-                        oldContent = rs.getString("notes");
+                        // Build a summary of old content
+                        StringBuilder content = new StringBuilder();
+                        content.append("Patient: ").append(rs.getString("patient_name")).append("\n");
+                        content.append("Age: ").append(rs.getInt("age")).append("\n");
+                        content.append("Subjective: ").append(rs.getString("subjective")).append("\n");
+                        content.append("Chief Complaint: ").append(rs.getString("chief_complaint")).append("\n");
+                        // Add other fields as needed for version history
+                        oldContent = content.toString();
                     }
                 }
             }
 
-            // Save version
+            // Save old version
             if (oldContent != null) {
                 try (PreparedStatement ps = conn.prepareStatement(insertVersion)) {
-                    ps.setInt(1, recordId);
+                    ps.setInt(1, record.getRecordId());
                     ps.setString(2, oldContent);
+                    ps.setInt(3, record.getDoctorId());
+                    ps.executeUpdate();
+                }
+            }
+
+            // Update the record
+            try (PreparedStatement ps = conn.prepareStatement(update)) {
+                ps.setString(1, record.getPatientName());
+                ps.setInt(2, record.getAge());
+                ps.setString(3, record.getSubjective());
+                ps.setString(4, record.getChiefComplaint());
+                ps.setString(5, record.getHistoryPresentIllness());
+                ps.setString(6, record.getOnset());
+                ps.setString(7, record.getLocation());
+                ps.setString(8, record.getDuration());
+                ps.setString(9, record.getCharacteristics());
+                ps.setString(10, record.getAggravatingFactors());
+                ps.setString(11, record.getRadiation());
+                ps.setString(12, record.getSeverity());
+                ps.setString(13, record.getPastMedicalIllness());
+                ps.setString(14, record.getMedications());
+                ps.setString(15, record.getAllergies());
+                ps.setString(16, record.getFamilyHistory());
+                ps.setString(17, record.getSocialHistory());
+                ps.setString(18, record.getReviewOfSystems());
+                ps.setInt(19, record.getDoctorId());
+                ps.setInt(20, record.getRecordId());
+
+                if (ps.executeUpdate() == 0) {
+                    conn.rollback();
+                    return false;
+                }
+            }
+
+            conn.commit();
+            return true;
+
+        } catch (SQLException e) {
+            try { conn.rollback(); } catch (SQLException ignored) {}
+            System.err.println("SQL Error in updateMedicalRecordComplete: " + e.getMessage());
+            e.printStackTrace();
+            return false;
+
+        } finally {
+            try { conn.setAutoCommit(true); } catch (SQLException ignored) {}
+        }
+    }
+
+    /**
+     * Update a medical record (backward compatibility - simple version)
+     */
+    public boolean updateMedicalRecord(int recordId, String newSubjective, int updatedByDoctorId) {
+        String getOld = "SELECT subjective FROM medical_records WHERE record_id = ?";
+        String update = "UPDATE medical_records SET subjective = ? WHERE record_id = ?";
+        String insertVersion =
+                "INSERT INTO medical_record_versions (record_id, content, updated_by) VALUES (?, ?, ?)";
+
+        try {
+            conn.setAutoCommit(false);
+
+            String oldSubjective = null;
+
+            try (PreparedStatement ps = conn.prepareStatement(getOld)) {
+                ps.setInt(1, recordId);
+                try (ResultSet rs = ps.executeQuery()) {
+                    if (rs.next()) {
+                        oldSubjective = rs.getString("subjective");
+                    }
+                }
+            }
+
+            if (oldSubjective != null) {
+                try (PreparedStatement ps = conn.prepareStatement(insertVersion)) {
+                    ps.setInt(1, recordId);
+                    ps.setString(2, oldSubjective);
                     ps.setInt(3, updatedByDoctorId);
                     ps.executeUpdate();
                 }
             }
 
-            // Update record
-            try (PreparedStatement ps = conn.prepareStatement(updateRecord)) {
-                ps.setString(1, notes);
+            try (PreparedStatement ps = conn.prepareStatement(update)) {
+                ps.setString(1, newSubjective);
                 ps.setInt(2, recordId);
 
-                int rows = ps.executeUpdate();
-                if (rows == 0) {
+                if (ps.executeUpdate() == 0) {
                     conn.rollback();
                     return false;
                 }
@@ -173,6 +400,7 @@ public class RecordDAO {
             System.err.println("SQL Error in updateMedicalRecord: " + e.getMessage());
             e.printStackTrace();
             return false;
+
         } finally {
             try { conn.setAutoCommit(true); } catch (SQLException ignored) {}
         }
@@ -202,14 +430,15 @@ public class RecordDAO {
         List<MedicalRecordVersionModel> versions = new ArrayList<>();
 
         String sql = """
-            SELECT mrv.version_id, mrv.record_id, mrv.content, mrv.updated_by, mrv.updated_at,
-                   u.name as doctor_name
-            FROM medical_record_versions mrv
-            INNER JOIN doctors d ON mrv.updated_by = d.doctor_id
-            INNER JOIN users u ON d.doctor_id = u.user_id
-            WHERE mrv.record_id = ?
-            ORDER BY mrv.updated_at DESC
-        """;
+        SELECT mrv.version_id, mrv.record_id, mrv.content,
+               mrv.updated_by, mrv.updated_at,
+               u.name AS doctor_name
+        FROM medical_record_versions mrv
+        INNER JOIN doctors d ON mrv.updated_by = d.doctor_id
+        INNER JOIN users u ON d.doctor_id = u.user_id
+        WHERE mrv.record_id = ?
+        ORDER BY mrv.updated_at DESC
+    """;
 
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, recordId);
@@ -226,6 +455,7 @@ public class RecordDAO {
                     versions.add(version);
                 }
             }
+
         } catch (SQLException e) {
             System.err.println("SQL Error in getRecordVersions: " + e.getMessage());
             e.printStackTrace();

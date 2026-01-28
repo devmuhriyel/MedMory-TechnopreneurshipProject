@@ -16,7 +16,6 @@ import javafx.stage.Stage;
 
 import java.io.IOException;
 import java.sql.Connection;
-import java.sql.SQLException;
 
 /**
  * Controller for Doctor Medical Record Management
@@ -27,7 +26,6 @@ public class DoctorMedicalRecordController {
     // Patient Information Fields
     @FXML private TextField patientNameField;
     @FXML private TextField ageField;
-    @FXML private ComboBox<String> recordTypeCombo;
 
     // Subjective Section
     @FXML private TextArea subjField;
@@ -66,20 +64,6 @@ public class DoctorMedicalRecordController {
         // Initialize DAO
         Connection conn = DatabaseConnection.getConnection();
         recordDAO = new RecordDAO(conn);
-
-        // Initialize record type combo box
-        if (recordTypeCombo != null) {
-            recordTypeCombo.getItems().addAll(
-                    "Consultation",
-                    "Diagnosis",
-                    "Treatment",
-                    "Lab Results",
-                    "Prescription",
-                    "Follow-up",
-                    "Emergency"
-            );
-            recordTypeCombo.setValue("Consultation");
-        }
 
         // Get the current patient from session (if set)
         this.currentPatientID = SessionManager.getCurrentPatientId();
@@ -133,99 +117,125 @@ public class DoctorMedicalRecordController {
     @FXML
     public void handleSaveRecord() {
         try {
-            // Validate required fields
             if (currentPatientID <= 0) {
                 showAlert(Alert.AlertType.WARNING, "Validation Error", "No patient selected.");
                 return;
             }
 
-            String recordType = recordTypeCombo != null ? recordTypeCombo.getValue() : "Consultation";
-            if (recordType == null || recordType.trim().isEmpty()) {
-                showAlert(Alert.AlertType.WARNING, "Validation Error", "Please select a record type.");
-                return;
-            }
-
-            // Build comprehensive notes from all fields
-            String notes = buildNotesFromFields();
-
-            if (notes.trim().isEmpty()) {
+            // Validate that at least some information is entered
+            if (!hasAnyData()) {
                 showAlert(Alert.AlertType.WARNING, "Validation Error", "Please enter medical information.");
                 return;
             }
 
             int doctorID = SessionManager.getCurrentUserId();
             if (doctorID <= 0) {
-                showAlert(Alert.AlertType.ERROR, "Session Error", "No doctor session found. Please log in again.");
+                showAlert(Alert.AlertType.ERROR, "Session Error", "No doctor session found.");
                 return;
             }
+
+            // Create a MedicalRecordModel with all the field data
+            MedicalRecordModel record = buildRecordFromFields();
+            record.setPatientId(currentPatientID);
+            record.setDoctorId(doctorID);
 
             boolean success;
 
             if (isEditMode && currentRecordID > 0) {
-                // Update existing record
-                success = recordDAO.updateMedicalRecord(currentRecordID, notes, doctorID);
-
-                if (success) {
-                    showAlert(Alert.AlertType.INFORMATION, "Success", "Medical record successfully updated.");
-                    navigateToRecordList();
-                } else {
-                    showAlert(Alert.AlertType.ERROR, "Error", "Failed to update the medical record.");
-                }
+                record.setRecordId(currentRecordID);
+                success = recordDAO.updateMedicalRecordComplete(record);
+                showAlert(
+                        success ? Alert.AlertType.INFORMATION : Alert.AlertType.ERROR,
+                        success ? "Success" : "Error",
+                        success ? "Medical record updated." : "Failed to update record."
+                );
             } else {
-                // Create new record
-                success = recordDAO.createMedicalRecord(currentPatientID, doctorID, recordType, notes);
-
-                if (success) {
-                    showAlert(Alert.AlertType.INFORMATION, "Success", "Medical record successfully created.");
-                    navigateToRecordList();
-                } else {
-                    showAlert(Alert.AlertType.ERROR, "Error", "Failed to create the medical record.");
-                }
+                success = recordDAO.createMedicalRecordComplete(record);
+                showAlert(
+                        success ? Alert.AlertType.INFORMATION : Alert.AlertType.ERROR,
+                        success ? "Success" : "Error",
+                        success ? "Medical record created." : "Failed to create record."
+                );
             }
+
+            if (success) navigateToRecordList();
 
         } catch (Exception e) {
             e.printStackTrace();
-            showAlert(Alert.AlertType.ERROR, "Error", "An error occurred: " + e.getMessage());
+            showAlert(Alert.AlertType.ERROR, "Error", e.getMessage());
         }
     }
 
     /**
-     * Build comprehensive notes from all form fields
+     * Check if any data has been entered
      */
-    private String buildNotesFromFields() {
-        StringBuilder notes = new StringBuilder();
+    private boolean hasAnyData() {
+        return (subjField != null && !subjField.getText().trim().isEmpty()) ||
+                (ccField != null && !ccField.getText().trim().isEmpty()) ||
+                (hpiField != null && !hpiField.getText().trim().isEmpty()) ||
+                hasOPQRSTData() ||
+                (pmiField != null && !pmiField.getText().trim().isEmpty()) ||
+                (medField != null && !medField.getText().trim().isEmpty()) ||
+                (allergiesField != null && !allergiesField.getText().trim().isEmpty()) ||
+                (fhField != null && !fhField.getText().trim().isEmpty()) ||
+                (shField != null && !shField.getText().trim().isEmpty()) ||
+                (rosField != null && !rosField.getText().trim().isEmpty()) ||
+                (notesArea != null && !notesArea.getText().trim().isEmpty());
+    }
 
-        // If there's a main notes area, use that
-        if (notesArea != null && !notesArea.getText().trim().isEmpty()) {
-            return notesArea.getText().trim();
+    /**
+     * Build a complete MedicalRecordModel from all form fields
+     */
+    private MedicalRecordModel buildRecordFromFields() {
+        MedicalRecordModel record = new MedicalRecordModel();
+
+        // Patient information
+        record.setPatientName(getFieldText(patientNameField));
+        try {
+            record.setAge(Integer.parseInt(getFieldText(ageField)));
+        } catch (NumberFormatException e) {
+            record.setAge(0);
         }
 
-        // Otherwise, build from individual fields
-        appendSection(notes, "SUBJECTIVE", subjField);
-        appendSection(notes, "Chief Complaint", ccField);
-        appendSection(notes, "History of Present Illness", hpiField);
+        // Subjective section
+        record.setSubjective(getFieldText(subjField));
+        record.setChiefComplaint(getFieldText(ccField));
+        record.setHistoryPresentIllness(getFieldText(hpiField));
 
         // OPQRST Assessment
-        if (hasOPQRSTData()) {
-            notes.append("\n=== OPQRST ASSESSMENT ===\n");
-            appendField(notes, "Onset", onsetField);
-            appendField(notes, "Location", locationField);
-            appendField(notes, "Duration", durationField);
-            appendField(notes, "Character", characField);
-            appendField(notes, "Aggravating/Alleviating Factors", factorsField);
-            appendField(notes, "Radiation", radiationField);
-            appendField(notes, "Severity", severityField);
-        }
+        record.setOnset(getFieldText(onsetField));
+        record.setLocation(getFieldText(locationField));
+        record.setDuration(getFieldText(durationField));
+        record.setCharacteristics(getFieldText(characField));
+        record.setAggravatingFactors(getFieldText(factorsField));
+        record.setRadiation(getFieldText(radiationField));
+        record.setSeverity(getFieldText(severityField));
 
         // Medical History
-        appendSection(notes, "Past Medical History", pmiField);
-        appendSection(notes, "Current Medications", medField);
-        appendSection(notes, "Allergies", allergiesField);
-        appendSection(notes, "Family History", fhField);
-        appendSection(notes, "Social History", shField);
-        appendSection(notes, "Review of Systems", rosField);
+        record.setPastMedicalIllness(getFieldText(pmiField));
+        record.setMedications(getFieldText(medField));
+        record.setAllergies(getFieldText(allergiesField));
+        record.setFamilyHistory(getFieldText(fhField));
+        record.setSocialHistory(getFieldText(shField));
+        record.setReviewOfSystems(getFieldText(rosField));
 
-        return notes.toString().trim();
+        return record;
+    }
+
+    /**
+     * Helper method to get text from a TextField safely
+     */
+    private String getFieldText(TextField field) {
+        if (field == null) return "";
+        return field.getText() != null ? field.getText().trim() : "";
+    }
+
+    /**
+     * Helper method to get text from a TextArea safely
+     */
+    private String getFieldText(TextArea field) {
+        if (field == null) return "";
+        return field.getText() != null ? field.getText().trim() : "";
     }
 
     /**
@@ -242,67 +252,77 @@ public class DoctorMedicalRecordController {
     }
 
     /**
-     * Append a section to notes if it has content
-     */
-    private void appendSection(StringBuilder notes, String title, TextArea field) {
-        if (field != null && !field.getText().trim().isEmpty()) {
-            notes.append("\n=== ").append(title.toUpperCase()).append(" ===\n");
-            notes.append(field.getText().trim()).append("\n");
-        }
-    }
-
-    /**
-     * Append a field to notes if it has content
-     */
-    private void appendField(StringBuilder notes, String label, TextField field) {
-        if (field != null && !field.getText().trim().isEmpty()) {
-            notes.append(label).append(": ").append(field.getText().trim()).append("\n");
-        }
-    }
-
-    /**
      * Load a medical record for editing
      */
     public void loadRecordForEdit(MedicalRecordModel record) {
-        if (record == null) {
-            System.err.println("Cannot load null record");
-            return;
-        }
+        if (record == null) return;
 
         isEditMode = true;
         currentRecordID = record.getRecordId();
         currentPatientID = record.getPatientId();
 
-        // Load patient info
         loadPatientInfo(currentPatientID);
 
-        // Set record type
-        if (recordTypeCombo != null && record.getRecordType() != null) {
-            recordTypeCombo.setValue(record.getRecordType());
+        // Load all fields from the record
+        if (record.getPatientName() != null && patientNameField != null) {
+            patientNameField.setText(record.getPatientName());
+        }
+        if (ageField != null) {
+            ageField.setText(String.valueOf(record.getAge()));
         }
 
-        // Set notes - either in main notes area or parse into individual fields
-        if (notesArea != null) {
-            notesArea.setText(record.getNotes());
-        } else {
-            // Parse notes into individual fields if they exist
-            parseNotesIntoFields(record.getNotes());
+        // Subjective section
+        if (subjField != null && record.getSubjective() != null) {
+            subjField.setText(record.getSubjective());
         }
-    }
-
-    /**
-     * Parse notes string into individual fields
-     * This is a simple parser - you may want to enhance it
-     */
-    private void parseNotesIntoFields(String notes) {
-        if (notes == null || notes.trim().isEmpty()) {
-            return;
+        if (ccField != null && record.getChiefComplaint() != null) {
+            ccField.setText(record.getChiefComplaint());
+        }
+        if (hpiField != null && record.getHistoryPresentIllness() != null) {
+            hpiField.setText(record.getHistoryPresentIllness());
         }
 
-        // For now, just put everything in the subjective field
-        // You can enhance this to parse structured notes
-        if (subjField != null) {
-            subjField.setText(notes);
+        // OPQRST Assessment
+        if (onsetField != null && record.getOnset() != null) {
+            onsetField.setText(record.getOnset());
+        }
+        if (locationField != null && record.getLocation() != null) {
+            locationField.setText(record.getLocation());
+        }
+        if (durationField != null && record.getDuration() != null) {
+            durationField.setText(record.getDuration());
+        }
+        if (characField != null && record.getCharacteristics() != null) {
+            characField.setText(record.getCharacteristics());
+        }
+        if (factorsField != null && record.getAggravatingFactors() != null) {
+            factorsField.setText(record.getAggravatingFactors());
+        }
+        if (radiationField != null && record.getRadiation() != null) {
+            radiationField.setText(record.getRadiation());
+        }
+        if (severityField != null && record.getSeverity() != null) {
+            severityField.setText(record.getSeverity());
+        }
+
+        // Medical History
+        if (pmiField != null && record.getPastMedicalIllness() != null) {
+            pmiField.setText(record.getPastMedicalIllness());
+        }
+        if (medField != null && record.getMedications() != null) {
+            medField.setText(record.getMedications());
+        }
+        if (allergiesField != null && record.getAllergies() != null) {
+            allergiesField.setText(record.getAllergies());
+        }
+        if (fhField != null && record.getFamilyHistory() != null) {
+            fhField.setText(record.getFamilyHistory());
+        }
+        if (shField != null && record.getSocialHistory() != null) {
+            shField.setText(record.getSocialHistory());
+        }
+        if (rosField != null && record.getReviewOfSystems() != null) {
+            rosField.setText(record.getReviewOfSystems());
         }
     }
 
@@ -402,7 +422,6 @@ public class DoctorMedicalRecordController {
 
         if (patientNameField != null) patientNameField.clear();
         if (ageField != null) ageField.clear();
-        if (recordTypeCombo != null) recordTypeCombo.setValue("Consultation");
 
         if (subjField != null) subjField.clear();
         if (ccField != null) ccField.clear();
