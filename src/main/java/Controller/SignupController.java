@@ -135,8 +135,8 @@ public class SignupController {
                     emailField.getText().trim(),
                     passwordField.getText(),
                     phoneField.getText().trim(),
-                    formatBirthday(), // Pass birthday
-                    locationField.getText().trim() // Pass address/location
+                    formatBirthday(),
+                    locationField.getText().trim()
             );
 
             Stage stage = (Stage) ((Hyperlink) event.getSource()).getScene().getWindow();

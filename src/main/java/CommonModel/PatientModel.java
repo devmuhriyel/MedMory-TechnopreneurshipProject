@@ -1,6 +1,9 @@
 package CommonModel;
-// PatientModel.java - Patient model extending user information
 
+/**
+ * PatientModel.java - Patient model extending user information
+ * Maps to users table joined with patients table
+ */
 public class PatientModel {
     // From users table (via patient_id -> user_id)
     private int patientId;      // Same as user_id
@@ -10,6 +13,10 @@ public class PatientModel {
     private String birthday;
     private String passwordHash;
     private String createdAt;
+
+    // Additional patient-specific fields
+    private String location;
+    private int age;
 
     // Constructors
     public PatientModel() {
@@ -23,7 +30,20 @@ public class PatientModel {
         this.birthday = birthday;
     }
 
+    // Full constructor
+    public PatientModel(int patientId, String name, String email, String phoneNumber,
+                        String birthday, String location, String createdAt) {
+        this.patientId = patientId;
+        this.name = name;
+        this.email = email;
+        this.phoneNumber = phoneNumber;
+        this.birthday = birthday;
+        this.location = location;
+        this.createdAt = createdAt;
+    }
+
     // Getters and Setters
+
     public int getPatientId() {
         return patientId;
     }
@@ -80,6 +100,38 @@ public class PatientModel {
         this.createdAt = createdAt;
     }
 
+    public String getLocation() {
+        return location;
+    }
+
+    public void setLocation(String location) {
+        this.location = location;
+    }
+
+    public int getAge() {
+        return age;
+    }
+
+    public void setAge(int age) {
+        this.age = age;
+    }
+
+    /**
+     * Calculate age from birthday
+     */
+    public int calculateAge() {
+        if (birthday == null || birthday.isEmpty()) {
+            return 0;
+        }
+        try {
+            java.time.LocalDate birthDate = java.time.LocalDate.parse(birthday);
+            java.time.LocalDate currentDate = java.time.LocalDate.now();
+            return java.time.Period.between(birthDate, currentDate).getYears();
+        } catch (Exception e) {
+            return 0;
+        }
+    }
+
     @Override
     public String toString() {
         return "PatientModel{" +
@@ -88,6 +140,7 @@ public class PatientModel {
                 ", email='" + email + '\'' +
                 ", phoneNumber='" + phoneNumber + '\'' +
                 ", birthday='" + birthday + '\'' +
+                ", location='" + location + '\'' +
                 '}';
     }
 }

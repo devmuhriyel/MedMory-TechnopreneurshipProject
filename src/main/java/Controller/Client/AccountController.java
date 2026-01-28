@@ -26,6 +26,7 @@ public class AccountController {
     @FXML private TextField nameField;
     @FXML private TextField emailField;
     @FXML private TextField phoneField;
+    @FXML private TextField locationField;
     @FXML private DatePicker birthdayPicker;
     @FXML private Label userIdLabel;
     @FXML private Label accountTypeLabel;
@@ -52,6 +53,7 @@ public class AccountController {
 
     private RecordDAO recordDAO;
     private int currentPatientId;
+    private PatientModel currentPatient;
 
     @FXML
     public void initialize() {
@@ -78,62 +80,82 @@ public class AccountController {
      * Load patient information from database
      */
     private void loadPatientInfo() {
-        PatientModel patient = recordDAO.getPatientById(currentPatientId);
+        try {
+            currentPatient = recordDAO.getPatientById(currentPatientId);
 
-        if (patient != null) {
-            // Populate personal information fields
-            if (nameField != null) {
-                nameField.setText(patient.getName());
-            }
-
-            if (emailField != null) {
-                emailField.setText(patient.getEmail());
-            }
-
-            if (phoneField != null) {
-                phoneField.setText(patient.getPhoneNumber());
-            }
-
-            if (birthdayPicker != null && patient.getBirthday() != null && !patient.getBirthday().isEmpty()) {
-                try {
-                    LocalDate birthday = LocalDate.parse(patient.getBirthday());
-                    birthdayPicker.setValue(birthday);
-                } catch (Exception e) {
-                    System.err.println("Error parsing birthday: " + e.getMessage());
+            if (currentPatient != null) {
+                // Populate personal information fields
+                if (nameField != null) {
+                    nameField.setText(currentPatient.getName() != null ? currentPatient.getName() : "");
                 }
-            }
 
-            // Populate info labels
-            if (userIdLabel != null) {
-                userIdLabel.setText("Patient ID: " + patient.getPatientId());
-            }
+                if (emailField != null) {
+                    emailField.setText(currentPatient.getEmail() != null ? currentPatient.getEmail() : "");
+                }
 
-            if (accountTypeLabel != null) {
-                accountTypeLabel.setText("Account Type: Patient");
-            }
+                if (phoneField != null) {
+                    phoneField.setText(currentPatient.getPhoneNumber() != null ? currentPatient.getPhoneNumber() : "");
+                }
 
-            if (memberSinceLabel != null && patient.getCreatedAt() != null) {
-                try {
-                    // Parse and format the creation date
-                    String createdAt = patient.getCreatedAt();
-                    if (createdAt.contains(" ")) {
-                        createdAt = createdAt.split(" ")[0]; // Get just the date part
+                if (locationField != null) {
+                    // Location can be stored in phoneNumber field temporarily or as separate field
+                    // For now, using it as a separate editable field
+                    locationField.setText(currentPatient.getLocation() != null ? currentPatient.getLocation() : "");
+                }
+
+                if (birthdayPicker != null && currentPatient.getBirthday() != null && !currentPatient.getBirthday().isEmpty()) {
+                    try {
+                        LocalDate birthday = LocalDate.parse(currentPatient.getBirthday());
+                        birthdayPicker.setValue(birthday);
+                    } catch (Exception e) {
+                        System.err.println("Error parsing birthday: " + e.getMessage());
+                        e.printStackTrace();
                     }
-                    LocalDate memberSince = LocalDate.parse(createdAt);
-                    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MMMM dd, yyyy");
-                    memberSinceLabel.setText("Member Since: " + memberSince.format(formatter));
-                } catch (Exception e) {
-                    memberSinceLabel.setText("Member Since: " + patient.getCreatedAt());
                 }
+
+                // Populate info labels
+                if (userIdLabel != null) {
+                    userIdLabel.setText("Patient ID: " + currentPatient.getPatientId());
+                }
+
+                if (accountTypeLabel != null) {
+                    accountTypeLabel.setText("Account Type: Patient");
+                }
+
+                if (memberSinceLabel != null && currentPatient.getCreatedAt() != null) {
+                    try {
+                        // Parse and format the creation date
+                        String createdAt = currentPatient.getCreatedAt();
+
+                        // Handle different date formats
+                        LocalDate memberSince;
+                        if (createdAt.contains(" ")) {
+                            createdAt = createdAt.split(" ")[0]; // Get just the date part
+                        }
+
+                        memberSince = LocalDate.parse(createdAt);
+                        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MMMM dd, yyyy");
+                        memberSinceLabel.setText("Member Since: " + memberSince.format(formatter));
+                    } catch (Exception e) {
+                        System.err.println("Error parsing created_at date: " + e.getMessage());
+                        memberSinceLabel.setText("Member Since: " + currentPatient.getCreatedAt());
+                    }
+                }
+
+                // Update session with current user info
+                SessionManager.setCurrentUserName(currentPatient.getName());
+                SessionManager.setCurrentUserEmail(currentPatient.getEmail());
+
+                System.out.println("✅ Patient information loaded successfully");
+
+            } else {
+                System.err.println("⚠ Failed to load patient information from database");
+                showAlert(Alert.AlertType.ERROR, "Error", "Failed to load your profile information.");
             }
-
-            // Update session with current user info
-            SessionManager.setCurrentUserName(patient.getName());
-            SessionManager.setCurrentUserEmail(patient.getEmail());
-
-        } else {
-            System.err.println("⚠ Failed to load patient information.");
-            showAlert(Alert.AlertType.ERROR, "Error", "Failed to load your profile information.");
+        } catch (Exception e) {
+            System.err.println("❌ Exception loading patient info: " + e.getMessage());
+            e.printStackTrace();
+            showAlert(Alert.AlertType.ERROR, "Error", "An error occurred while loading your profile: " + e.getMessage());
         }
     }
 
@@ -147,25 +169,35 @@ public class AccountController {
             return;
         }
 
-        String name = nameField.getText().trim();
-        String email = emailField.getText().trim();
-        String phone = phoneField.getText().trim();
-        String birthday = birthdayPicker.getValue().toString();
+        try {
+            String name = nameField.getText().trim();
+            String email = emailField.getText().trim();
+            String phone = phoneField.getText().trim();
+            String location = locationField.getText().trim();
+            String birthday = birthdayPicker.getValue() != null ? birthdayPicker.getValue().toString() : "";
 
-        // Update patient information
-        boolean success = recordDAO.updatePatient(currentPatientId, name, email, phone, birthday);
+            // Update patient information
+            boolean success = recordDAO.updatePatient(currentPatientId, name, email, phone, birthday, location);
 
-        if (success) {
-            showAlert(Alert.AlertType.INFORMATION, "Success", "Profile information updated successfully!");
+            if (success) {
+                showAlert(Alert.AlertType.INFORMATION, "Success", "Profile information updated successfully!");
 
-            // Update session with new info
-            SessionManager.setCurrentUserName(name);
-            SessionManager.setCurrentUserEmail(email);
+                // Update session with new info
+                SessionManager.setCurrentUserName(name);
+                SessionManager.setCurrentUserEmail(email);
 
-            // Reload the info to reflect changes
-            loadPatientInfo();
-        } else {
-            showAlert(Alert.AlertType.ERROR, "Error", "Failed to update profile. Please try again.");
+                // Reload the info to reflect changes
+                loadPatientInfo();
+
+                System.out.println("✅ Patient profile updated successfully");
+            } else {
+                showAlert(Alert.AlertType.ERROR, "Error", "Failed to update profile. Please try again.");
+                System.err.println("❌ Update failed - no rows affected");
+            }
+        } catch (Exception e) {
+            System.err.println("❌ Exception updating patient: " + e.getMessage());
+            e.printStackTrace();
+            showAlert(Alert.AlertType.ERROR, "Error", "An error occurred while updating your profile: " + e.getMessage());
         }
     }
 
@@ -175,24 +207,37 @@ public class AccountController {
     private boolean validateProfileForm() {
         // Name validation
         if (nameField.getText() == null || nameField.getText().trim().isEmpty()) {
+            showAlert(Alert.AlertType.WARNING, "Validation Error", "Name is required.");
             return false;
         }
 
         // Email validation
         if (emailField.getText() == null || emailField.getText().trim().isEmpty()) {
+            showAlert(Alert.AlertType.WARNING, "Validation Error", "Email is required.");
             return false;
         }
-        if (!emailField.getText().trim().matches("^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$")) {
+
+        String email = emailField.getText().trim();
+        if (!email.matches("^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$")) {
+            showAlert(Alert.AlertType.WARNING, "Validation Error", "Please enter a valid email address.");
             return false;
         }
 
         // Phone validation
         if (phoneField.getText() == null || phoneField.getText().trim().isEmpty()) {
+            showAlert(Alert.AlertType.WARNING, "Validation Error", "Phone number is required.");
             return false;
         }
 
         // Birthday validation
         if (birthdayPicker.getValue() == null) {
+            showAlert(Alert.AlertType.WARNING, "Validation Error", "Birthday is required.");
+            return false;
+        }
+
+        // Check if birthday is not in the future
+        if (birthdayPicker.getValue().isAfter(LocalDate.now())) {
+            showAlert(Alert.AlertType.WARNING, "Validation Error", "Birthday cannot be in the future.");
             return false;
         }
 
@@ -224,15 +269,23 @@ public class AccountController {
             return;
         }
 
-        boolean success = LoginService.changePassword(currentPatientId, currentPass, newPass);
+        try {
+            boolean success = LoginService.changePassword(currentPatientId, currentPass, newPass);
 
-        if (success) {
-            showAlert(Alert.AlertType.INFORMATION, "Success", "Password updated successfully!");
-            currentPasswordField.clear();
-            newPasswordField.clear();
-            confirmPasswordField.clear();
-        } else {
-            showAlert(Alert.AlertType.ERROR, "Error", "Failed to update password. Please check your current password.");
+            if (success) {
+                showAlert(Alert.AlertType.INFORMATION, "Success", "Password updated successfully!");
+                currentPasswordField.clear();
+                newPasswordField.clear();
+                confirmPasswordField.clear();
+                System.out.println("✅ Password changed successfully");
+            } else {
+                showAlert(Alert.AlertType.ERROR, "Error", "Failed to update password. Please check your current password.");
+                System.err.println("❌ Password change failed");
+            }
+        } catch (Exception e) {
+            System.err.println("❌ Exception changing password: " + e.getMessage());
+            e.printStackTrace();
+            showAlert(Alert.AlertType.ERROR, "Error", "An error occurred while changing your password.");
         }
     }
 
@@ -261,6 +314,7 @@ public class AccountController {
             case "casesButton" -> "MedicalRecord.fxml";
             case "calendarButton" -> "ClientCalendar.fxml";
             case "chatButton" -> "Chat.fxml";
+            case "chatsButton" -> "Chat.fxml";
             case "settingsButton" -> "ClientSettings.fxml";
             default -> {
                 System.err.println("Unknown navigation button: " + id);
@@ -305,6 +359,7 @@ public class AccountController {
             if (response == ButtonType.OK) {
                 SessionManager.clearSession();
                 navigateTo(event, "Login.fxml");
+                System.out.println("✅ User logged out successfully");
             }
         });
     }
@@ -314,7 +369,7 @@ public class AccountController {
      */
     @FXML
     public void handleViewRecords(ActionEvent event) {
-        navigateTo(event, "PatientRecords.fxml");
+        navigateTo(event, "MedicalRecord.fxml");
     }
 
     /**
@@ -365,14 +420,13 @@ public class AccountController {
     /**
      * Calculate age from birthday
      */
-    private int calculateAge(String birthday) {
-        if (birthday == null || birthday.isEmpty()) {
+    private int calculateAge(LocalDate birthday) {
+        if (birthday == null) {
             return 0;
         }
         try {
-            LocalDate birthDate = LocalDate.parse(birthday);
             LocalDate currentDate = LocalDate.now();
-            return currentDate.getYear() - birthDate.getYear();
+            return java.time.Period.between(birthday, currentDate).getYears();
         } catch (Exception e) {
             return 0;
         }

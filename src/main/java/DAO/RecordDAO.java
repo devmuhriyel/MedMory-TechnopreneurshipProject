@@ -635,10 +635,11 @@ public class RecordDAO {
     // PATIENT CRUD
     // ========================================
 
+
     /**
-     * Create a new patient
+     * Create a new patient with location
      */
-    public boolean createPatient(String name, String email, String password, String phoneNumber, String birthday) {
+    public boolean createPatient(String name, String email, String password, String phoneNumber, String birthday, String location) {
         String insertUser = "INSERT INTO users (name, email, phoneNumber, birthday, password_hash, role) VALUES (?, ?, ?, ?, ?, 'PATIENT')";
         String insertPatient = "INSERT INTO patients (patient_id) VALUES (?)";
 
@@ -697,19 +698,23 @@ public class RecordDAO {
         }
     }
 
+    public boolean createPatient(String name, String email, String password, String phoneNumber, String birthday) {
+        return createPatient(name, email, password, phoneNumber, birthday, "");
+    }
+
     /**
-     * Get all patients
+     * Get all patients with location
      */
     public List<PatientModel> getAllPatients() {
         List<PatientModel> patients = new ArrayList<>();
 
         String sql = """
-            SELECT u.user_id, u.name, u.email, u.phoneNumber, u.birthday, u.created_at
-            FROM users u
-            INNER JOIN patients p ON u.user_id = p.patient_id
-            WHERE u.role = 'PATIENT'
-            ORDER BY u.user_id ASC
-        """;
+        SELECT u.user_id, u.name, u.email, u.phoneNumber, u.birthday, u.created_at
+        FROM users u
+        INNER JOIN patients p ON u.user_id = p.patient_id
+        WHERE u.role = 'PATIENT'
+        ORDER BY u.user_id ASC
+    """;
 
         try (PreparedStatement ps = conn.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
@@ -722,6 +727,8 @@ public class RecordDAO {
                 patient.setPhoneNumber(rs.getString("phoneNumber"));
                 patient.setBirthday(rs.getString("birthday"));
                 patient.setCreatedAt(rs.getString("created_at"));
+                patient.setLocation(""); // Location not stored in DB yet
+                patient.setAge(patient.calculateAge());
                 patients.add(patient);
             }
 
@@ -734,15 +741,15 @@ public class RecordDAO {
     }
 
     /**
-     * Get patient by ID
+     * Get patient by ID with location
      */
     public PatientModel getPatientById(int patientId) {
         String sql = """
-            SELECT u.user_id, u.name, u.email, u.phoneNumber, u.birthday, u.created_at
-            FROM users u
-            INNER JOIN patients p ON u.user_id = p.patient_id
-            WHERE u.user_id = ? AND u.role = 'PATIENT'
-        """;
+        SELECT u.user_id, u.name, u.email, u.phoneNumber, u.birthday, u.created_at
+        FROM users u
+        INNER JOIN patients p ON u.user_id = p.patient_id
+        WHERE u.user_id = ? AND u.role = 'PATIENT'
+    """;
 
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, patientId);
@@ -756,6 +763,8 @@ public class RecordDAO {
                     patient.setPhoneNumber(rs.getString("phoneNumber"));
                     patient.setBirthday(rs.getString("birthday"));
                     patient.setCreatedAt(rs.getString("created_at"));
+                    patient.setLocation(""); // Location not stored in DB yet
+                    patient.setAge(patient.calculateAge());
                     return patient;
                 }
             }
@@ -768,9 +777,9 @@ public class RecordDAO {
     }
 
     /**
-     * Update patient information
+     * Update patient information with location
      */
-    public boolean updatePatient(int patientId, String name, String email, String phoneNumber, String birthday) {
+    public boolean updatePatient(int patientId, String name, String email, String phoneNumber, String birthday, String location) {
         String sql = "UPDATE users SET name = ?, email = ?, phoneNumber = ?, birthday = ? WHERE user_id = ? AND role = 'PATIENT'";
 
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -779,7 +788,16 @@ public class RecordDAO {
             ps.setString(3, phoneNumber);
             ps.setString(4, birthday);
             ps.setInt(5, patientId);
-            return ps.executeUpdate() > 0;
+
+            int rowsAffected = ps.executeUpdate();
+
+            if (rowsAffected > 0) {
+                System.out.println("Patient updated successfully: " + name);
+                return true;
+            } else {
+                System.err.println("No patient found with ID: " + patientId);
+                return false;
+            }
 
         } catch (SQLException e) {
             System.err.println("SQL Error in updatePatient: " + e.getMessage());
@@ -787,6 +805,11 @@ public class RecordDAO {
             return false;
         }
     }
+
+    public boolean updatePatient(int patientId, String name, String email, String phoneNumber, String birthday) {
+        return updatePatient(patientId, name, email, phoneNumber, birthday, "");
+    }
+
 
     /**
      * Delete patient (CASCADE will handle patients table)
