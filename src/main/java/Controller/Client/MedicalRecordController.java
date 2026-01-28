@@ -217,7 +217,7 @@ public class MedicalRecordController {
     }
 
     /**
-     * View the selected medical record
+     * View the selected medical record - UPDATED to navigate to detailed view
      */
     @FXML
     public void handleViewFile() {
@@ -228,32 +228,22 @@ public class MedicalRecordController {
             return;
         }
 
-        // Create a detailed view dialog
-        showRecordDetailsDialog(selectedRecord);
-    }
+        // Navigate to the detailed table view
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/MVP/MedicalRecordDetailsView.fxml"));
+            Scene scene = new Scene(loader.load(), 1366, 768);
 
-    /**
-     * Show detailed view of medical record in a dialog
-     */
-    private void showRecordDetailsDialog(MedicalRecordModel record) {
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle("Medical Record Details");
-        alert.setHeaderText(String.format("Medical Record #%d - %s",
-                record.getRecordId(),
-                record.getPatientName() != null ? record.getPatientName() : "Patient"));
+            // Get the controller and pass the record data
+            MedicalRecordDetailsController detailsController = loader.getController();
+            detailsController.loadMedicalRecord(selectedRecord);
 
-        // Create detailed content
-        String content = generateRecordContent(record);
-
-        TextArea textArea = new TextArea(content);
-        textArea.setEditable(false);
-        textArea.setWrapText(true);
-        textArea.setPrefRowCount(20);
-        textArea.setPrefColumnCount(60);
-
-        alert.getDialogPane().setContent(textArea);
-        alert.getDialogPane().setPrefWidth(800);
-        alert.showAndWait();
+            Stage stage = (Stage) viewFileButton.getScene().getWindow();
+            stage.setScene(scene);
+            stage.show();
+        } catch (IOException e) {
+            e.printStackTrace();
+            showAlert(Alert.AlertType.ERROR, "Navigation Error", "Failed to load medical record details view.");
+        }
     }
 
     /**
@@ -300,194 +290,115 @@ public class MedicalRecordController {
     }
 
     /**
-     * Generate formatted content for display
-     */
-    private String generateRecordContent(MedicalRecordModel record) {
-        StringBuilder content = new StringBuilder();
-
-        content.append("Patient Name: ").append(record.getPatientName() != null ? record.getPatientName() : "N/A").append("\n");
-        content.append("Age: ").append(record.getAge()).append("\n");
-        content.append("Record ID: ").append(record.getRecordId()).append("\n");
-        content.append("Created: ");
-        if (record.getCreatedAt() != null) {
-            try {
-                content.append(record.getCreatedAt().format(DateTimeFormatter.ofPattern("MMMM dd, yyyy 'at' hh:mm a")));
-            } catch (Exception e) {
-                content.append(record.getFormattedCreatedAt());
-            }
-        } else {
-            content.append("N/A");
-        }
-        content.append("\n\n");
-
-        content.append("=== MEDICAL INFORMATION ===\n\n");
-
-        if (record.getSubjective() != null && !record.getSubjective().trim().isEmpty()) {
-            content.append("SUBJECTIVE:\n").append(record.getSubjective()).append("\n\n");
-        }
-
-        if (record.getChiefComplaint() != null && !record.getChiefComplaint().trim().isEmpty()) {
-            content.append("CHIEF COMPLAINT:\n").append(record.getChiefComplaint()).append("\n\n");
-        }
-
-        if (record.getHistoryPresentIllness() != null && !record.getHistoryPresentIllness().trim().isEmpty()) {
-            content.append("HISTORY OF PRESENT ILLNESS:\n").append(record.getHistoryPresentIllness()).append("\n\n");
-        }
-
-        // Add OPQRST details if available
-        if (record.hasOPQRSTData()) {
-            content.append("=== OPQRST ASSESSMENT ===\n");
-            if (record.getOnset() != null && !record.getOnset().trim().isEmpty()) {
-                content.append("Onset: ").append(record.getOnset()).append("\n");
-            }
-            if (record.getLocation() != null && !record.getLocation().trim().isEmpty()) {
-                content.append("Location: ").append(record.getLocation()).append("\n");
-            }
-            if (record.getDuration() != null && !record.getDuration().trim().isEmpty()) {
-                content.append("Duration: ").append(record.getDuration()).append("\n");
-            }
-            if (record.getCharacteristics() != null && !record.getCharacteristics().trim().isEmpty()) {
-                content.append("Characteristics: ").append(record.getCharacteristics()).append("\n");
-            }
-            if (record.getAggravatingFactors() != null && !record.getAggravatingFactors().trim().isEmpty()) {
-                content.append("Aggravating Factors: ").append(record.getAggravatingFactors()).append("\n");
-            }
-            if (record.getRadiation() != null && !record.getRadiation().trim().isEmpty()) {
-                content.append("Radiation: ").append(record.getRadiation()).append("\n");
-            }
-            if (record.getSeverity() != null && !record.getSeverity().trim().isEmpty()) {
-                content.append("Severity: ").append(record.getSeverity()).append("\n");
-            }
-            content.append("\n");
-        }
-
-        // Add medical history
-        if (record.getPastMedicalIllness() != null && !record.getPastMedicalIllness().trim().isEmpty()) {
-            content.append("PAST MEDICAL HISTORY:\n").append(record.getPastMedicalIllness()).append("\n\n");
-        }
-        if (record.getMedications() != null && !record.getMedications().trim().isEmpty()) {
-            content.append("MEDICATIONS:\n").append(record.getMedications()).append("\n\n");
-        }
-        if (record.getAllergies() != null && !record.getAllergies().trim().isEmpty()) {
-            content.append("ALLERGIES:\n").append(record.getAllergies()).append("\n\n");
-        }
-        if (record.getFamilyHistory() != null && !record.getFamilyHistory().trim().isEmpty()) {
-            content.append("FAMILY HISTORY:\n").append(record.getFamilyHistory()).append("\n\n");
-        }
-        if (record.getSocialHistory() != null && !record.getSocialHistory().trim().isEmpty()) {
-            content.append("SOCIAL HISTORY:\n").append(record.getSocialHistory()).append("\n\n");
-        }
-        if (record.getReviewOfSystems() != null && !record.getReviewOfSystems().trim().isEmpty()) {
-            content.append("REVIEW OF SYSTEMS:\n").append(record.getReviewOfSystems()).append("\n\n");
-        }
-
-        return content.toString();
-    }
-
-    /**
      * Generate formatted content for file download
      */
     private String generateRecordContentForFile(MedicalRecordModel record) {
         StringBuilder content = new StringBuilder();
 
-        content.append("========================================\n");
-        content.append("       MEDICAL RECORD\n");
-        content.append("========================================\n\n");
+        // Header
+        content.append("═══════════════════════════════════════════════════════════════════════════════\n");
+        content.append("                              MEDICAL RECORD                                    \n");
+        content.append("═══════════════════════════════════════════════════════════════════════════════\n\n");
 
-        content.append("Record ID: ").append(record.getRecordId()).append("\n");
-        content.append("Patient Name: ").append(record.getPatientName() != null ? record.getPatientName() : "N/A").append("\n");
-        content.append("Age: ").append(record.getAge()).append("\n");
-        content.append("Date Created: ");
+        // Patient Details
+        content.append("═══════════════════════════════════════════════════════════════════════════════\n");
+        content.append("                            PATIENT DETAILS                                     \n");
+        content.append("═══════════════════════════════════════════════════════════════════════════════\n\n");
+
+        content.append(String.format("ID: %-20s Name: %-35s Age: %d\n",
+                record.getRecordId(),
+                record.getPatientName() != null ? record.getPatientName() : "N/A",
+                record.getAge()));
+
         if (record.getCreatedAt() != null) {
             try {
-                content.append(record.getCreatedAt().format(DateTimeFormatter.ofPattern("MMMM dd, yyyy 'at' hh:mm a")));
+                content.append("Date Created: ").append(record.getCreatedAt().format(DateTimeFormatter.ofPattern("MMMM dd, yyyy 'at' hh:mm a"))).append("\n");
             } catch (Exception e) {
-                content.append(record.getFormattedCreatedAt());
+                content.append("Date Created: ").append(record.getFormattedCreatedAt()).append("\n");
             }
-        } else {
-            content.append("N/A");
         }
-        content.append("\n\n");
 
-        content.append("========================================\n");
-        content.append("       MEDICAL INFORMATION\n");
-        content.append("========================================\n\n");
+        content.append("\n───────────────────────────────────────────────────────────────────────────────\n\n");
 
+        // Subjective
         if (record.getSubjective() != null && !record.getSubjective().trim().isEmpty()) {
-            content.append("SUBJECTIVE:\n");
-            content.append(record.getSubjective()).append("\n\n");
+            content.append("Subj:  ").append(record.getSubjective()).append("\n\n");
+            content.append("───────────────────────────────────────────────────────────────────────────────\n");
         }
 
+        // Chief Complaint
         if (record.getChiefComplaint() != null && !record.getChiefComplaint().trim().isEmpty()) {
-            content.append("CHIEF COMPLAINT:\n");
-            content.append(record.getChiefComplaint()).append("\n\n");
+            content.append("CC: ").append(record.getChiefComplaint()).append("\n\n");
+            content.append("───────────────────────────────────────────────────────────────────────────────\n");
         }
 
+        // History of Present Illness
         if (record.getHistoryPresentIllness() != null && !record.getHistoryPresentIllness().trim().isEmpty()) {
-            content.append("HISTORY OF PRESENT ILLNESS:\n");
-            content.append(record.getHistoryPresentIllness()).append("\n\n");
+            content.append("HPI:\n").append(record.getHistoryPresentIllness()).append("\n\n");
+            content.append("───────────────────────────────────────────────────────────────────────────────\n");
         }
 
-        // OPQRST Assessment
+        // OPQRST Assessment (table format)
         if (record.hasOPQRSTData()) {
-            content.append("OPQRST ASSESSMENT:\n");
-            if (record.getOnset() != null && !record.getOnset().trim().isEmpty()) {
-                content.append("  Onset: ").append(record.getOnset()).append("\n");
-            }
-            if (record.getLocation() != null && !record.getLocation().trim().isEmpty()) {
-                content.append("  Location: ").append(record.getLocation()).append("\n");
-            }
-            if (record.getDuration() != null && !record.getDuration().trim().isEmpty()) {
-                content.append("  Duration: ").append(record.getDuration()).append("\n");
-            }
-            if (record.getCharacteristics() != null && !record.getCharacteristics().trim().isEmpty()) {
-                content.append("  Characteristics: ").append(record.getCharacteristics()).append("\n");
-            }
-            if (record.getAggravatingFactors() != null && !record.getAggravatingFactors().trim().isEmpty()) {
-                content.append("  Aggravating Factors: ").append(record.getAggravatingFactors()).append("\n");
-            }
-            if (record.getRadiation() != null && !record.getRadiation().trim().isEmpty()) {
-                content.append("  Radiation: ").append(record.getRadiation()).append("\n");
-            }
-            if (record.getSeverity() != null && !record.getSeverity().trim().isEmpty()) {
-                content.append("  Severity: ").append(record.getSeverity()).append("\n");
-            }
             content.append("\n");
+
+            // Row 1: Onset | Location | Duration | Character
+            String onset = record.getOnset() != null && !record.getOnset().trim().isEmpty() ? record.getOnset() : "";
+            String location = record.getLocation() != null && !record.getLocation().trim().isEmpty() ? record.getLocation() : "";
+            String duration = record.getDuration() != null && !record.getDuration().trim().isEmpty() ? record.getDuration() : "";
+            String character = record.getCharacteristics() != null && !record.getCharacteristics().trim().isEmpty() ? record.getCharacteristics() : "";
+
+            if (!onset.isEmpty() || !location.isEmpty() || !duration.isEmpty() || !character.isEmpty()) {
+                content.append(String.format("%-20s | %-25s | %-20s | %-20s\n",
+                        !onset.isEmpty() ? "Onset: " + onset : "",
+                        !location.isEmpty() ? "Location: " + location : "",
+                        !duration.isEmpty() ? "Duration: " + duration : "",
+                        !character.isEmpty() ? "Character: " + character : ""));
+            }
+
+            // Row 2: Aggravating Factors | Radiation | Severity
+            String factors = record.getAggravatingFactors() != null && !record.getAggravatingFactors().trim().isEmpty() ? record.getAggravatingFactors() : "";
+            String radiation = record.getRadiation() != null && !record.getRadiation().trim().isEmpty() ? record.getRadiation() : "";
+            String severity = record.getSeverity() != null && !record.getSeverity().trim().isEmpty() ? record.getSeverity() : "";
+
+            if (!factors.isEmpty() || !radiation.isEmpty() || !severity.isEmpty()) {
+                content.append(String.format("%-50s | %-25s | %-20s\n",
+                        !factors.isEmpty() ? "Aggravating Factors: " + factors : "",
+                        !radiation.isEmpty() ? "Radiation: " + radiation : "",
+                        !severity.isEmpty() ? "Severity: " + severity : ""));
+            }
+
+            content.append("\n───────────────────────────────────────────────────────────────────────────────\n");
         }
 
-        if (record.getPastMedicalIllness() != null && !record.getPastMedicalIllness().trim().isEmpty()) {
-            content.append("PAST MEDICAL HISTORY:\n");
-            content.append(record.getPastMedicalIllness()).append("\n\n");
+        // Past Medical History, Medications, Allergies
+        String pmi = record.getPastMedicalIllness() != null && !record.getPastMedicalIllness().trim().isEmpty() ? record.getPastMedicalIllness() : "";
+        String meds = record.getMedications() != null && !record.getMedications().trim().isEmpty() ? record.getMedications() : "";
+        String allergies = record.getAllergies() != null && !record.getAllergies().trim().isEmpty() ? record.getAllergies() : "";
+
+        if (!pmi.isEmpty() || !meds.isEmpty() || !allergies.isEmpty()) {
+            content.append(String.format("\n%-30s | %-40s | %-20s\n",
+                    !pmi.isEmpty() ? "PMI: " + pmi : "",
+                    !meds.isEmpty() ? "Medication: " + meds : "",
+                    !allergies.isEmpty() ? "Allergies: " + allergies : ""));
+            content.append("───────────────────────────────────────────────────────────────────────────────\n");
         }
 
-        if (record.getMedications() != null && !record.getMedications().trim().isEmpty()) {
-            content.append("MEDICATIONS:\n");
-            content.append(record.getMedications()).append("\n\n");
+        // Family History, Social History, Review of Systems
+        String fh = record.getFamilyHistory() != null && !record.getFamilyHistory().trim().isEmpty() ? record.getFamilyHistory() : "";
+        String sh = record.getSocialHistory() != null && !record.getSocialHistory().trim().isEmpty() ? record.getSocialHistory() : "";
+        String ros = record.getReviewOfSystems() != null && !record.getReviewOfSystems().trim().isEmpty() ? record.getReviewOfSystems() : "";
+
+        if (!fh.isEmpty() || !sh.isEmpty() || !ros.isEmpty()) {
+            content.append(String.format("\n%-30s | %-40s | %-20s\n",
+                    !fh.isEmpty() ? "FH: " + fh : "",
+                    !sh.isEmpty() ? "SH: " + sh : "",
+                    !ros.isEmpty() ? "ROS: " + ros : ""));
         }
 
-        if (record.getAllergies() != null && !record.getAllergies().trim().isEmpty()) {
-            content.append("ALLERGIES:\n");
-            content.append(record.getAllergies()).append("\n\n");
-        }
-
-        if (record.getFamilyHistory() != null && !record.getFamilyHistory().trim().isEmpty()) {
-            content.append("FAMILY HISTORY:\n");
-            content.append(record.getFamilyHistory()).append("\n\n");
-        }
-
-        if (record.getSocialHistory() != null && !record.getSocialHistory().trim().isEmpty()) {
-            content.append("SOCIAL HISTORY:\n");
-            content.append(record.getSocialHistory()).append("\n\n");
-        }
-
-        if (record.getReviewOfSystems() != null && !record.getReviewOfSystems().trim().isEmpty()) {
-            content.append("REVIEW OF SYSTEMS:\n");
-            content.append(record.getReviewOfSystems()).append("\n\n");
-        }
-
-        content.append("========================================\n");
-        content.append("         END OF RECORD\n");
-        content.append("========================================\n");
+        content.append("\n═══════════════════════════════════════════════════════════════════════════════\n");
+        content.append("                              END OF RECORD                                     \n");
+        content.append("═══════════════════════════════════════════════════════════════════════════════\n");
 
         return content.toString();
     }
