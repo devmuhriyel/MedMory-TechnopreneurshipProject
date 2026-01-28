@@ -1,8 +1,10 @@
 package Controller.Doctor;
 
 import CommonModel.MedicalCaseModel;
+import CommonModel.MedicalRecordModel;
 import CommonModel.PatientAttachmentModel;
 import CommonModel.PatientModel;
+import Controller.Doctor.DoctorMedicalRecordDetailsController;
 import DAO.DatabaseConnection;
 import DAO.RecordDAO;
 import MVP.Login;
@@ -19,7 +21,9 @@ import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
-
+import javafx.scene.control.Separator;
+import javafx.scene.control.ScrollPane;
+import java.time.format.DateTimeFormatter;
 import java.awt.Desktop;
 import java.io.File;
 import java.io.IOException;
@@ -312,7 +316,7 @@ public class HistoryController {
      * Add or update diagnosis for selected case
      */
     @FXML
-    private void handleAddRecord() {
+    private void handleUpdateCase() {
         if (selectedCase == null) {
             showAlert(Alert.AlertType.WARNING, "No Case Selected", "Please select a case first.");
             return;
@@ -375,7 +379,7 @@ public class HistoryController {
      * Create a new case
      */
     @FXML
-    private void handleCreateCase() {
+    private void handleAddCase() {
         Dialog<ButtonType> dialog = new Dialog<>();
         dialog.setTitle("Create New Case");
         dialog.setHeaderText("Create a new medical case");
@@ -458,9 +462,320 @@ public class HistoryController {
         });
     }
 
+
+    /**Create medical record with inline dialog
+     */
+    @FXML
+    private void handleCreateMedicalRecordInline() {
+        if (selectedCase == null) {
+            showAlert(Alert.AlertType.WARNING, "No Case Selected", "Please select a case first.");
+            return;
+        }
+
+        Dialog<ButtonType> dialog = new Dialog<>();
+        dialog.setTitle("Create Medical Record");
+        dialog.setHeaderText("Create medical record for: " + selectedCase.getPatientName());
+        dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
+
+        // Create form fields
+        TextField patientNameField = new TextField(selectedCase.getPatientName());
+        patientNameField.setEditable(false);
+        patientNameField.setDisable(true);
+
+        TextField ageField = new TextField();
+        ageField.setPromptText("Age");
+
+        TextArea subjField = new TextArea();
+        subjField.setPromptText("Subjective");
+        subjField.setPrefRowCount(2);
+
+        TextArea ccField = new TextArea();
+        ccField.setPromptText("Chief Complaint");
+        ccField.setPrefRowCount(2);
+
+        TextArea hpiField = new TextArea();
+        hpiField.setPromptText("History of Present Illness");
+        hpiField.setPrefRowCount(3);
+
+        // OPQRST Fields
+        TextField onsetField = new TextField();
+        onsetField.setPromptText("Onset");
+
+        TextField locationField = new TextField();
+        locationField.setPromptText("Location");
+
+        TextField durationField = new TextField();
+        durationField.setPromptText("Duration");
+
+        TextField characterField = new TextField();
+        characterField.setPromptText("Characteristics");
+
+        TextField factorsField = new TextField();
+        factorsField.setPromptText("Aggravating Factors");
+
+        TextField radiationField = new TextField();
+        radiationField.setPromptText("Radiation");
+
+        TextField severityField = new TextField();
+        severityField.setPromptText("Severity (e.g., 5/10)");
+
+        // Medical History Fields
+        TextArea pmiField = new TextArea();
+        pmiField.setPromptText("Past Medical Illness");
+        pmiField.setPrefRowCount(2);
+
+        TextArea medicationsField = new TextArea();
+        medicationsField.setPromptText("Current Medications");
+        medicationsField.setPrefRowCount(2);
+
+        TextArea allergiesField = new TextArea();
+        allergiesField.setPromptText("Allergies");
+        allergiesField.setPrefRowCount(1);
+
+        TextArea fhField = new TextArea();
+        fhField.setPromptText("Family History");
+        fhField.setPrefRowCount(2);
+
+        TextArea shField = new TextArea();
+        shField.setPromptText("Social History");
+        shField.setPrefRowCount(2);
+
+        TextArea rosField = new TextArea();
+        rosField.setPromptText("Review of Systems");
+        rosField.setPrefRowCount(2);
+
+        // Create scrollable content
+        ScrollPane scrollPane = new ScrollPane();
+        scrollPane.setFitToWidth(true);
+        scrollPane.setPrefHeight(500);
+
+        VBox content = new VBox(10,
+                new Label("Patient Information:"),
+                new Label("Patient Name:"), patientNameField,
+                new Label("Age:"), ageField,
+                new Separator(),
+
+                new Label("Subjective:"),
+                new Label("Subjective:"), subjField,
+                new Label("Chief Complaint:"), ccField,
+                new Label("History of Present Illness:"), hpiField,
+                new Separator(),
+
+                new Label("OPQRST Assessment:"),
+                new Label("Onset:"), onsetField,
+                new Label("Location:"), locationField,
+                new Label("Duration:"), durationField,
+                new Label("Characteristics:"), characterField,
+                new Label("Aggravating Factors:"), factorsField,
+                new Label("Radiation:"), radiationField,
+                new Label("Severity:"), severityField,
+                new Separator(),
+
+                new Label("Medical History:"),
+                new Label("Past Medical Illness:"), pmiField,
+                new Label("Current Medications:"), medicationsField,
+                new Label("Allergies:"), allergiesField,
+                new Label("Family History:"), fhField,
+                new Label("Social History:"), shField,
+                new Label("Review of Systems:"), rosField
+        );
+
+        content.setStyle("-fx-padding: 10;");
+        scrollPane.setContent(content);
+        dialog.getDialogPane().setContent(scrollPane);
+        dialog.getDialogPane().setPrefWidth(700);
+
+        dialog.showAndWait().ifPresent(btn -> {
+            if (btn == ButtonType.OK) {
+                try {
+                    // Parse age
+                    int age = 0;
+                    try {
+                        age = Integer.parseInt(ageField.getText().trim());
+                    } catch (NumberFormatException e) {
+                        showAlert(Alert.AlertType.WARNING, "Validation", "Please enter a valid age.");
+                        return;
+                    }
+
+                    // Validate required fields
+                    if (subjField.getText().trim().isEmpty() && ccField.getText().trim().isEmpty()) {
+                        showAlert(Alert.AlertType.WARNING, "Validation", "Please enter at least a subjective or chief complaint.");
+                        return;
+                    }
+
+                    // Create medical record model
+                    MedicalRecordModel record = new MedicalRecordModel();
+                    record.setPatientId(selectedCase.getPatientId());
+                    record.setPatientName(selectedCase.getPatientName());
+                    record.setAge(age);
+                    record.setSubjective(subjField.getText().trim());
+                    record.setChiefComplaint(ccField.getText().trim());
+                    record.setHistoryPresentIllness(hpiField.getText().trim());
+                    record.setOnset(onsetField.getText().trim());
+                    record.setLocation(locationField.getText().trim());
+                    record.setDuration(durationField.getText().trim());
+                    record.setCharacteristics(characterField.getText().trim());
+                    record.setAggravatingFactors(factorsField.getText().trim());
+                    record.setRadiation(radiationField.getText().trim());
+                    record.setSeverity(severityField.getText().trim());
+                    record.setPastMedicalIllness(pmiField.getText().trim());
+                    record.setMedications(medicationsField.getText().trim());
+                    record.setAllergies(allergiesField.getText().trim());
+                    record.setFamilyHistory(fhField.getText().trim());
+                    record.setSocialHistory(shField.getText().trim());
+                    record.setReviewOfSystems(rosField.getText().trim());
+                    record.setDoctorId(SessionManager.getCurrentUserId());
+
+                    // Save to database
+                    boolean success = recordDAO.createMedicalRecordComplete(record);
+
+                    if (success) {
+                        showAlert(Alert.AlertType.INFORMATION, "Success", "Medical record created successfully.");
+
+                        // Create audit log
+                        recordDAO.createAuditLog(
+                                SessionManager.getCurrentUserId(),
+                                "CREATE_RECORD",
+                                selectedCase.getPatientId(),
+                                "medical_records",
+                                0
+                        );
+                    } else {
+                        showAlert(Alert.AlertType.ERROR, "Creation Failed", "Failed to create medical record.");
+                    }
+
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    showAlert(Alert.AlertType.ERROR, "Database Error", "Error creating medical record: " + e.getMessage());
+                }
+            }
+        });
+    }
+
+    /**
+     * View medical records for the selected patient
+     */
+    @FXML
+    private void handleViewMedicalRecords() {
+        if (selectedCase == null) {
+            showAlert(Alert.AlertType.WARNING, "No Case Selected", "Please select a case first.");
+            return;
+        }
+
+        try {
+            List<MedicalRecordModel> records = recordDAO.getMedicalRecordsByPatient(selectedCase.getPatientId());
+
+            if (records.isEmpty()) {
+                showAlert(Alert.AlertType.INFORMATION, "No Records",
+                        "No medical records found for " + selectedCase.getPatientName());
+                return;
+            }
+
+            // Create a dialog to display records
+            Dialog<ButtonType> dialog = new Dialog<>();
+            dialog.setTitle("Medical Records");
+            dialog.setHeaderText("Medical Records for: " + selectedCase.getPatientName());
+            dialog.getDialogPane().getButtonTypes().add(ButtonType.CLOSE);
+
+            // Create table to display records
+            TableView<MedicalRecordModel> recordsTable = new TableView<>();
+            recordsTable.setPrefHeight(400);
+
+            TableColumn<MedicalRecordModel, Integer> idCol = new TableColumn<>("ID");
+            idCol.setCellValueFactory(new PropertyValueFactory<>("recordId"));
+            idCol.setPrefWidth(50);
+
+            TableColumn<MedicalRecordModel, String> dateCol = new TableColumn<>("Date");
+            dateCol.setCellValueFactory(cellData -> {
+                MedicalRecordModel rec = cellData.getValue();
+                if (rec.getCreatedAt() != null) {
+                    return new javafx.beans.property.SimpleStringProperty(
+                            rec.getCreatedAt().format(java.time.format.DateTimeFormatter.ofPattern("MMM dd, yyyy"))
+                    );
+                }
+                return new javafx.beans.property.SimpleStringProperty("N/A");
+            });
+            dateCol.setPrefWidth(120);
+
+            TableColumn<MedicalRecordModel, String> subjCol = new TableColumn<>("Subjective");
+            subjCol.setCellValueFactory(new PropertyValueFactory<>("subjective"));
+            subjCol.setPrefWidth(300);
+
+            TableColumn<MedicalRecordModel, String> ccCol = new TableColumn<>("Chief Complaint");
+            ccCol.setCellValueFactory(new PropertyValueFactory<>("chiefComplaint"));
+            ccCol.setPrefWidth(200);
+
+            TableColumn<MedicalRecordModel, String> doctorCol = new TableColumn<>("Doctor");
+            doctorCol.setCellValueFactory(new PropertyValueFactory<>("doctorName"));
+            doctorCol.setPrefWidth(150);
+
+            recordsTable.getColumns().addAll(idCol, dateCol, subjCol, ccCol, doctorCol);
+            recordsTable.getItems().addAll(records);
+
+            // Add double-click to view details
+            recordsTable.setOnMouseClicked(event -> {
+                if (event.getClickCount() == 2) {
+                    MedicalRecordModel selectedRecord = recordsTable.getSelectionModel().getSelectedItem();
+                    if (selectedRecord != null) {
+                        openMedicalRecordDetails(selectedRecord);
+                    }
+                }
+            });
+
+            VBox content = new VBox(10,
+                    new Label("Double-click a record to view full details"),
+                    recordsTable
+            );
+            content.setStyle("-fx-padding: 10;");
+
+            dialog.getDialogPane().setContent(content);
+            dialog.getDialogPane().setPrefWidth(850);
+            dialog.showAndWait();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            showAlert(Alert.AlertType.ERROR, "Error", "Failed to load medical records: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Show detailed view of a medical record
+     */
+    private void openMedicalRecordDetails(MedicalRecordModel record) {
+        try {
+            FXMLLoader loader = new FXMLLoader(
+                    getClass().getResource("/MVP/DoctorMedicalRecordDetailsView.fxml")
+            );
+
+            Scene scene = new Scene(loader.load(), 1366, 768);
+
+            // ✅ Get controller AFTER load
+            DoctorMedicalRecordDetailsController controller = loader.getController();
+
+            // ✅ Use YOUR method name
+            controller.loadMedicalRecord(record);
+
+            Stage stage = new Stage();
+            stage.setTitle("Medical Record Details");
+            stage.setScene(scene);
+
+
+            stage.show();
+
+        } catch (IOException e) {
+            e.printStackTrace();
+            showAlert(
+                    Alert.AlertType.ERROR,
+                    "Error",
+                    "Failed to open medical record details."
+            );
+        }
+    }
+
     /**
      * Add a new patient (admin function)
      */
+    //This will be replaced with another form of adding existing patients
     @FXML
     private void handleAddPatient() {
         Dialog<ButtonType> dialog = new Dialog<>();
