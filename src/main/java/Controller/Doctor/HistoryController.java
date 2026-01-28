@@ -7,6 +7,8 @@ import CommonModel.PatientModel;
 import Controller.Doctor.DoctorMedicalRecordDetailsController;
 import DAO.DatabaseConnection;
 import DAO.RecordDAO;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import MVP.Login;
 import MVP.SessionManager;
 import javafx.collections.FXCollections;
@@ -178,7 +180,6 @@ public class HistoryController {
     }
 
     // =================== FILE HANDLING ===================
-
     /**
      * Handle file upload for selected case
      */
@@ -201,13 +202,23 @@ public class HistoryController {
         File file = chooser.showOpenDialog(uploadButton.getScene().getWindow());
         if (file != null) {
             try {
-                // Save file path to database
-                // Note: In production, you might want to copy files to a secure location
+                // Read file into byte array
+                byte[] fileData = Files.readAllBytes(file.toPath());
+
+                // Determine file type (MIME type)
+                String fileType = Files.probeContentType(file.toPath());
+                if (fileType == null) {
+                    // Fallback to generic binary type if MIME type cannot be determined
+                    fileType = "application/octet-stream";
+                }
+
                 int doctorId = SessionManager.getCurrentUserId();
                 boolean success = recordDAO.uploadPatientAttachment(
                         selectedCase.getPatientId(),
                         doctorId,
-                        file.getAbsolutePath()
+                        file.getName(),
+                        fileType,
+                        fileData
                 );
 
                 if (success) {
@@ -217,6 +228,9 @@ public class HistoryController {
                     showAlert(Alert.AlertType.ERROR, "Upload Failed", "Failed to upload file.");
                 }
 
+            } catch (IOException e) {
+                e.printStackTrace();
+                showAlert(Alert.AlertType.ERROR, "Upload Failed", "Failed to read file: " + e.getMessage());
             } catch (Exception e) {
                 e.printStackTrace();
                 showAlert(Alert.AlertType.ERROR, "Upload Failed", "Failed to upload file: " + e.getMessage());
@@ -289,16 +303,32 @@ public class HistoryController {
      */
     private void openFile(AttachmentDisplay attachment) {
         try {
-            File file = new File(attachment.getFilePath());
+            // Retrieve the full attachment with file data from database
+            PatientAttachmentModel fullAttachment = recordDAO.getPatientAttachmentById(attachment.getAttachmentId());
 
-            if (!file.exists()) {
+            if (fullAttachment == null || fullAttachment.getFileData() == null) {
                 showAlert(Alert.AlertType.WARNING, "File Not Found",
-                        "The file no longer exists at the stored location:\n" + attachment.getFilePath());
+                        "The file data could not be retrieved from the database.");
                 return;
             }
 
+            // Create a temporary file to open
+            String fileName = fullAttachment.getFileName();
+            String extension = "";
+            int dotIndex = fileName.lastIndexOf('.');
+            if (dotIndex > 0) {
+                extension = fileName.substring(dotIndex);
+            }
+
+            // Create temp file with original extension
+            Path tempFile = Files.createTempFile("attachment_", extension);
+            Files.write(tempFile, fullAttachment.getFileData());
+
+            // Mark for deletion on exit
+            tempFile.toFile().deleteOnExit();
+
             if (Desktop.isDesktopSupported()) {
-                Desktop.getDesktop().open(file);
+                Desktop.getDesktop().open(tempFile.toFile());
             } else {
                 showAlert(Alert.AlertType.WARNING, "Not Supported",
                         "Desktop operations are not supported on this system.");
@@ -307,6 +337,9 @@ public class HistoryController {
         } catch (IOException e) {
             e.printStackTrace();
             showAlert(Alert.AlertType.ERROR, "Open Failed", "Failed to open file: " + e.getMessage());
+        } catch (Exception e) {
+            e.printStackTrace();
+            showAlert(Alert.AlertType.ERROR, "Database Error", "Failed to retrieve file: " + e.getMessage());
         }
     }
 
@@ -919,16 +952,23 @@ public class HistoryController {
         }
 
         public String getFileName() {
-            // Extract filename from path if needed
-            String path = model.getFilePath();
-            if (path != null && path.contains(File.separator)) {
-                return path.substring(path.lastIndexOf(File.separator) + 1);
-            }
-            return path;
+            return model.getFileName();
         }
 
-        public String getFilePath() {
-            return model.getFilePath();
+        public String getFileType() {
+            return model.getFileType();
+        }
+
+        public String getFileSize() {
+            return model.getFormattedFileSize();
+        }
+
+        public long getFileSizeBytes() {
+            return model.getFileSize();
+        }
+
+        public String getFileExtension() {
+            return model.getFileExtension();
         }
 
         public String getUploadedAt() {
@@ -937,6 +977,10 @@ public class HistoryController {
 
         public String getDoctorName() {
             return model.getDoctorName();
+        }
+
+        public PatientAttachmentModel getModel() {
+            return model;
         }
     }
 }

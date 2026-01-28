@@ -6,23 +6,29 @@ public class PatientAttachmentModel {
     private int attachmentId;
     private int patientId;
     private int uploadedBy;     // doctor_id who uploaded
-    private String filePath;
+    private String fileName;
+    private String fileType;    // MIME type (e.g., application/pdf, image/jpeg)
+    private long fileSize;      // File size in bytes
+    private byte[] fileData;    // Binary file content
     private String uploadedAt;
 
     // Additional fields for joined data
     private String patientName;
     private String doctorName;
-    private String fileName;    // Extracted from filePath
 
     // Constructors
     public PatientAttachmentModel() {
     }
 
-    public PatientAttachmentModel(int attachmentId, int patientId, int uploadedBy, String filePath) {
+    public PatientAttachmentModel(int attachmentId, int patientId, int uploadedBy,
+                                  String fileName, String fileType, long fileSize, byte[] fileData) {
         this.attachmentId = attachmentId;
         this.patientId = patientId;
         this.uploadedBy = uploadedBy;
-        this.filePath = filePath;
+        this.fileName = fileName;
+        this.fileType = fileType;
+        this.fileSize = fileSize;
+        this.fileData = fileData;
     }
 
     // Getters and Setters
@@ -50,12 +56,36 @@ public class PatientAttachmentModel {
         this.uploadedBy = uploadedBy;
     }
 
-    public String getFilePath() {
-        return filePath;
+    public String getFileName() {
+        return fileName;
     }
 
-    public void setFilePath(String filePath) {
-        this.filePath = filePath;
+    public void setFileName(String fileName) {
+        this.fileName = fileName;
+    }
+
+    public String getFileType() {
+        return fileType;
+    }
+
+    public void setFileType(String fileType) {
+        this.fileType = fileType;
+    }
+
+    public long getFileSize() {
+        return fileSize;
+    }
+
+    public void setFileSize(long fileSize) {
+        this.fileSize = fileSize;
+    }
+
+    public byte[] getFileData() {
+        return fileData;
+    }
+
+    public void setFileData(byte[] fileData) {
+        this.fileData = fileData;
     }
 
     public String getUploadedAt() {
@@ -82,12 +112,29 @@ public class PatientAttachmentModel {
         this.doctorName = doctorName;
     }
 
-    public String getFileName() {
-        return fileName;
+    /**
+     * Get human-readable file size
+     */
+    public String getFormattedFileSize() {
+        if (fileSize < 1024) {
+            return fileSize + " B";
+        } else if (fileSize < 1024 * 1024) {
+            return String.format("%.2f KB", fileSize / 1024.0);
+        } else if (fileSize < 1024 * 1024 * 1024) {
+            return String.format("%.2f MB", fileSize / (1024.0 * 1024.0));
+        } else {
+            return String.format("%.2f GB", fileSize / (1024.0 * 1024.0 * 1024.0));
+        }
     }
 
-    public void setFileName(String fileName) {
-        this.fileName = fileName;
+    /**
+     * Get file extension from fileName
+     */
+    public String getFileExtension() {
+        if (fileName != null && fileName.contains(".")) {
+            return fileName.substring(fileName.lastIndexOf(".") + 1).toLowerCase();
+        }
+        return "";
     }
 
     @Override
@@ -96,8 +143,11 @@ public class PatientAttachmentModel {
                 "attachmentId=" + attachmentId +
                 ", patientId=" + patientId +
                 ", uploadedBy=" + uploadedBy +
-                ", filePath='" + filePath + '\'' +
+                ", fileName='" + fileName + '\'' +
+                ", fileType='" + fileType + '\'' +
+                ", fileSize=" + fileSize +
                 ", uploadedAt='" + uploadedAt + '\'' +
+                ", hasFileData=" + (fileData != null) +
                 '}';
     }
 }

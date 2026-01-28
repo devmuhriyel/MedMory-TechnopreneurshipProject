@@ -1200,17 +1200,20 @@ public class RecordDAO {
     // ========================================
     // PATIENT ATTACHMENTS
     // ========================================
-
     /**
      * Upload a patient attachment
      */
-    public boolean uploadPatientAttachment(int patientId, int uploadedByDoctorId, String filePath) {
-        String sql = "INSERT INTO patient_attachments (patient_id, uploaded_by, file_path) VALUES (?, ?, ?)";
+    public boolean uploadPatientAttachment(int patientId, int uploadedByDoctorId, String fileName,
+                                           String fileType, byte[] fileData) {
+        String sql = "INSERT INTO patient_attachments (patient_id, uploaded_by, file_name, file_type, file_size, file_data) VALUES (?, ?, ?, ?, ?, ?)";
 
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, patientId);
             ps.setInt(2, uploadedByDoctorId);
-            ps.setString(3, filePath);
+            ps.setString(3, fileName);
+            ps.setString(4, fileType);
+            ps.setLong(5, fileData.length);
+            ps.setBytes(6, fileData);
             return ps.executeUpdate() > 0;
 
         } catch (SQLException e) {
@@ -1221,22 +1224,23 @@ public class RecordDAO {
     }
 
     /**
-     * Get all attachments for a patient
+     * Get all attachments for a patient (without file data for performance)
      */
     public List<PatientAttachmentModel> getPatientAttachments(int patientId) {
         List<PatientAttachmentModel> attachments = new ArrayList<>();
 
         String sql = """
-            SELECT pa.attachment_id, pa.patient_id, pa.uploaded_by, pa.file_path, pa.uploaded_at,
-                   p_user.name as patient_name, d_user.name as doctor_name
-            FROM patient_attachments pa
-            INNER JOIN patients p ON pa.patient_id = p.patient_id
-            INNER JOIN users p_user ON p.patient_id = p_user.user_id
-            INNER JOIN doctors d ON pa.uploaded_by = d.doctor_id
-            INNER JOIN users d_user ON d.doctor_id = d_user.user_id
-            WHERE pa.patient_id = ?
-            ORDER BY pa.uploaded_at DESC
-        """;
+        SELECT pa.attachment_id, pa.patient_id, pa.uploaded_by, pa.file_name, 
+               pa.file_type, pa.file_size, pa.uploaded_at,
+               p_user.name as patient_name, d_user.name as doctor_name
+        FROM patient_attachments pa
+        INNER JOIN patients p ON pa.patient_id = p.patient_id
+        INNER JOIN users p_user ON p.patient_id = p_user.user_id
+        INNER JOIN doctors d ON pa.uploaded_by = d.doctor_id
+        INNER JOIN users d_user ON d.doctor_id = d_user.user_id
+        WHERE pa.patient_id = ?
+        ORDER BY pa.uploaded_at DESC
+    """;
 
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, patientId);
@@ -1247,7 +1251,9 @@ public class RecordDAO {
                     attachment.setAttachmentId(rs.getInt("attachment_id"));
                     attachment.setPatientId(rs.getInt("patient_id"));
                     attachment.setUploadedBy(rs.getInt("uploaded_by"));
-                    attachment.setFilePath(rs.getString("file_path"));
+                    attachment.setFileName(rs.getString("file_name"));
+                    attachment.setFileType(rs.getString("file_type"));
+                    attachment.setFileSize(rs.getLong("file_size"));
                     attachment.setUploadedAt(rs.getString("uploaded_at"));
                     attachment.setPatientName(rs.getString("patient_name"));
                     attachment.setDoctorName(rs.getString("doctor_name"));
@@ -1260,6 +1266,49 @@ public class RecordDAO {
         }
 
         return attachments;
+    }
+
+    /**
+     * Get a specific attachment with file data for download
+     */
+    public PatientAttachmentModel getPatientAttachmentById(int attachmentId) {
+        String sql = """
+        SELECT pa.attachment_id, pa.patient_id, pa.uploaded_by, pa.file_name, 
+               pa.file_type, pa.file_size, pa.file_data, pa.uploaded_at,
+               p_user.name as patient_name, d_user.name as doctor_name
+        FROM patient_attachments pa
+        INNER JOIN patients p ON pa.patient_id = p.patient_id
+        INNER JOIN users p_user ON p.patient_id = p_user.user_id
+        INNER JOIN doctors d ON pa.uploaded_by = d.doctor_id
+        INNER JOIN users d_user ON d.doctor_id = d_user.user_id
+        WHERE pa.attachment_id = ?
+    """;
+
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, attachmentId);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    PatientAttachmentModel attachment = new PatientAttachmentModel();
+                    attachment.setAttachmentId(rs.getInt("attachment_id"));
+                    attachment.setPatientId(rs.getInt("patient_id"));
+                    attachment.setUploadedBy(rs.getInt("uploaded_by"));
+                    attachment.setFileName(rs.getString("file_name"));
+                    attachment.setFileType(rs.getString("file_type"));
+                    attachment.setFileSize(rs.getLong("file_size"));
+                    attachment.setFileData(rs.getBytes("file_data"));
+                    attachment.setUploadedAt(rs.getString("uploaded_at"));
+                    attachment.setPatientName(rs.getString("patient_name"));
+                    attachment.setDoctorName(rs.getString("doctor_name"));
+                    return attachment;
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("SQL Error in getPatientAttachmentById: " + e.getMessage());
+            e.printStackTrace();
+        }
+
+        return null;
     }
 
     /**
@@ -1278,7 +1327,6 @@ public class RecordDAO {
             return false;
         }
     }
-
     // ========================================
     // AUDIT LOGS
     // ========================================
