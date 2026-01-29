@@ -1,6 +1,7 @@
 package Controller.Client;
 
 import CommonModel.MedicalRecordModel;
+import CommonModel.PatientAttachmentModel;
 import DAO.DatabaseConnection;
 import DAO.RecordDAO;
 import MVP.SessionManager;
@@ -16,9 +17,12 @@ import javafx.scene.control.*;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
+import java.awt.Desktop;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.sql.Connection;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -35,13 +39,22 @@ public class MedicalRecordController {
     @FXML private TableView<MedicalRecordModel> medicalFilesTable;
     @FXML private TableColumn<MedicalRecordModel, String> fileNameCol;
     @FXML private TableColumn<MedicalRecordModel, String> dateUploadedCol;
+
+    // Attachments Table
+    @FXML private TableView<AttachmentDisplay> attachmentsTable;
+    @FXML private TableColumn<AttachmentDisplay, String> attachmentNameCol;
+    @FXML private TableColumn<AttachmentDisplay, String> attachmentDateCol;
+    @FXML private TableColumn<AttachmentDisplay, String> attachmentSizeCol;
+
     @FXML private Button viewFileButton;
     @FXML private Button downloadButton;
     @FXML private Button refreshButton;
+    @FXML private Button viewAttachmentButton;
 
     private RecordDAO recordDAO;
     private ObservableList<MedicalRecordModel> allRecords;
     private ObservableList<MedicalRecordModel> filteredRecords;
+    private ObservableList<AttachmentDisplay> attachmentsList;
     private int currentPatientId;
 
     @FXML
@@ -60,6 +73,7 @@ public class MedicalRecordController {
 
         // Setup table columns
         setupTableColumns();
+        setupAttachmentsTable();
 
         // Setup filter combo box
         setupFilterComboBox();
@@ -70,8 +84,12 @@ public class MedicalRecordController {
         // Load medical records
         loadMedicalRecords();
 
+        // Load patient attachments
+        loadPatientAttachments();
+
         // Setup double-click to view
         setupTableDoubleClick();
+        setupAttachmentsDoubleClick();
     }
 
     /**
@@ -100,6 +118,135 @@ public class MedicalRecordController {
             }
             return new SimpleStringProperty(date);
         });
+    }
+
+    /**
+     * Setup attachments table columns
+     */
+    private void setupAttachmentsTable() {
+        attachmentsList = FXCollections.observableArrayList();
+
+        if (attachmentsTable != null) {
+            // File Name Column
+            attachmentNameCol.setCellValueFactory(cellData ->
+                    new SimpleStringProperty(cellData.getValue().getFileName())
+            );
+
+            // Date Uploaded Column
+            attachmentDateCol.setCellValueFactory(cellData ->
+                    new SimpleStringProperty(cellData.getValue().getUploadedAt())
+            );
+
+            // File Size Column
+            attachmentSizeCol.setCellValueFactory(cellData ->
+                    new SimpleStringProperty(cellData.getValue().getFileSize())
+            );
+
+            attachmentsTable.setItems(attachmentsList);
+        }
+    }
+
+    /**
+     * Setup double-click on attachments table to open file
+     */
+    private void setupAttachmentsDoubleClick() {
+        if (attachmentsTable != null) {
+            attachmentsTable.setRowFactory(tv -> {
+                TableRow<AttachmentDisplay> row = new TableRow<>();
+                row.setOnMouseClicked(event -> {
+                    if (event.getClickCount() == 2 && !row.isEmpty()) {
+                        handleViewAttachment();
+                    }
+                });
+                return row;
+            });
+        }
+    }
+
+    /**
+     * Load patient attachments for the current patient
+     */
+    private void loadPatientAttachments() {
+        if (attachmentsList == null) {
+            return;
+        }
+
+        attachmentsList.clear();
+
+        try {
+            List<PatientAttachmentModel> attachments = recordDAO.getPatientAttachments(currentPatientId);
+
+            for (PatientAttachmentModel attachment : attachments) {
+                attachmentsList.add(new AttachmentDisplay(attachment));
+            }
+
+            System.out.println("Loaded " + attachments.size() + " attachments for patient " + currentPatientId);
+
+        } catch (Exception e) {
+            System.err.println("Error loading attachments: " + e.getMessage());
+            e.printStackTrace();
+            showAlert(Alert.AlertType.ERROR, "Error", "Failed to load attachments: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Handle viewing/opening selected attachment
+     */
+    @FXML
+    public void handleViewAttachment() {
+        AttachmentDisplay selected = attachmentsTable.getSelectionModel().getSelectedItem();
+
+        if (selected == null) {
+            showAlert(Alert.AlertType.WARNING, "No Selection", "Please select an attachment to view.");
+            return;
+        }
+
+        openAttachment(selected);
+    }
+
+    /**
+     * Open an attachment file from the database
+     */
+    private void openAttachment(AttachmentDisplay attachment) {
+        try {
+            // Retrieve the full attachment with file data from database
+            PatientAttachmentModel fullAttachment = recordDAO.getPatientAttachmentById(attachment.getAttachmentId());
+
+            if (fullAttachment == null || fullAttachment.getFileData() == null) {
+                showAlert(Alert.AlertType.WARNING, "File Not Found",
+                        "The file data could not be retrieved from the database.");
+                return;
+            }
+
+            // Create a temporary file to open
+            String fileName = fullAttachment.getFileName();
+            String extension = "";
+            int dotIndex = fileName.lastIndexOf('.');
+            if (dotIndex > 0) {
+                extension = fileName.substring(dotIndex);
+            }
+
+            // Create temp file with original extension
+            Path tempFile = Files.createTempFile("attachment_", extension);
+            Files.write(tempFile, fullAttachment.getFileData());
+
+            // Mark for deletion on exit
+            tempFile.toFile().deleteOnExit();
+
+            if (Desktop.isDesktopSupported()) {
+                Desktop.getDesktop().open(tempFile.toFile());
+            } else {
+                showAlert(Alert.AlertType.WARNING, "Not Supported",
+                        "Desktop operations are not supported on this system.");
+            }
+
+        } catch (IOException e) {
+            e.printStackTrace();
+            showAlert(Alert.AlertType.ERROR, "Open Failed", "Failed to open file: " + e.getMessage());
+        } catch (Exception e) {
+            e.printStackTrace();
+            showAlert(Alert.AlertType.ERROR, "Database Error", "Failed to retrieve file: " + e.getMessage());
+        }
     }
 
     /**
@@ -211,9 +358,10 @@ public class MedicalRecordController {
     @FXML
     public void handleRefresh() {
         loadMedicalRecords();
+        loadPatientAttachments();
         searchField.clear();
         filterType.setValue("All Categories");
-        showAlert(Alert.AlertType.INFORMATION, "Refreshed", "Medical records list has been refreshed.");
+        showAlert(Alert.AlertType.INFORMATION, "Refreshed", "Medical records and attachments have been refreshed.");
     }
 
     /**
@@ -420,7 +568,6 @@ public class MedicalRecordController {
                 targetFxml = "/MVP/ClientAccount.fxml";
                 break;
             case "medicalRecordButton":
-                // Already on this page
                 return;
             case "calendarButton":
                 targetFxml = "/MVP/ClientCalendar.fxml";
@@ -457,5 +604,54 @@ public class MedicalRecordController {
         alert.setHeaderText(null);
         alert.setContentText(content);
         alert.showAndWait();
+    }
+
+    // =================== INNER CLASSES ===================
+
+    /**
+     * Display wrapper for PatientAttachmentModel
+     */
+    public static class AttachmentDisplay {
+        private final PatientAttachmentModel model;
+
+        public AttachmentDisplay(PatientAttachmentModel model) {
+            this.model = model;
+        }
+
+        public int getAttachmentId() {
+            return model.getAttachmentId();
+        }
+
+        public String getFileName() {
+            return model.getFileName();
+        }
+
+        public String getFileType() {
+            return model.getFileType();
+        }
+
+        public String getFileSize() {
+            return model.getFormattedFileSize();
+        }
+
+        public long getFileSizeBytes() {
+            return model.getFileSize();
+        }
+
+        public String getFileExtension() {
+            return model.getFileExtension();
+        }
+
+        public String getUploadedAt() {
+            return model.getUploadedAt();
+        }
+
+        public String getDoctorName() {
+            return model.getDoctorName();
+        }
+
+        public PatientAttachmentModel getModel() {
+            return model;
+        }
     }
 }
