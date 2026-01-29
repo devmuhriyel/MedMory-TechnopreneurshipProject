@@ -199,7 +199,7 @@ public class AddUserController implements Initializable {
     private boolean createPatient() {
         String name = nameField.getText().trim();
         String email = emailField.getText().trim();
-        String password = passwordField.getText();
+        String password = LoginService.hashPassword(passwordField.getText());
         String phone = phoneNumberField.getText().trim();
         String birthday = (birthdayPicker != null && birthdayPicker.getValue() != null) ? birthdayPicker.getValue().toString() : "";
         String location = addressField.getText().trim();

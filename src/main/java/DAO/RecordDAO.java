@@ -655,6 +655,7 @@ public class RecordDAO {
                 ps.setString(3, phoneNumber);
                 ps.setString(4, birthday);
                 ps.setString(5, password);
+                ps.setString(6, location);
 
                 int rowsAffected = ps.executeUpdate();
 
