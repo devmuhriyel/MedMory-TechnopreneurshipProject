@@ -202,6 +202,7 @@ public class AddUserController implements Initializable {
         String password = passwordField.getText();
         String phone = phoneNumberField.getText().trim();
         String birthday = (birthdayPicker != null && birthdayPicker.getValue() != null) ? birthdayPicker.getValue().toString() : "";
+        String location = addressField.getText().trim();
 
         System.out.println("[DEBUG] registerPatient called with:");
         System.out.println("  - Name: " + name);
@@ -209,8 +210,9 @@ public class AddUserController implements Initializable {
         System.out.println("  - Password length: " + password.length());
         System.out.println("  - Phone: " + phone);
         System.out.println("  - Birthday: " + (birthday.isEmpty() ? "(not provided)" : birthday));
+        System.out.println("  - Location: " + location);
 
-        return LoginService.registerPatient(name, email, password, phone, birthday);
+        return LoginService.registerPatient(name, email, password, phone, birthday, location);
     }
 
     /**

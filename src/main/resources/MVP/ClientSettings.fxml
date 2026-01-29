@@ -10,7 +10,7 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 
-<BorderPane fx:id="mainContainer" prefHeight="768.0" prefWidth="1366.0" style="-fx-background-color: #e6f0e6;" xmlns="http://javafx.com/javafx/24.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="Controller.Client.ClientSettingsController">
+<BorderPane fx:id="mainContainer" prefHeight="768.0" prefWidth="1366.0" style="-fx-background-color: #e6f0e6;" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="Controller.Client.ClientSettingsController">
 
     <!-- Sidebar -->
     <left>
@@ -40,6 +40,16 @@
             <Button fx:id="casesButton2" contentDisplay="LEFT" onAction="#handleNavigation" prefWidth="150.0" style="-fx-background-color: #008060; -fx-text-fill: WHITE; -fx-font-weight: bold; -fx-background-radius: 5; -fx-cursor: hand;" text="Medical Record">
                <graphic>
                   <Label style="-fx-font-size: 20px;" text="💼" textFill="WHITE" />
+               </graphic>
+            </Button>
+            <Button fx:id="calendarButton" contentDisplay="LEFT" onAction="#handleNavigation" prefWidth="150.0" style="-fx-background-color: #008060; -fx-text-fill: WHITE; -fx-font-weight: bold; -fx-background-radius: 5; -fx-cursor: hand;" text="Calendar">
+               <graphic>
+                  <Label style="-fx-font-size: 20px;" text="📅" textFill="WHITE" />
+               </graphic>
+            </Button>
+            <Button fx:id="chatsButton" contentDisplay="LEFT" onAction="#handleNavigation" prefWidth="150.0" style="-fx-background-color: #008060; -fx-text-fill: WHITE; -fx-font-weight: bold; -fx-background-radius: 5; -fx-cursor: hand;" text="Chat">
+               <graphic>
+                  <Label style="-fx-font-size: 20px;" text="💬" textFill="WHITE" />
                </graphic>
             </Button>
 

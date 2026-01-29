@@ -10,6 +10,7 @@
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.HBox?>
+<?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
@@ -64,104 +65,106 @@
     </left>
 
     <center>
-        <VBox spacing="20.0" style="-fx-background-color: #e6f0e6;">
-            <padding>
-                <Insets bottom="20.0" left="40.0" right="40.0" top="30.0" />
-            </padding>
+        <ScrollPane fitToWidth="true" style="-fx-background: #e6f0e6; -fx-background-color: #e6f0e6;">
+            <VBox spacing="20.0" style="-fx-background-color: #e6f0e6;">
+                <padding>
+                    <Insets bottom="20.0" left="40.0" right="40.0" top="30.0" />
+                </padding>
 
-            <!-- Header -->
-            <VBox spacing="5">
-                <Label fx:id="headerLabel" text="My Account" textFill="#202020">
-                    <font>
-                        <Font name="System Bold" size="34.0" />
-                    </font>
-                </Label>
-                <HBox spacing="20.0">
-                    <Label fx:id="userIdLabel" text="Patient ID: 12345" textFill="#666666">
-                        <font><Font size="13.0" /></font>
+                <!-- Header -->
+                <VBox spacing="5">
+                    <Label fx:id="headerLabel" text="My Account" textFill="#202020">
+                        <font>
+                            <Font name="System Bold" size="34.0" />
+                        </font>
                     </Label>
-                    <Label fx:id="accountTypeLabel" text="Account Type: Patient" textFill="#666666">
-                        <font><Font size="13.0" /></font>
-                    </Label>
-                    <Label fx:id="memberSinceLabel" text="Member Since: January 2024" textFill="#666666">
-                        <font><Font size="13.0" /></font>
-                    </Label>
-                </HBox>
-            </VBox>
-
-            <!-- Personal Information Section -->
-            <VBox spacing="15.0" style="-fx-background-color: WHITE; -fx-background-radius: 12; -fx-padding: 25;">
-                <Label text="Personal Information" textFill="#007744">
-                    <font><Font name="System Bold" size="19.0" /></font>
-                </Label>
-
-                <HBox spacing="20.0">
-                    <VBox spacing="10.0" HBox.hgrow="ALWAYS">
-                        <Label text="Full Name:" textFill="#555555">
-                            <font><Font size="12.0" /></font>
+                    <HBox spacing="20.0">
+                        <Label fx:id="userIdLabel" text="Patient ID: 12345" textFill="#666666">
+                            <font><Font size="13.0" /></font>
                         </Label>
-                        <TextField fx:id="nameField" promptText="Enter your full name" style="-fx-background-radius: 8; -fx-padding: 10; -fx-background-color: #f4f4f4; -fx-border-color: #ddd; -fx-border-radius: 8;" />
-                        
-                        <Label text="Email Address:" textFill="#555555">
-                            <font><Font size="12.0" /></font>
+                        <Label fx:id="accountTypeLabel" text="Account Type: Patient" textFill="#666666">
+                            <font><Font size="13.0" /></font>
                         </Label>
-                        <TextField fx:id="emailField" promptText="Enter your email" style="-fx-background-radius: 8; -fx-padding: 10; -fx-background-color: #f4f4f4; -fx-border-color: #ddd; -fx-border-radius: 8;" />
-                        
-                        <Label text="Phone Number:" textFill="#555555">
-                            <font><Font size="12.0" /></font>
+                        <Label fx:id="memberSinceLabel" text="Member Since: January 2024" textFill="#666666">
+                            <font><Font size="13.0" /></font>
                         </Label>
-                        <TextField fx:id="phoneField" promptText="09XX-XXX-XXXX" style="-fx-background-radius: 8; -fx-padding: 10; -fx-background-color: #f4f4f4; -fx-border-color: #ddd; -fx-border-radius: 8;" />
-                    </VBox>
-                    
-                    <VBox prefHeight="218.0" prefWidth="264.0" spacing="10.0" HBox.hgrow="ALWAYS">
-                        <Label text="Birthday:" textFill="#555555">
-                            <font>
-                        <Font size="12.0" />
-                     </font>
-                        </Label>
-                        <DatePicker fx:id="birthdayPicker" prefWidth="Infinity" promptText="Select your birthday" style="-fx-background-radius: 8; -fx-background-color: #f4f4f4; -fx-border-color: #ddd; -fx-border-radius: 8;" />
-                        
-                        <Label text="Location:" textFill="#555555">
-                            <font><Font size="12.0" /></font>
-                        </Label>
-                        <TextField fx:id="locationField" promptText="City, Province" style="-fx-background-radius: 8; -fx-padding: 10; -fx-background-color: #f4f4f4; -fx-border-color: #ddd; -fx-border-radius: 8;" />
-                    </VBox>
-                </HBox>
-
-                <HBox alignment="CENTER_RIGHT" spacing="10.0">
-                    <Button onAction="#handleCancel" style="-fx-background-color: #cccccc; -fx-text-fill: #333333; -fx-font-weight: bold; -fx-background-radius: 8; -fx-padding: 10 25; -fx-cursor: hand;" text="Cancel" />
-                    <Button onAction="#handleSaveChanges" style="-fx-background-color: #00BF63; -fx-text-fill: WHITE; -fx-font-weight: bold; -fx-background-radius: 8; -fx-padding: 10 25; -fx-cursor: hand;" text="Update Profile" />
-                </HBox>
-            </VBox>
-
-            <!-- Security & Password Section -->
-            <VBox spacing="15.0" style="-fx-background-color: WHITE; -fx-background-radius: 12; -fx-padding: 25;">
-                <Label text="Security &amp; Password" textFill="#007744">
-                    <font><Font name="System Bold" size="19.0" /></font>
-                </Label>
-
-                <VBox maxWidth="500.0" spacing="10.0">
-                    <Label text="Current Password:" textFill="#555555">
-                        <font><Font size="12.0" /></font>
-                    </Label>
-                    <PasswordField fx:id="currentPasswordField" promptText="Enter current password" style="-fx-background-radius: 8; -fx-padding: 10; -fx-background-color: #f4f4f4; -fx-border-color: #ddd; -fx-border-radius: 8;" />
-                    
-                    <Label text="New Password:" textFill="#555555">
-                        <font><Font size="12.0" /></font>
-                    </Label>
-                    <PasswordField fx:id="newPasswordField" promptText="Enter new password (min. 6 characters)" style="-fx-background-radius: 8; -fx-padding: 10; -fx-background-color: #f4f4f4; -fx-border-color: #ddd; -fx-border-radius: 8;" />
-                    
-                    <Label text="Confirm New Password:" textFill="#555555">
-                        <font><Font size="12.0" /></font>
-                    </Label>
-                    <PasswordField fx:id="confirmPasswordField" promptText="Re-type new password" style="-fx-background-radius: 8; -fx-padding: 10; -fx-background-color: #f4f4f4; -fx-border-color: #ddd; -fx-border-radius: 8;" />
+                    </HBox>
                 </VBox>
 
-                <HBox alignment="CENTER_LEFT" spacing="12.0">
-                    <Button onAction="#handlePasswordChange" style="-fx-background-color: #2090ff; -fx-text-fill: WHITE; -fx-font-weight: bold; -fx-background-radius: 8; -fx-padding: 10 25; -fx-cursor: hand;" text="Change Password" />
-                    <Button onAction="#handleLogout" style="-fx-background-color: #e34d4d; -fx-text-fill: WHITE; -fx-font-weight: bold; -fx-background-radius: 8; -fx-padding: 10 25; -fx-cursor: hand;" text="Logout" />
-                </HBox>
+                <!-- Personal Information Section -->
+                <VBox spacing="15.0" style="-fx-background-color: WHITE; -fx-background-radius: 12; -fx-padding: 25;">
+                    <Label text="Personal Information" textFill="#007744">
+                        <font><Font name="System Bold" size="19.0" /></font>
+                    </Label>
+
+                    <HBox spacing="20.0">
+                        <VBox spacing="10.0" HBox.hgrow="ALWAYS">
+                            <Label text="Full Name:" textFill="#555555">
+                                <font><Font size="12.0" /></font>
+                            </Label>
+                            <TextField fx:id="nameField" promptText="Enter your full name" style="-fx-background-radius: 8; -fx-padding: 10; -fx-background-color: #f4f4f4; -fx-border-color: #ddd; -fx-border-radius: 8;" />
+
+                            <Label text="Email Address:" textFill="#555555">
+                                <font><Font size="12.0" /></font>
+                            </Label>
+                            <TextField fx:id="emailField" promptText="Enter your email" style="-fx-background-radius: 8; -fx-padding: 10; -fx-background-color: #f4f4f4; -fx-border-color: #ddd; -fx-border-radius: 8;" />
+
+                            <Label text="Phone Number:" textFill="#555555">
+                                <font><Font size="12.0" /></font>
+                            </Label>
+                            <TextField fx:id="phoneField" promptText="09XX-XXX-XXXX" style="-fx-background-radius: 8; -fx-padding: 10; -fx-background-color: #f4f4f4; -fx-border-color: #ddd; -fx-border-radius: 8;" />
+                        </VBox>
+
+                        <VBox prefHeight="218.0" prefWidth="264.0" spacing="10.0" HBox.hgrow="ALWAYS">
+                            <Label text="Birthday:" textFill="#555555">
+                                <font>
+                                    <Font size="12.0" />
+                                </font>
+                            </Label>
+                            <DatePicker fx:id="birthdayPicker" prefWidth="Infinity" promptText="Select your birthday" style="-fx-background-radius: 8; -fx-background-color: #f4f4f4; -fx-border-color: #ddd; -fx-border-radius: 8;" />
+
+                            <Label text="Location:" textFill="#555555">
+                                <font><Font size="12.0" /></font>
+                            </Label>
+                            <TextField fx:id="locationField" promptText="City, Province" style="-fx-background-radius: 8; -fx-padding: 10; -fx-background-color: #f4f4f4; -fx-border-color: #ddd; -fx-border-radius: 8;" />
+                        </VBox>
+                    </HBox>
+
+                    <HBox alignment="CENTER_RIGHT" spacing="10.0">
+                        <Button onAction="#handleCancel" style="-fx-background-color: #cccccc; -fx-text-fill: #333333; -fx-font-weight: bold; -fx-background-radius: 8; -fx-padding: 10 25; -fx-cursor: hand;" text="Cancel" />
+                        <Button onAction="#handleSaveChanges" style="-fx-background-color: #00BF63; -fx-text-fill: WHITE; -fx-font-weight: bold; -fx-background-radius: 8; -fx-padding: 10 25; -fx-cursor: hand;" text="Update Profile" />
+                    </HBox>
+                </VBox>
+
+                <!-- Security & Password Section -->
+                <VBox spacing="15.0" style="-fx-background-color: WHITE; -fx-background-radius: 12; -fx-padding: 25;">
+                    <Label text="Security &amp; Password" textFill="#007744">
+                        <font><Font name="System Bold" size="19.0" /></font>
+                    </Label>
+
+                    <VBox maxWidth="500.0" spacing="10.0">
+                        <Label text="Current Password:" textFill="#555555">
+                            <font><Font size="12.0" /></font>
+                        </Label>
+                        <PasswordField fx:id="currentPasswordField" promptText="Enter current password" style="-fx-background-radius: 8; -fx-padding: 10; -fx-background-color: #f4f4f4; -fx-border-color: #ddd; -fx-border-radius: 8;" />
+
+                        <Label text="New Password:" textFill="#555555">
+                            <font><Font size="12.0" /></font>
+                        </Label>
+                        <PasswordField fx:id="newPasswordField" promptText="Enter new password (min. 6 characters)" style="-fx-background-radius: 8; -fx-padding: 10; -fx-background-color: #f4f4f4; -fx-border-color: #ddd; -fx-border-radius: 8;" />
+
+                        <Label text="Confirm New Password:" textFill="#555555">
+                            <font><Font size="12.0" /></font>
+                        </Label>
+                        <PasswordField fx:id="confirmPasswordField" promptText="Re-type new password" style="-fx-background-radius: 8; -fx-padding: 10; -fx-background-color: #f4f4f4; -fx-border-color: #ddd; -fx-border-radius: 8;" />
+                    </VBox>
+
+                    <HBox alignment="CENTER_LEFT" spacing="12.0">
+                        <Button onAction="#handlePasswordChange" style="-fx-background-color: #2090ff; -fx-text-fill: WHITE; -fx-font-weight: bold; -fx-background-radius: 8; -fx-padding: 10 25; -fx-cursor: hand;" text="Change Password" />
+                        <Button onAction="#handleLogout" style="-fx-background-color: #e34d4d; -fx-text-fill: WHITE; -fx-font-weight: bold; -fx-background-radius: 8; -fx-padding: 10 25; -fx-cursor: hand;" text="Logout" />
+                    </HBox>
+                </VBox>
             </VBox>
-        </VBox>
+        </ScrollPane>
     </center>
 </BorderPane>

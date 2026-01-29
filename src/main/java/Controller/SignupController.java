@@ -112,7 +112,6 @@ public class SignupController {
      */
     @FXML
     private void handleDoctorSignupLink(ActionEvent event) {
-        // If they use the doctor path, ensure Doctor is selected (UX-friendly)
         if (doctorRadio != null) doctorRadio.setSelected(true);
 
         if (!validateForm(true)) {
@@ -182,12 +181,13 @@ public class SignupController {
         String password = passwordField.getText();
         String phone = phoneField.getText().trim();
         String birthday = formatBirthday(); // YYYY-MM-DD format
+        String location = locationField.getText().trim();
 
         Timeline createProcess = new Timeline(new KeyFrame(Duration.millis(2000), event -> {
             createAccountButton.getStyleClass().remove("loading");
 
             // Register patient using new LoginService method
-            boolean isSaved = LoginService.registerPatient(fullName, email, password, phone, birthday);
+            boolean isSaved = LoginService.registerPatient(fullName, email, password, phone, birthday, location);
 
             if (isSaved) {
                 showSuccessMessage("Account created successfully!");

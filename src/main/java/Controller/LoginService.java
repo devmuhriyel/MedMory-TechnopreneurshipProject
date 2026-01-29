@@ -166,7 +166,7 @@ public class LoginService {
     /**
      * Register a new patient user
      */
-    public static boolean registerPatient(String name, String email, String password, String phoneNumber, String birthday) {
+    public static boolean registerPatient(String name, String email, String password, String phoneNumber, String birthday, String location) {
 
         Connection conn = null;
         try {
@@ -186,8 +186,8 @@ public class LoginService {
 
             // Step 1: Insert into users table
             String insertUser = """
-                INSERT INTO users (name, email, phoneNumber, birthday, password_hash, role) 
-                VALUES (?, ?, ?, ?, ?, 'PATIENT')
+                INSERT INTO users (name, email, phoneNumber, birthday, password_hash, role, location) 
+                VALUES (?, ?, ?, ?, ?, 'PATIENT', ?)
             """;
 
             try (PreparedStatement ps = conn.prepareStatement(insertUser, PreparedStatement.RETURN_GENERATED_KEYS)) {
@@ -196,6 +196,7 @@ public class LoginService {
                 ps.setString(3, phoneNumber);
                 ps.setString(4, birthday); // Format: YYYY-MM-DD
                 ps.setString(5, password); // In production, hash the password first
+                ps.setString(6, location);
 
                 int rowsAffected = ps.executeUpdate();
 

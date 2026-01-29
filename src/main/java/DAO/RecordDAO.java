@@ -745,7 +745,7 @@ public class RecordDAO {
      */
     public PatientModel getPatientById(int patientId) {
         String sql = """
-        SELECT u.user_id, u.name, u.email, u.phoneNumber, u.birthday, u.created_at
+        SELECT u.user_id, u.name, u.email, u.phoneNumber, u.birthday, u.created_at, u.location
         FROM users u
         INNER JOIN patients p ON u.user_id = p.patient_id
         WHERE u.user_id = ? AND u.role = 'PATIENT'
@@ -763,7 +763,7 @@ public class RecordDAO {
                     patient.setPhoneNumber(rs.getString("phoneNumber"));
                     patient.setBirthday(rs.getString("birthday"));
                     patient.setCreatedAt(rs.getString("created_at"));
-                    patient.setLocation(""); // Location not stored in DB yet
+                    patient.setLocation(rs.getString("location")); // Location not stored in DB yet
                     patient.setAge(patient.calculateAge());
                     return patient;
                 }
@@ -780,7 +780,7 @@ public class RecordDAO {
      * Update patient information with location
      */
     public boolean updatePatient(int patientId, String name, String email, String phoneNumber, String birthday, String location) {
-        String sql = "UPDATE users SET name = ?, email = ?, phoneNumber = ?, birthday = ? WHERE user_id = ? AND role = 'PATIENT'";
+        String sql = "UPDATE users SET name = ?, email = ?, phoneNumber = ?, birthday = ?, location = ? WHERE user_id = ? AND role = 'PATIENT'";
 
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, name);
@@ -788,6 +788,7 @@ public class RecordDAO {
             ps.setString(3, phoneNumber);
             ps.setString(4, birthday);
             ps.setInt(5, patientId);
+            ps.setString(6, location);
 
             int rowsAffected = ps.executeUpdate();
 
