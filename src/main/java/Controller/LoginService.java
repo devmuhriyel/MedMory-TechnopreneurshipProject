@@ -2,11 +2,22 @@ package Controller;
 
 import DAO.DatabaseConnection;
 import MVP.SessionManager;
+import java.security.MessageDigest;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 
 import java.sql.*;
 
 public class LoginService {
-
+    public static String hashPassword(String password) {
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] hash = digest.digest(password.getBytes(StandardCharsets.UTF_8));
+            return Base64.getEncoder().encodeToString(hash);
+        } catch (Exception e) {
+            throw new RuntimeException("Error during hashing process", e);
+        }
+    }
     /**
      * Validate user credentials and return appropriate login result
      * Checks users table with role-based authentication

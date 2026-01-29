@@ -253,7 +253,7 @@ public class AccountController {
         String newPass = newPasswordField.getText();
         String confirmPass = confirmPasswordField.getText();
 
-        // Validation
+        // 1. Basic Validation
         if (currentPass.isEmpty() || newPass.isEmpty() || confirmPass.isEmpty()) {
             showAlert(Alert.AlertType.ERROR, "Error", "All password fields are required.");
             return;
@@ -270,7 +270,13 @@ public class AccountController {
         }
 
         try {
-            boolean success = LoginService.changePassword(currentPatientId, currentPass, newPass);
+            // 2. Hash both the current and new passwords before sending to the service
+            // This ensures the service compares hashes and stores hashes
+            String hashedCurrentPass = LoginService.hashPassword(currentPass);
+            String hashedNewPass = LoginService.hashPassword(newPass);
+
+            // 3. Call the service with hashed values
+            boolean success = LoginService.changePassword(currentPatientId, hashedCurrentPass, hashedNewPass);
 
             if (success) {
                 showAlert(Alert.AlertType.INFORMATION, "Success", "Password updated successfully!");
@@ -279,8 +285,9 @@ public class AccountController {
                 confirmPasswordField.clear();
                 System.out.println("✅ Password changed successfully");
             } else {
+                // This usually triggers if hashedCurrentPass doesn't match the database
                 showAlert(Alert.AlertType.ERROR, "Error", "Failed to update password. Please check your current password.");
-                System.err.println("❌ Password change failed");
+                System.err.println("❌ Password change failed - current password incorrect");
             }
         } catch (Exception e) {
             System.err.println("❌ Exception changing password: " + e.getMessage());

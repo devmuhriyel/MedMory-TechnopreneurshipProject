@@ -77,6 +77,8 @@ public class LoginController {
 
         showLoadingAnimation();
 
+        String hashedInputPassword = LoginService.hashPassword(password);
+
         Timeline loginProcess = new Timeline(
                 new KeyFrame(Duration.millis(1500), event -> {
                     stopLoadingAnimation();
@@ -85,11 +87,10 @@ public class LoginController {
                     LoginResult result;
                     if (username.contains("@")) {
                         // If input looks like email, use email login
-                        result = LoginService.validateCredentials(username, password);
+                        result = LoginService.validateCredentials(username, hashedInputPassword);
                     } else {
                         // Otherwise try username login
-                        result = LoginService.validateCredentialsByUsername(username, password);
-                    }
+                        result = LoginService.validateCredentialsByUsername(username, hashedInputPassword);                    }
 
                     // Handle login result based on status
                     if (result.isSuccess()) {

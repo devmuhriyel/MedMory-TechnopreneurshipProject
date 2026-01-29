@@ -19,6 +19,9 @@ import javafx.util.Duration;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.util.regex.Pattern;
+import java.security.MessageDigest;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 
 public class SignupController {
 
@@ -178,7 +181,7 @@ public class SignupController {
         // Data processing for Patient registration
         String fullName = firstNameField.getText().trim() + " " + lastNameField.getText().trim();
         String email = emailField.getText().trim();
-        String password = passwordField.getText();
+        String securePassword = LoginService.hashPassword(passwordField.getText());
         String phone = phoneField.getText().trim();
         String birthday = formatBirthday(); // YYYY-MM-DD format
         String location = locationField.getText().trim();
@@ -187,7 +190,7 @@ public class SignupController {
             createAccountButton.getStyleClass().remove("loading");
 
             // Register patient using new LoginService method
-            boolean isSaved = LoginService.registerPatient(fullName, email, password, phone, birthday, location);
+            boolean isSaved = LoginService.registerPatient(fullName, email, securePassword, phone, birthday, location);
 
             if (isSaved) {
                 showSuccessMessage("Account created successfully!");
@@ -215,7 +218,6 @@ public class SignupController {
         }));
         createProcess.play();
     }
-
     /**
      * Format birthday from ComboBoxes to YYYY-MM-DD format
      */
